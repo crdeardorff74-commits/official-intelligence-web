@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Official Intelligence</title>
+    <meta name="description" content="AI-powered games and experiments from Official Intelligence">
+    
+    <!-- Retro Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-darker: #050508;
+            --text-primary: #00ff88;
+            --text-secondary: #ff00ff;
+            --text-tertiary: #00ffff;
+            --text-dim: #446655;
+            --neon-pink: #ff0080;
+            --neon-blue: #00d4ff;
+            --neon-purple: #8b00ff;
+            --neon-green: #00ff88;
+            --grid-color: rgba(0, 255, 136, 0.1);
+            --scanline-color: rgba(0, 0, 0, 0.15);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'VT323', monospace;
+            font-size: 18px;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* CRT Scanline Effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                var(--scanline-color) 2px,
+                var(--scanline-color) 4px
+            );
+            z-index: 10000;
+        }
+        
+        /* Grid Background */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+        }
+        
+        /* Header */
+        header {
+            background: linear-gradient(180deg, var(--bg-darker) 0%, transparent 100%);
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 2px solid var(--neon-pink);
+            box-shadow: 0 0 30px rgba(255, 0, 128, 0.3);
+        }
+        
+        .logo {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 28px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--neon-green);
+            text-shadow: 
+                0 0 10px var(--neon-green),
+                0 0 20px var(--neon-green),
+                0 0 40px var(--neon-green);
+            animation: glow-pulse 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow-pulse {
+            from { text-shadow: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green); }
+            to { text-shadow: 0 0 20px var(--neon-green), 0 0 40px var(--neon-green), 0 0 60px var(--neon-green); }
+        }
+        
+        .tagline {
+            font-size: 14px;
+            color: var(--text-tertiary);
+            margin-top: 10px;
+            letter-spacing: 2px;
+        }
+        
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        nav a {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            color: var(--text-tertiary);
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        nav a:hover {
+            color: var(--neon-pink);
+            border-color: var(--neon-pink);
+            text-shadow: 0 0 10px var(--neon-pink);
+            box-shadow: 0 0 20px rgba(255, 0, 128, 0.3);
+        }
+        
+        nav a.active {
+            color: var(--neon-green);
+            border-color: var(--neon-green);
+        }
+        
+        /* User Menu */
+        .user-menu {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        
+        .user-menu button {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            background: transparent;
+            color: var(--text-tertiary);
+            border: 2px solid var(--text-dim);
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .user-menu button:hover {
+            border-color: var(--neon-blue);
+            color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-info img {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            border: 2px solid var(--neon-green);
+        }
+        
+        .user-info span {
+            font-size: 14px;
+            color: var(--neon-green);
+        }
+        
+        /* Main Content */
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* Section Headers */
+        .section-header {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 18px;
+            color: var(--neon-pink);
+            text-transform: uppercase;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--neon-pink);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .section-header::before {
+            content: '>';
+            animation: blink 1s step-end infinite;
+        }
+        
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+        
+        /* Games Grid */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+        
+        .game-card {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.05) 0%, rgba(255, 0, 128, 0.05) 100%);
+            border: 2px solid var(--text-dim);
+            padding: 0;
+            transition: all 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            overflow: hidden;
+        }
+        
+        .game-card:hover {
+            border-color: var(--neon-green);
+            box-shadow: 
+                0 0 20px rgba(0, 255, 136, 0.3),
+                inset 0 0 30px rgba(0, 255, 136, 0.1);
+            transform: translateY(-5px);
+        }
+        
+        .game-card-image {
+            width: 100%;
+            height: 180px;
+            background: var(--bg-darker);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 2px solid var(--text-dim);
+            overflow: hidden;
+        }
+        
+        .game-card-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+        
+        .game-card-image .placeholder {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 40px;
+            color: var(--text-dim);
+        }
+        
+        .game-card-content {
+            padding: 20px;
+        }
+        
+        .game-card h3 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            color: var(--neon-green);
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        
+        .game-card p {
+            font-size: 16px;
+            color: var(--text-tertiary);
+            line-height: 1.5;
+        }
+        
+        .game-card .status {
+            display: inline-block;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            padding: 5px 10px;
+            margin-top: 15px;
+            border: 1px solid;
+        }
+        
+        .status.live {
+            color: var(--neon-green);
+            border-color: var(--neon-green);
+        }
+        
+        .status.coming-soon {
+            color: var(--neon-purple);
+            border-color: var(--neon-purple);
+        }
+        
+        /* Blog Section */
+        .blog-posts {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .blog-post {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 4px solid var(--neon-pink);
+            padding: 20px 25px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .blog-post:hover {
+            background: rgba(255, 0, 128, 0.1);
+            border-left-color: var(--neon-blue);
+        }
+        
+        .blog-post h3 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        .blog-post .date {
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+        }
+        
+        .blog-post .excerpt {
+            font-size: 16px;
+            color: var(--text-tertiary);
+            line-height: 1.6;
+        }
+        
+        .view-all {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            color: var(--neon-blue);
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            border: 2px solid var(--neon-blue);
+            transition: all 0.3s;
+        }
+        
+        .view-all:hover {
+            background: rgba(0, 212, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            margin-top: 60px;
+            border-top: 2px solid var(--text-dim);
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+        
+        footer a {
+            color: var(--text-tertiary);
+            text-decoration: none;
+        }
+        
+        footer a:hover {
+            color: var(--neon-pink);
+        }
+        
+        /* ASCII Art Decoration */
+        .ascii-decoration {
+            font-family: monospace;
+            font-size: 10px;
+            color: var(--text-dim);
+            white-space: pre;
+            line-height: 1.2;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        /* Login Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: var(--bg-darker);
+            border: 3px solid var(--neon-green);
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 0 50px rgba(0, 255, 136, 0.3);
+        }
+        
+        .modal h2 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            color: var(--neon-green);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            color: var(--text-dim);
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+        
+        .modal-close:hover {
+            color: var(--neon-pink);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: var(--text-tertiary);
+            margin-bottom: 8px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            font-family: 'VT323', monospace;
+            font-size: 18px;
+            background: var(--bg-dark);
+            border: 2px solid var(--text-dim);
+            color: var(--text-primary);
+            outline: none;
+        }
+        
+        .form-group input:focus {
+            border-color: var(--neon-green);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+        
+        .btn {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            padding: 15px 30px;
+            border: 2px solid;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+            text-decoration: none;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: transparent;
+            color: var(--neon-green);
+            border-color: var(--neon-green);
+            width: 100%;
+        }
+        
+        .btn-primary:hover {
+            background: rgba(0, 255, 136, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            color: var(--text-dim);
+            position: relative;
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 35%;
+            height: 1px;
+            background: var(--text-dim);
+        }
+        
+        .divider::before { left: 0; }
+        .divider::after { right: 0; }
+        
+        .oauth-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .btn-oauth {
+            background: var(--bg-dark);
+            color: var(--text-tertiary);
+            border-color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn-oauth:hover {
+            border-color: var(--neon-blue);
+            color: var(--neon-blue);
+        }
+        
+        .btn-oauth svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .modal-footer {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+        
+        .modal-footer a {
+            color: var(--neon-pink);
+            text-decoration: none;
+        }
+        
+        .modal-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid #ff0000;
+            color: #ff6666;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .logo { font-size: 18px; }
+            nav { gap: 15px; }
+            nav a { font-size: 10px; padding: 8px 12px; }
+            .section-header { font-size: 14px; }
+            .game-card h3 { font-size: 12px; }
+            .user-menu { position: static; text-align: center; margin-top: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Official Intelligence</div>
+        <div class="tagline">AI-POWERED GAMES & EXPERIMENTS</div>
+        
+        <nav>
+            <a href="/" class="active">HOME</a>
+            <a href="/games">GAMES</a>
+            <a href="/blog">BLOG</a>
+            <a href="/about">ABOUT</a>
+        </nav>
+        
+        <div class="user-menu" id="userMenu">
+            <button onclick="showLoginModal()">LOGIN</button>
+        </div>
+    </header>
+    
+    <main>
+        <!-- Games Section -->
+        <section>
+            <h2 class="section-header">PLAY NOW</h2>
+            
+            <div class="games-grid">
+                <a href="https://blockchainstorm.official-intelligence.art" class="game-card" target="_blank">
+                    <div class="game-card-image">
+                        <div class="placeholder">⬛</div>
+                    </div>
+                    <div class="game-card-content">
+                        <h3>BLOCKCHAINSTORM</h3>
+                        <p>A revolutionary twist on the classic falling blocks game. Journey through the solar system, survive cosmic disasters, and climb the leaderboards!</p>
+                        <span class="status live">● LIVE</span>
+                    </div>
+                </a>
+                
+                <div class="game-card">
+                    <div class="game-card-image">
+                        <div class="placeholder">?</div>
+                    </div>
+                    <div class="game-card-content">
+                        <h3>PROJECT ???</h3>
+                        <p>Something new is brewing in the lab. Stay tuned for our next AI-enhanced gaming experience...</p>
+                        <span class="status coming-soon">COMING SOON</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Blog Section -->
+        <section>
+            <h2 class="section-header">LATEST TRANSMISSIONS</h2>
+            
+            <div class="blog-posts" id="blogPosts">
+                <!-- Blog posts will be loaded here -->
+                <div class="blog-post">
+                    <h3>LOADING TRANSMISSIONS...</h3>
+                    <p class="excerpt">Establishing connection to the mainframe...</p>
+                </div>
+            </div>
+            
+            <a href="/blog" class="view-all">VIEW ALL POSTS →</a>
+        </section>
+        
+        <div class="ascii-decoration">
+    ╔══════════════════════════════════════════════════════════════╗
+    ║  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄  ║
+    ║  █ OFFICIAL INTELLIGENCE - WHERE AI MEETS ENTERTAINMENT █  ║
+    ║  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀  ║
+    ╚══════════════════════════════════════════════════════════════╝
+        </div>
+    </main>
+    
+    <footer>
+        <p>© 2024 Official Intelligence • Created with 🤖 by humans & AI</p>
+        <p style="margin-top: 10px;">
+            <a href="/privacy">Privacy</a> • 
+            <a href="/terms">Terms</a> • 
+            <a href="https://github.com/official-intelligence" target="_blank">GitHub</a>
+        </p>
+    </footer>
+    
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal" style="position: relative;">
+            <button class="modal-close" onclick="hideLoginModal()">&times;</button>
+            
+            <h2 id="modalTitle">LOGIN</h2>
+            
+            <div class="error-message" id="loginError"></div>
+            
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group" id="usernameGroup" style="display: none;">
+                    <label>USERNAME</label>
+                    <input type="text" id="username" name="username" autocomplete="username">
+                </div>
+                
+                <div class="form-group">
+                    <label>EMAIL</label>
+                    <input type="email" id="email" name="email" required autocomplete="email">
+                </div>
+                
+                <div class="form-group">
+                    <label>PASSWORD</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="submitBtn">ENTER</button>
+            </form>
+            
+            <div class="divider">OR</div>
+            
+            <div class="oauth-buttons">
+                <a href="/api/auth/google/login" class="btn btn-oauth">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                    GOOGLE
+                </a>
+                
+                <a href="/api/auth/github/login" class="btn btn-oauth">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    GITHUB
+                </a>
+            </div>
+            
+            <div class="modal-footer">
+                <span id="toggleText">New player? </span>
+                <a href="#" onclick="toggleLoginMode(event)">Create account</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Configuration
+        const API_URL = 'https://official-intelligence-api.onrender.com'; // Update this
+        
+        // Auth state
+        let currentUser = null;
+        let isRegisterMode = false;
+        
+        // Check for existing token
+        function checkAuth() {
+            const token = localStorage.getItem('oi_token');
+            if (token) {
+                fetch(`${API_URL}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.user) {
+                        setUser(data.user);
+                    } else {
+                        localStorage.removeItem('oi_token');
+                    }
+                })
+                .catch(() => localStorage.removeItem('oi_token'));
+            }
+        }
+        
+        function setUser(user) {
+            currentUser = user;
+            const menu = document.getElementById('userMenu');
+            menu.innerHTML = `
+                <div class="user-info">
+                    ${user.avatar_url ? `<img src="${user.avatar_url}" alt="">` : ''}
+                    <span>${user.display_name || user.username}</span>
+                    <button onclick="logout()" style="margin-left: 10px;">LOGOUT</button>
+                </div>
+            `;
+        }
+        
+        function logout() {
+            localStorage.removeItem('oi_token');
+            currentUser = null;
+            document.getElementById('userMenu').innerHTML = '<button onclick="showLoginModal()">LOGIN</button>';
+        }
+        
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.add('active');
+        }
+        
+        function hideLoginModal() {
+            document.getElementById('loginModal').classList.remove('active');
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('loginForm').reset();
+        }
+        
+        function toggleLoginMode(e) {
+            e.preventDefault();
+            isRegisterMode = !isRegisterMode;
+            
+            const title = document.getElementById('modalTitle');
+            const usernameGroup = document.getElementById('usernameGroup');
+            const submitBtn = document.getElementById('submitBtn');
+            const toggleText = document.getElementById('toggleText');
+            const toggleLink = document.querySelector('.modal-footer a');
+            
+            if (isRegisterMode) {
+                title.textContent = 'REGISTER';
+                usernameGroup.style.display = 'block';
+                submitBtn.textContent = 'CREATE ACCOUNT';
+                toggleText.textContent = 'Already have an account? ';
+                toggleLink.textContent = 'Login';
+            } else {
+                title.textContent = 'LOGIN';
+                usernameGroup.style.display = 'none';
+                submitBtn.textContent = 'ENTER';
+                toggleText.textContent = 'New player? ';
+                toggleLink.textContent = 'Create account';
+            }
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+        
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const username = document.getElementById('username').value;
+            
+            const endpoint = isRegisterMode ? '/auth/register' : '/auth/login';
+            const body = isRegisterMode 
+                ? { email, password, username }
+                : { email, password };
+            
+            try {
+                const res = await fetch(`${API_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok && data.token) {
+                    localStorage.setItem('oi_token', data.token);
+                    setUser(data.user);
+                    hideLoginModal();
+                } else {
+                    showError(data.error || 'Authentication failed');
+                }
+            } catch (err) {
+                showError('Connection failed. Please try again.');
+            }
+        }
+        
+        // Handle OAuth callback
+        function handleOAuthCallback() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            
+            if (token) {
+                localStorage.setItem('oi_token', token);
+                // Clean URL
+                window.history.replaceState({}, '', window.location.pathname);
+                checkAuth();
+            }
+        }
+        
+        // Load blog posts
+        async function loadBlogPosts() {
+            try {
+                const res = await fetch(`${API_URL}/blog/posts/latest?limit=3`);
+                const data = await res.json();
+                
+                const container = document.getElementById('blogPosts');
+                
+                if (data.posts && data.posts.length > 0) {
+                    container.innerHTML = data.posts.map(post => `
+                        <a href="/blog/${post.slug}" class="blog-post">
+                            <h3>${post.title}</h3>
+                            <div class="date">${new Date(post.published_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                            <p class="excerpt">${post.excerpt || ''}</p>
+                        </a>
+                    `).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="blog-post">
+                            <h3>NO TRANSMISSIONS YET</h3>
+                            <p class="excerpt">The silence before the storm... Check back soon for updates!</p>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                console.error('Failed to load blog posts:', err);
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            handleOAuthCallback();
+            checkAuth();
+            loadBlogPosts();
+        });
+        
+        // Close modal on outside click
+        document.getElementById('loginModal').addEventListener('click', (e) => {
+            if (e.target.id === 'loginModal') hideLoginModal();
+        });
+        
+        // Close modal on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') hideLoginModal();
+        });
+    </script>
+</body>
+</html>
