@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Official Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-darker: #050508;
+            --text-primary: #00ff88;
+            --text-tertiary: #00ffff;
+            --text-dim: #446655;
+            --neon-pink: #ff0080;
+            --neon-blue: #00d4ff;
+            --neon-green: #00ff88;
+            --neon-red: #ff4444;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'VT323', monospace;
+            font-size: 18px;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        h1 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 20px;
+            color: var(--neon-green);
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            color: var(--neon-pink);
+            margin: 30px 0 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .btn {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            padding: 12px 20px;
+            border: 2px solid;
+            cursor: pointer;
+            background: transparent;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            color: var(--neon-green);
+            border-color: var(--neon-green);
+        }
+        
+        .btn-primary:hover {
+            background: rgba(0, 255, 136, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+        }
+        
+        .btn-danger {
+            color: var(--neon-red);
+            border-color: var(--neon-red);
+        }
+        
+        .btn-danger:hover {
+            background: rgba(255, 68, 68, 0.2);
+        }
+        
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 8px;
+        }
+        
+        /* Posts List */
+        .posts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .post-item {
+            background: var(--bg-darker);
+            border: 2px solid var(--text-dim);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .post-item:hover {
+            border-color: var(--neon-blue);
+        }
+        
+        .post-info h3 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-bottom: 8px;
+        }
+        
+        .post-meta {
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+        
+        .post-status {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            padding: 5px 10px;
+            border: 1px solid;
+        }
+        
+        .status-published {
+            color: var(--neon-green);
+            border-color: var(--neon-green);
+        }
+        
+        .status-draft {
+            color: var(--neon-pink);
+            border-color: var(--neon-pink);
+        }
+        
+        .post-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* Editor */
+        .editor {
+            display: none;
+            background: var(--bg-darker);
+            border: 2px solid var(--neon-green);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .editor.active { display: block; }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: var(--text-tertiary);
+            margin-bottom: 8px;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            font-family: 'VT323', monospace;
+            font-size: 18px;
+            background: var(--bg-dark);
+            border: 2px solid var(--text-dim);
+            color: var(--text-primary);
+            outline: none;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--neon-green);
+        }
+        
+        .form-group textarea {
+            min-height: 300px;
+            resize: vertical;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .checkbox-group input {
+            width: auto;
+        }
+        
+        .editor-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .message {
+            padding: 15px;
+            margin-bottom: 20px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+        }
+        
+        .message.success {
+            background: rgba(0, 255, 136, 0.2);
+            border: 2px solid var(--neon-green);
+            color: var(--neon-green);
+        }
+        
+        .message.error {
+            background: rgba(255, 68, 68, 0.2);
+            border: 2px solid var(--neon-red);
+            color: var(--neon-red);
+        }
+        
+        .not-admin {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-dim);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>> ADMIN PANEL</h1>
+        <div>
+            <a href="/" class="btn btn-primary">← BACK TO SITE</a>
+        </div>
+    </div>
+    
+    <div id="message"></div>
+    
+    <div id="notAdmin" class="not-admin" style="display: none;">
+        <h2>ACCESS DENIED</h2>
+        <p style="margin-top: 20px;">Admin privileges required.</p>
+        <a href="/" class="btn btn-primary" style="margin-top: 20px;">RETURN HOME</a>
+    </div>
+    
+    <div id="adminContent" style="display: none;">
+        <div class="header">
+            <h2>> BLOG POSTS</h2>
+            <button class="btn btn-primary" onclick="showEditor()">+ NEW POST</button>
+        </div>
+        
+        <div id="editor" class="editor">
+            <h2 id="editorTitle">> NEW POST</h2>
+            <input type="hidden" id="postId">
+            
+            <div class="form-group">
+                <label>TITLE</label>
+                <input type="text" id="postTitle" placeholder="Enter post title...">
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>SLUG (URL)</label>
+                    <input type="text" id="postSlug" placeholder="auto-generated-from-title">
+                </div>
+                <div class="form-group">
+                    <label>TAGS (comma separated)</label>
+                    <input type="text" id="postTags" placeholder="news, update, game">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>EXCERPT</label>
+                <input type="text" id="postExcerpt" placeholder="Short preview text...">
+            </div>
+            
+            <div class="form-group">
+                <label>FEATURED IMAGE URL</label>
+                <input type="text" id="postImage" placeholder="https://...">
+            </div>
+            
+            <div class="form-group">
+                <label>CONTENT (HTML supported)</label>
+                <textarea id="postContent" placeholder="Write your post content here..."></textarea>
+            </div>
+            
+            <div class="checkbox-group">
+                <input type="checkbox" id="postPublished">
+                <label for="postPublished">PUBLISHED</label>
+            </div>
+            
+            <div class="editor-actions">
+                <button class="btn btn-primary" onclick="savePost()">SAVE POST</button>
+                <button class="btn btn-danger" onclick="hideEditor()">CANCEL</button>
+            </div>
+        </div>
+        
+        <div id="postsList" class="posts-list">
+            <div class="loading">Loading posts...</div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'https://official-intelligence-api.onrender.com';
+        let token = localStorage.getItem('oi_token');
+        
+        // Check admin status
+        async function checkAdmin() {
+            if (!token) {
+                document.getElementById('notAdmin').style.display = 'block';
+                return;
+            }
+            
+            try {
+                const res = await fetch(`${API_URL}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (data.user?.is_admin) {
+                    document.getElementById('adminContent').style.display = 'block';
+                    loadPosts();
+                } else {
+                    document.getElementById('notAdmin').style.display = 'block';
+                }
+            } catch (err) {
+                document.getElementById('notAdmin').style.display = 'block';
+            }
+        }
+        
+        // Load posts
+        async function loadPosts() {
+            try {
+                const res = await fetch(`${API_URL}/blog/admin/posts`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                const container = document.getElementById('postsList');
+                
+                if (data.posts?.length) {
+                    container.innerHTML = data.posts.map(post => `
+                        <div class="post-item">
+                            <div class="post-info">
+                                <h3>${escapeHtml(post.title)}</h3>
+                                <div class="post-meta">
+                                    ${post.published_at ? new Date(post.published_at).toLocaleDateString() : 'Not published'} 
+                                    · /${post.slug}
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <span class="post-status ${post.published ? 'status-published' : 'status-draft'}">
+                                    ${post.published ? 'PUBLISHED' : 'DRAFT'}
+                                </span>
+                                <div class="post-actions">
+                                    <button class="btn btn-primary btn-small" onclick="editPost(${post.id})">EDIT</button>
+                                    <button class="btn btn-danger btn-small" onclick="deletePost(${post.id})">DELETE</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p style="color: var(--text-dim);">No posts yet. Create your first one!</p>';
+                }
+            } catch (err) {
+                showMessage('Failed to load posts', 'error');
+            }
+        }
+        
+        // Show editor
+        function showEditor(post = null) {
+            document.getElementById('editor').classList.add('active');
+            document.getElementById('editorTitle').textContent = post ? '> EDIT POST' : '> NEW POST';
+            
+            document.getElementById('postId').value = post?.id || '';
+            document.getElementById('postTitle').value = post?.title || '';
+            document.getElementById('postSlug').value = post?.slug || '';
+            document.getElementById('postTags').value = post?.tags || '';
+            document.getElementById('postExcerpt').value = post?.excerpt || '';
+            document.getElementById('postImage').value = post?.featured_image || '';
+            document.getElementById('postContent').value = post?.content || '';
+            document.getElementById('postPublished').checked = post?.published || false;
+        }
+        
+        function hideEditor() {
+            document.getElementById('editor').classList.remove('active');
+        }
+        
+        // Edit post
+        async function editPost(id) {
+            try {
+                const res = await fetch(`${API_URL}/blog/admin/posts/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.post) {
+                    showEditor(data.post);
+                }
+            } catch (err) {
+                showMessage('Failed to load post', 'error');
+            }
+        }
+        
+        // Save post
+        async function savePost() {
+            const id = document.getElementById('postId').value;
+            const postData = {
+                title: document.getElementById('postTitle').value,
+                slug: document.getElementById('postSlug').value || undefined,
+                tags: document.getElementById('postTags').value,
+                excerpt: document.getElementById('postExcerpt').value,
+                featured_image: document.getElementById('postImage').value || null,
+                content: document.getElementById('postContent').value,
+                published: document.getElementById('postPublished').checked
+            };
+            
+            try {
+                const url = id ? `${API_URL}/blog/admin/posts/${id}` : `${API_URL}/blog/admin/posts`;
+                const method = id ? 'PUT' : 'POST';
+                
+                const res = await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(postData)
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    showMessage(id ? 'Post updated!' : 'Post created!', 'success');
+                    hideEditor();
+                    loadPosts();
+                } else {
+                    showMessage(data.error || 'Failed to save', 'error');
+                }
+            } catch (err) {
+                showMessage('Failed to save post', 'error');
+            }
+        }
+        
+        // Delete post
+        async function deletePost(id) {
+            if (!confirm('Are you sure you want to delete this post?')) return;
+            
+            try {
+                const res = await fetch(`${API_URL}/blog/admin/posts/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (res.ok) {
+                    showMessage('Post deleted', 'success');
+                    loadPosts();
+                } else {
+                    showMessage('Failed to delete', 'error');
+                }
+            } catch (err) {
+                showMessage('Failed to delete post', 'error');
+            }
+        }
+        
+        function showMessage(text, type) {
+            const el = document.getElementById('message');
+            el.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(() => el.innerHTML = '', 3000);
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Auto-generate slug from title
+        document.getElementById('postTitle').addEventListener('input', function() {
+            const slugField = document.getElementById('postSlug');
+            if (!document.getElementById('postId').value && !slugField.dataset.manual) {
+                slugField.value = this.value.toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-|-$/g, '');
+            }
+        });
+        
+        document.getElementById('postSlug').addEventListener('input', function() {
+            this.dataset.manual = 'true';
+        });
+        
+        // Init
+        checkAdmin();
+    </script>
+</body>
+</html>
