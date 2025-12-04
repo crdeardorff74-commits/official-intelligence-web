@@ -882,6 +882,18 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') hideLoginModal();
         });
+
+		// Update game links with auth token
+		document.addEventListener('DOMContentLoaded', () => {
+		    const token = localStorage.getItem('oi_token');
+		    if (token) {
+		        document.querySelectorAll('a[href*="blockchainstorm"]').forEach(link => {
+		            const url = new URL(link.href);
+		            url.searchParams.set('token', token);
+		            link.href = url.toString();
+		        });
+		    }
+		});
     </script>
 </body>
 </html>
