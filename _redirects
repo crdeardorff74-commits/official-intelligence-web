@@ -1,0 +1,5 @@
+# Blog post dynamic routes - serve template for any /blog/slug path
+/blog/*  /blog/post.html  200
+
+# Auth callback (already have this page)
+/auth/callback  /auth/callback/index.html  200
