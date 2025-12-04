@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading... - Official Intelligence</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header>
+        <a href="/" class="logo">Official Intelligence</a>
+        <div class="tagline">TRANSMISSION LOG</div>
+        
+        <nav>
+            <a href="/">HOME</a>
+            <a href="/games">GAMES</a>
+            <a href="/blog" class="active">BLOG</a>
+            <a href="/about">ABOUT</a>
+        </nav>
+    </header>
+    
+    <main>
+        <article id="postContainer">
+            <div class="loading">
+                <span class="blink">LOADING TRANSMISSION...</span>
+            </div>
+        </article>
+    </main>
+    
+    <footer>
+        <p>© 2025 Official Intelligence • Created with 🤖 by humans & AI</p>
+    </footer>
+    
+    <script>
+        const API_URL = 'https://official-intelligence-api.onrender.com';
+        
+        async function loadPost() {
+            // Get slug from URL path: /blog/my-post-slug -> my-post-slug
+            const path = window.location.pathname;
+            const slug = path.replace(/^\/blog\//, '').replace(/\/$/, '');
+            
+            if (!slug) {
+                window.location.href = '/blog/';
+                return;
+            }
+            
+            try {
+                const res = await fetch(`${API_URL}/blog/posts/${slug}`);
+                
+                if (!res.ok) {
+                    showError();
+                    return;
+                }
+                
+                const data = await res.json();
+                const post = data.post;
+                
+                if (!post) {
+                    showError();
+                    return;
+                }
+                
+                // Update page title
+                document.title = `${post.title} - Official Intelligence`;
+                
+                // Render post
+                document.getElementById('postContainer').innerHTML = `
+                    <a href="/blog/" class="back-link">← BACK TO BLOG</a>
+                    
+                    ${post.featured_image ? `<img src="${post.featured_image}" alt="" class="featured-image">` : ''}
+                    
+                    <h1 class="post-title">${escapeHtml(post.title)}</h1>
+                    
+                    <div class="post-meta">
+                        <span class="date">${formatDate(post.published_at)}</span>
+                        <span class="author">by ${post.author?.display_name || post.author?.username || 'Unknown'}</span>
+                    </div>
+                    
+                    <div class="post-body">
+                        ${post.content}
+                    </div>
+                    
+                    ${post.tags ? `<div class="post-tags">Tags: ${post.tags}</div>` : ''}
+                `;
+                
+            } catch (err) {
+                console.error('Failed to load post:', err);
+                showError();
+            }
+        }
+        
+        function showError() {
+            document.getElementById('postContainer').innerHTML = `
+                <div class="error-state">
+                    <h1>POST NOT FOUND</h1>
+                    <p>This transmission does not exist or has been redacted.</p>
+                    <a href="/blog/" class="back-link">← RETURN TO BLOG</a>
+                </div>
+            `;
+            document.title = 'Not Found - Official Intelligence';
+        }
+        
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            return new Date(dateStr).toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        loadPost();
+    </script>
+    
+    <style>
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .back-link {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            color: var(--neon-blue);
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 30px;
+        }
+        
+        .back-link:hover {
+            color: var(--neon-pink);
+        }
+        
+        .featured-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            border: 2px solid var(--text-dim);
+            margin-bottom: 30px;
+        }
+        
+        .post-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 18px;
+            color: var(--neon-green);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .post-meta {
+            font-size: 16px;
+            color: var(--text-dim);
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--text-dim);
+        }
+        
+        .post-meta .author {
+            margin-left: 20px;
+        }
+        
+        .post-body {
+            font-size: 20px;
+            line-height: 1.8;
+            color: var(--text-tertiary);
+        }
+        
+        .post-body h2, .post-body h3 {
+            font-family: 'Press Start 2P', cursive;
+            color: var(--neon-pink);
+            margin: 30px 0 15px;
+        }
+        
+        .post-body h2 { font-size: 14px; }
+        .post-body h3 { font-size: 12px; }
+        
+        .post-body p {
+            margin-bottom: 20px;
+        }
+        
+        .post-body a {
+            color: var(--neon-blue);
+        }
+        
+        .post-body a:hover {
+            color: var(--neon-pink);
+        }
+        
+        .post-body img {
+            max-width: 100%;
+            border: 2px solid var(--text-dim);
+            margin: 20px 0;
+        }
+        
+        .post-body code {
+            background: var(--bg-darker);
+            padding: 2px 8px;
+            font-family: 'VT323', monospace;
+            color: var(--neon-green);
+        }
+        
+        .post-body pre {
+            background: var(--bg-darker);
+            padding: 20px;
+            overflow-x: auto;
+            border: 2px solid var(--text-dim);
+            margin: 20px 0;
+        }
+        
+        .post-tags {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid var(--text-dim);
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+        
+        .loading, .error-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .error-state h1 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            color: var(--neon-pink);
+            margin-bottom: 20px;
+        }
+        
+        .error-state p {
+            color: var(--text-dim);
+            margin-bottom: 30px;
+        }
+        
+        .blink {
+            animation: blink 1s step-end infinite;
+        }
+        
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+    </style>
+</body>
+</html>
