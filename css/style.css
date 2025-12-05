@@ -270,7 +270,7 @@ main {
 }
 
 .game-card p {
-    font-size: clamp(0.875rem, 1.5vw, 1rem);
+    font-size: clamp(0.95rem, 1.6vw, 1.1rem);
     color: var(--text-tertiary);
     line-height: 1.45;
 }
@@ -330,7 +330,7 @@ main {
 }
 
 .blog-post .excerpt {
-    font-size: clamp(0.875rem, 1.5vw, 1rem);
+    font-size: clamp(0.95rem, 1.6vw, 1.1rem);
     color: var(--text-tertiary);
     line-height: 1.5;
 }
