@@ -70,7 +70,7 @@ body::after {
 /* Header */
 header {
     background: linear-gradient(180deg, var(--bg-darker) 0%, transparent 100%);
-    padding: clamp(0.75rem, 1.5vw, 1rem) clamp(1rem, 2vw, 1.5rem);
+    padding: clamp(1rem, 2vw, 1.5rem) clamp(1rem, 2vw, 1.5rem);
     text-align: center;
     border-bottom: 2px solid var(--neon-pink);
     box-shadow: 0 0 clamp(1rem, 3vw, 2rem) rgba(255, 176, 0, 0.3);
@@ -100,7 +100,7 @@ header {
 .tagline {
     font-size: clamp(0.7rem, 1.5vw, 0.875rem);
     color: var(--text-tertiary);
-    margin-top: 0.25rem;
+    margin-top: 0.4rem;
     letter-spacing: 2px;
 }
 
@@ -109,7 +109,7 @@ nav {
     display: flex;
     justify-content: center;
     gap: clamp(1rem, 3vw, 2rem);
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
     flex-wrap: wrap;
 }
 
@@ -181,7 +181,7 @@ nav a.active {
 main {
     max-width: min(1400px, 95vw);
     margin: 0 auto;
-    padding: clamp(0.75rem, 2vw, 1.25rem) clamp(1rem, 2vw, 1.25rem);
+    padding: clamp(1rem, 3vw, 1.75rem) clamp(1rem, 2vw, 1.25rem);
 }
 
 /* Section Headers */
@@ -190,8 +190,8 @@ main {
     font-size: clamp(0.875rem, 2vw, 1.125rem);
     color: var(--neon-pink);
     text-transform: uppercase;
-    margin-bottom: clamp(0.5rem, 1.5vw, 0.75rem);
-    padding-bottom: 0.375rem;
+    margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
+    padding-bottom: 0.5rem;
     border-bottom: 2px solid var(--neon-pink);
     display: flex;
     align-items: center;
@@ -211,8 +211,8 @@ main {
 .games-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
-    gap: clamp(0.75rem, 2vw, 1.25rem);
-    margin-bottom: 1rem;
+    gap: clamp(1rem, 2.5vw, 1.5rem);
+    margin-bottom: 2rem;
 }
 
 .game-card {
@@ -236,7 +236,7 @@ main {
 
 .game-card-image {
     width: 100%;
-    height: clamp(5rem, 12vw, 7rem);
+    height: clamp(6rem, 15vw, 9rem);
     background: var(--bg-darker);
     display: flex;
     align-items: center;
@@ -258,21 +258,21 @@ main {
 }
 
 .game-card-content {
-    padding: clamp(0.5rem, 1.2vw, 0.75rem);
+    padding: clamp(0.75rem, 1.5vw, 1rem);
 }
 
 .game-card h3 {
     font-family: 'Press Start 2P', cursive;
     font-size: clamp(0.7rem, 1.5vw, 0.875rem);
     color: var(--neon-green);
-    margin-bottom: 0.375rem;
+    margin-bottom: 0.5rem;
     line-height: 1.4;
 }
 
 .game-card p {
     font-size: clamp(0.875rem, 1.5vw, 1rem);
     color: var(--text-tertiary);
-    line-height: 1.4;
+    line-height: 1.45;
 }
 
 .game-card .status {
@@ -280,7 +280,7 @@ main {
     font-family: 'Press Start 2P', cursive;
     font-size: clamp(0.4rem, 0.8vw, 0.5rem);
     padding: 0.25rem 0.5rem;
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
     border: 1px solid;
 }
 
@@ -298,13 +298,13 @@ main {
 .blog-posts {
     display: flex;
     flex-direction: column;
-    gap: clamp(0.5rem, 1.5vw, 0.75rem);
+    gap: clamp(0.75rem, 2vw, 1rem);
 }
 
 .blog-post {
     background: rgba(0, 0, 0, 0.3);
     border-left: 4px solid var(--neon-pink);
-    padding: clamp(0.5rem, 1.2vw, 0.75rem) clamp(0.75rem, 1.5vw, 1rem);
+    padding: clamp(0.75rem, 1.5vw, 1rem) clamp(1rem, 2vw, 1.25rem);
     transition: all 0.3s;
     text-decoration: none;
     display: block;
@@ -319,20 +319,20 @@ main {
     font-family: 'Press Start 2P', cursive;
     font-size: clamp(0.625rem, 1.3vw, 0.75rem);
     color: var(--text-primary);
-    margin-bottom: 0.25rem;
-    line-height: 1.4;
+    margin-bottom: 0.375rem;
+    line-height: 1.45;
 }
 
 .blog-post .date {
     font-size: clamp(0.75rem, 1.2vw, 0.875rem);
     color: var(--text-dim);
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.4rem;
 }
 
 .blog-post .excerpt {
     font-size: clamp(0.875rem, 1.5vw, 1rem);
     color: var(--text-tertiary);
-    line-height: 1.4;
+    line-height: 1.5;
 }
 
 .view-all {
@@ -341,8 +341,8 @@ main {
     color: var(--neon-blue);
     text-decoration: none;
     display: inline-block;
-    margin-top: 0.75rem;
-    padding: clamp(0.4rem, 0.8vw, 0.5rem) clamp(0.75rem, 1.5vw, 1rem);
+    margin-top: 1rem;
+    padding: clamp(0.45rem, 0.9vw, 0.55rem) clamp(0.875rem, 1.75vw, 1.125rem);
     border: 2px solid var(--neon-blue);
     transition: all 0.3s;
 }
@@ -379,7 +379,7 @@ footer a:hover {
     white-space: pre;
     line-height: 1.2;
     text-align: center;
-    margin: 0.5rem 0;
+    margin: 0.75rem 0;
     overflow-x: auto;
 }
 
