@@ -12,7 +12,7 @@
             --text-primary: #00ff88;
             --text-tertiary: #00ffff;
             --text-dim: #446655;
-            --neon-pink: #ff0080;
+            --neon-pink: #FFB000;
             --neon-blue: #00d4ff;
             --neon-green: #00ff88;
             --neon-red: #ff4444;
@@ -238,6 +238,44 @@
             padding: 60px 20px;
         }
         
+        .image-upload-row {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .image-upload-row input[type="text"] {
+            flex: 1;
+        }
+        
+        .image-preview {
+            margin-top: 10px;
+        }
+        
+        .image-preview img {
+            max-width: 300px;
+            max-height: 200px;
+            border: 2px solid var(--text-dim);
+        }
+        
+        .upload-status {
+            margin-top: 8px;
+            font-size: 14px;
+        }
+        
+        .upload-status.uploading {
+            color: var(--neon-blue);
+        }
+        
+        .upload-status.success {
+            color: var(--neon-green);
+        }
+        
+        .upload-status.error {
+            color: var(--neon-red);
+        }
+            padding: 60px 20px;
+        }
+        
         .loading {
             text-align: center;
             padding: 40px;
@@ -293,8 +331,14 @@
             </div>
             
             <div class="form-group">
-                <label>FEATURED IMAGE URL</label>
-                <input type="text" id="postImage" placeholder="https://...">
+                <label>FEATURED IMAGE</label>
+                <div class="image-upload-row">
+                    <input type="text" id="postImage" placeholder="https://... or upload below">
+                    <input type="file" id="imageFile" accept="image/*" style="display: none;" onchange="uploadImage(this)">
+                    <button type="button" class="btn btn-primary btn-small" onclick="document.getElementById('imageFile').click()">UPLOAD</button>
+                </div>
+                <div id="imagePreview" class="image-preview"></div>
+                <div id="uploadStatus" class="upload-status"></div>
             </div>
             
             <div class="form-group">
@@ -398,6 +442,16 @@
             document.getElementById('postImage').value = post?.featured_image || '';
             document.getElementById('postContent').value = post?.content || '';
             document.getElementById('postPublished').checked = post?.published || false;
+            
+            // Show image preview if exists
+            const preview = document.getElementById('imagePreview');
+            const status = document.getElementById('uploadStatus');
+            if (post?.featured_image) {
+                preview.innerHTML = `<img src="${post.featured_image}" alt="Preview">`;
+            } else {
+                preview.innerHTML = '';
+            }
+            status.textContent = '';
         }
         
         function hideEditor() {
@@ -504,6 +558,59 @@
         
         document.getElementById('postSlug').addEventListener('input', function() {
             this.dataset.manual = 'true';
+        });
+        
+        // Image upload
+        async function uploadImage(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const status = document.getElementById('uploadStatus');
+            const preview = document.getElementById('imagePreview');
+            
+            status.textContent = 'UPLOADING...';
+            status.className = 'upload-status uploading';
+            
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            try {
+                const res = await fetch(`${API_URL}/blog/admin/upload`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok && data.url) {
+                    document.getElementById('postImage').value = data.url;
+                    preview.innerHTML = `<img src="${data.url}" alt="Preview">`;
+                    status.textContent = 'UPLOAD COMPLETE';
+                    status.className = 'upload-status success';
+                } else {
+                    status.textContent = data.error || 'UPLOAD FAILED';
+                    status.className = 'upload-status error';
+                }
+            } catch (err) {
+                status.textContent = 'UPLOAD FAILED - CHECK CONNECTION';
+                status.className = 'upload-status error';
+            }
+            
+            // Clear file input
+            input.value = '';
+        }
+        
+        // Show preview when URL is manually entered
+        document.getElementById('postImage').addEventListener('change', function() {
+            const preview = document.getElementById('imagePreview');
+            if (this.value) {
+                preview.innerHTML = `<img src="${this.value}" alt="Preview" onerror="this.style.display='none'">`;
+            } else {
+                preview.innerHTML = '';
+            }
         });
         
         // Init
