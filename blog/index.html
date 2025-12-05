@@ -7,6 +7,121 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .blog-list {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(1.5rem, 4vw, 2.5rem);
+        }
+        
+        .blog-post-full {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--text-dim);
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        
+        .blog-post-full:hover {
+            border-color: var(--neon-green);
+        }
+        
+        .blog-post-full .featured-image {
+            width: 100%;
+            max-height: 18.75rem;
+            object-fit: cover;
+            border-bottom: 2px solid var(--text-dim);
+        }
+        
+        .post-content {
+            padding: clamp(1rem, 2.5vw, 1.5rem);
+        }
+        
+        .blog-post-full .post-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+            color: var(--neon-green);
+            text-decoration: none;
+            display: block;
+            line-height: 1.6;
+        }
+        
+        .blog-post-full .post-title:hover {
+            color: var(--neon-pink);
+            text-shadow: 0 0 0.625rem var(--neon-pink);
+        }
+        
+        .blog-post-full .post-meta {
+            font-size: clamp(0.75rem, 1.2vw, 0.875rem);
+            color: var(--text-dim);
+            margin: 0.9375rem 0;
+        }
+        
+        .blog-post-full .post-meta .author {
+            margin-left: 1.25rem;
+        }
+        
+        .excerpt {
+            font-size: clamp(1rem, 1.5vw, 1.125rem);
+            color: var(--text-tertiary);
+            line-height: 1.7;
+            margin: 0.9375rem 0;
+        }
+        
+        .read-more {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(0.5rem, 1vw, 0.625rem);
+            color: var(--neon-blue);
+            text-decoration: none;
+        }
+        
+        .read-more:hover {
+            color: var(--neon-pink);
+        }
+        
+        .pagination-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: clamp(1rem, 3vw, 1.875rem);
+            margin-top: clamp(2rem, 5vw, 3.125rem);
+        }
+        
+        .page-btn {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(0.5rem, 1vw, 0.625rem);
+            background: transparent;
+            color: var(--neon-blue);
+            border: 2px solid var(--neon-blue);
+            padding: clamp(0.5rem, 1vw, 0.625rem) clamp(1rem, 2vw, 1.25rem);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .page-btn:hover {
+            background: rgba(0, 212, 255, 0.2);
+            box-shadow: 0 0 0.9375rem rgba(0, 212, 255, 0.4);
+        }
+        
+        .page-info {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(0.5rem, 1vw, 0.625rem);
+            color: var(--text-dim);
+        }
+        
+        .empty-state, .error-state {
+            text-align: center;
+            padding: clamp(2.5rem, 6vw, 3.75rem) clamp(1rem, 2vw, 1.25rem);
+        }
+        
+        .ascii {
+            font-family: monospace;
+            font-size: clamp(0.625rem, 1.2vw, 0.75rem);
+            white-space: pre;
+            color: var(--text-dim);
+            margin-bottom: 1.25rem;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -45,7 +160,7 @@
     
     <script src="/js/auth.js"></script>
     <script>
-        const API_URL = 'https://official-intelligence-api.onrender.com';
+        // API_URL is already defined in auth.js
         let currentPage = 1;
         const perPage = 10;
         
@@ -61,7 +176,7 @@
                         <article class="blog-post-full">
                             ${post.featured_image ? `<img src="${post.featured_image}" alt="" class="featured-image">` : ''}
                             <div class="post-content">
-                                <a href="/blog/${post.slug}" class="post-title">${post.title}</a>
+                                <a href="/blog/${post.slug}" class="post-title">${escapeHtml(post.title)}</a>
                                 <div class="post-meta">
                                     <span class="date">${formatDate(post.published_at)}</span>
                                     <span class="author">by ${post.author?.display_name || post.author?.username || 'Unknown'}</span>
@@ -93,15 +208,6 @@
             }
         }
         
-        function formatDate(dateStr) {
-            if (!dateStr) return '';
-            return new Date(dateStr).toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            });
-        }
-        
         function renderPagination(current, total) {
             if (total <= 1) {
                 document.getElementById('pagination').innerHTML = '';
@@ -128,125 +234,5 @@
             loadPosts(1);
         });
     </script>
-    
-    <style>
-        .blog-list {
-            display: flex;
-            flex-direction: column;
-            gap: 40px;
-        }
-        
-        .blog-post-full {
-            background: rgba(0, 0, 0, 0.3);
-            border: 2px solid var(--text-dim);
-            padding: 0;
-            overflow: hidden;
-            transition: all 0.3s;
-        }
-        
-        .blog-post-full:hover {
-            border-color: var(--neon-green);
-        }
-        
-        .featured-image {
-            width: 100%;
-            max-height: 300px;
-            object-fit: cover;
-            border-bottom: 2px solid var(--text-dim);
-        }
-        
-        .post-content {
-            padding: 25px;
-        }
-        
-        .post-title {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 14px;
-            color: var(--neon-green);
-            text-decoration: none;
-            display: block;
-            line-height: 1.6;
-        }
-        
-        .post-title:hover {
-            color: var(--neon-pink);
-            text-shadow: 0 0 10px var(--neon-pink);
-        }
-        
-        .post-meta {
-            font-size: 14px;
-            color: var(--text-dim);
-            margin: 15px 0;
-        }
-        
-        .post-meta .author {
-            margin-left: 20px;
-        }
-        
-        .excerpt {
-            font-size: 18px;
-            color: var(--text-tertiary);
-            line-height: 1.7;
-            margin: 15px 0;
-        }
-        
-        .read-more {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 10px;
-            color: var(--neon-blue);
-            text-decoration: none;
-        }
-        
-        .read-more:hover {
-            color: var(--neon-pink);
-        }
-        
-        .pagination-controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 30px;
-            margin-top: 50px;
-        }
-        
-        .page-btn {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 10px;
-            background: transparent;
-            color: var(--neon-blue);
-            border: 2px solid var(--neon-blue);
-            padding: 10px 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .page-btn:hover {
-            background: rgba(0, 212, 255, 0.2);
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
-        }
-        
-        .page-info {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 10px;
-            color: var(--text-dim);
-        }
-        
-        .loading, .empty-state, .error-state {
-            text-align: center;
-            padding: 60px 20px;
-        }
-        
-        .blink {
-            animation: blink 1s step-end infinite;
-        }
-        
-        .ascii {
-            font-family: monospace;
-            font-size: 12px;
-            white-space: pre;
-            color: var(--text-dim);
-            margin-bottom: 20px;
-        }
-    </style>
 </body>
 </html>
