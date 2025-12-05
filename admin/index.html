@@ -5,362 +5,88 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Official Intelligence</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-dark: #0a0a0f;
-            --bg-darker: #050508;
-            --text-primary: #00ff88;
-            --text-tertiary: #00ffff;
-            --text-dim: #446655;
-            --neon-pink: #FFB000;
-            --neon-blue: #00d4ff;
-            --neon-green: #00ff88;
-            --neon-red: #ff4444;
-        }
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            font-family: 'VT323', monospace;
-            font-size: 18px;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        h1 {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 20px;
-            color: var(--neon-green);
-            margin-bottom: 30px;
-        }
-        
-        h2 {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 14px;
-            color: var(--neon-pink);
-            margin: 30px 0 20px;
-        }
-        
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .btn {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 10px;
-            padding: 12px 20px;
-            border: 2px solid;
-            cursor: pointer;
-            background: transparent;
-            transition: all 0.3s;
-            text-decoration: none;
-        }
-        
-        .btn-primary {
-            color: var(--neon-green);
-            border-color: var(--neon-green);
-        }
-        
-        .btn-primary:hover {
-            background: rgba(0, 255, 136, 0.2);
-            box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
-        }
-        
-        .btn-danger {
-            color: var(--neon-red);
-            border-color: var(--neon-red);
-        }
-        
-        .btn-danger:hover {
-            background: rgba(255, 68, 68, 0.2);
-        }
-        
-        .btn-small {
-            padding: 8px 12px;
-            font-size: 8px;
-        }
-        
-        /* Posts List */
-        .posts-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .post-item {
-            background: var(--bg-darker);
-            border: 2px solid var(--text-dim);
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .post-item:hover {
-            border-color: var(--neon-blue);
-        }
-        
-        .post-info h3 {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 12px;
-            color: var(--text-tertiary);
-            margin-bottom: 8px;
-        }
-        
-        .post-meta {
-            font-size: 14px;
-            color: var(--text-dim);
-        }
-        
-        .post-status {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 8px;
-            padding: 5px 10px;
-            border: 1px solid;
-        }
-        
-        .status-published {
-            color: var(--neon-green);
-            border-color: var(--neon-green);
-        }
-        
-        .status-draft {
-            color: var(--neon-pink);
-            border-color: var(--neon-pink);
-        }
-        
-        .post-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        /* Editor */
-        .editor {
-            display: none;
-            background: var(--bg-darker);
-            border: 2px solid var(--neon-green);
-            padding: 30px;
-            margin-bottom: 30px;
-        }
-        
-        .editor.active { display: block; }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            font-size: 14px;
-            color: var(--text-tertiary);
-            margin-bottom: 8px;
-        }
-        
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            font-family: 'VT323', monospace;
-            font-size: 18px;
-            background: var(--bg-dark);
-            border: 2px solid var(--text-dim);
-            color: var(--text-primary);
-            outline: none;
-        }
-        
-        .form-group input:focus,
-        .form-group textarea:focus {
-            border-color: var(--neon-green);
-        }
-        
-        .form-group textarea {
-            min-height: 300px;
-            resize: vertical;
-        }
-        
-        .form-row {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .form-row .form-group {
-            flex: 1;
-            min-width: 200px;
-        }
-        
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .checkbox-group input {
-            width: auto;
-        }
-        
-        .editor-actions {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .message {
-            padding: 15px;
-            margin-bottom: 20px;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 10px;
-        }
-        
-        .message.success {
-            background: rgba(0, 255, 136, 0.2);
-            border: 2px solid var(--neon-green);
-            color: var(--neon-green);
-        }
-        
-        .message.error {
-            background: rgba(255, 68, 68, 0.2);
-            border: 2px solid var(--neon-red);
-            color: var(--neon-red);
-        }
-        
-        .not-admin {
-            text-align: center;
-            padding: 60px 20px;
-        }
-        
-        .image-upload-row {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .image-upload-row input[type="text"] {
-            flex: 1;
-        }
-        
-        .image-preview {
-            margin-top: 10px;
-        }
-        
-        .image-preview img {
-            max-width: 300px;
-            max-height: 200px;
-            border: 2px solid var(--text-dim);
-        }
-        
-        .upload-status {
-            margin-top: 8px;
-            font-size: 14px;
-        }
-        
-        .upload-status.uploading {
-            color: var(--neon-blue);
-        }
-        
-        .upload-status.success {
-            color: var(--neon-green);
-        }
-        
-        .upload-status.error {
-            color: var(--neon-red);
-        }
-            padding: 60px 20px;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: var(--text-dim);
-        }
-    </style>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <div class="header">
-        <h1>> ADMIN PANEL</h1>
-        <div>
-            <a href="/" class="btn btn-primary">← BACK TO SITE</a>
-        </div>
-    </div>
-    
-    <div id="message"></div>
-    
-    <div id="notAdmin" class="not-admin" style="display: none;">
-        <h2>ACCESS DENIED</h2>
-        <p style="margin-top: 20px;">Admin privileges required.</p>
-        <a href="/" class="btn btn-primary" style="margin-top: 20px;">RETURN HOME</a>
-    </div>
-    
-    <div id="adminContent" style="display: none;">
-        <div class="header">
-            <h2>> BLOG POSTS</h2>
-            <button class="btn btn-primary" onclick="showEditor()">+ NEW POST</button>
-        </div>
-        
-        <div id="editor" class="editor">
-            <h2 id="editorTitle">> NEW POST</h2>
-            <input type="hidden" id="postId">
-            
-            <div class="form-group">
-                <label>TITLE</label>
-                <input type="text" id="postTitle" placeholder="Enter post title...">
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label>SLUG (URL)</label>
-                    <input type="text" id="postSlug" placeholder="auto-generated-from-title">
-                </div>
-                <div class="form-group">
-                    <label>TAGS (comma separated)</label>
-                    <input type="text" id="postTags" placeholder="news, update, game">
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label>EXCERPT</label>
-                <input type="text" id="postExcerpt" placeholder="Short preview text...">
-            </div>
-            
-            <div class="form-group">
-                <label>FEATURED IMAGE</label>
-                <div class="image-upload-row">
-                    <input type="text" id="postImage" placeholder="https://... or upload below">
-                    <input type="file" id="imageFile" accept="image/*" style="display: none;" onchange="uploadImage(this)">
-                    <button type="button" class="btn btn-primary btn-small" onclick="document.getElementById('imageFile').click()">UPLOAD</button>
-                </div>
-                <div id="imagePreview" class="image-preview"></div>
-                <div id="uploadStatus" class="upload-status"></div>
-            </div>
-            
-            <div class="form-group">
-                <label>CONTENT (HTML supported)</label>
-                <textarea id="postContent" placeholder="Write your post content here..."></textarea>
-            </div>
-            
-            <div class="checkbox-group">
-                <input type="checkbox" id="postPublished">
-                <label for="postPublished">PUBLISHED</label>
-            </div>
-            
-            <div class="editor-actions">
-                <button class="btn btn-primary" onclick="savePost()">SAVE POST</button>
-                <button class="btn btn-danger" onclick="hideEditor()">CANCEL</button>
+    <main>
+        <div class="admin-header">
+            <h1>> ADMIN PANEL</h1>
+            <div>
+                <a href="/" class="btn btn-primary">← BACK TO SITE</a>
             </div>
         </div>
         
-        <div id="postsList" class="posts-list">
-            <div class="loading">Loading posts...</div>
+        <div id="message"></div>
+        
+        <div id="notAdmin" class="not-admin" style="display: none;">
+            <h2 class="section-header">ACCESS DENIED</h2>
+            <p style="margin-top: 20px;">Admin privileges required.</p>
+            <a href="/" class="btn btn-primary" style="margin-top: 20px; display: inline-block;">RETURN HOME</a>
         </div>
-    </div>
+        
+        <div id="adminContent" style="display: none;">
+            <div class="admin-header">
+                <h2>> BLOG POSTS</h2>
+                <button class="btn btn-primary" onclick="showEditor()">+ NEW POST</button>
+            </div>
+            
+            <div id="editor" class="editor">
+                <h2 id="editorTitle">> NEW POST</h2>
+                <input type="hidden" id="postId">
+                
+                <div class="form-group">
+                    <label>TITLE</label>
+                    <input type="text" id="postTitle" placeholder="Enter post title...">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>SLUG (URL)</label>
+                        <input type="text" id="postSlug" placeholder="auto-generated-from-title">
+                    </div>
+                    <div class="form-group">
+                        <label>TAGS (comma separated)</label>
+                        <input type="text" id="postTags" placeholder="news, update, game">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>EXCERPT</label>
+                    <input type="text" id="postExcerpt" placeholder="Short preview text...">
+                </div>
+                
+                <div class="form-group">
+                    <label>FEATURED IMAGE</label>
+                    <div class="image-upload-row">
+                        <input type="text" id="postImage" placeholder="https://... or upload below">
+                        <input type="file" id="imageFile" accept="image/*" style="display: none;" onchange="uploadImage(this)">
+                        <button type="button" class="btn btn-primary btn-small" onclick="document.getElementById('imageFile').click()">UPLOAD</button>
+                    </div>
+                    <div id="imagePreview" class="image-preview"></div>
+                    <div id="uploadStatus" class="upload-status"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label>CONTENT (HTML supported)</label>
+                    <textarea id="postContent" placeholder="Write your post content here..."></textarea>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="postPublished">
+                    <label for="postPublished">PUBLISHED</label>
+                </div>
+                
+                <div class="editor-actions">
+                    <button class="btn btn-primary" onclick="savePost()">SAVE POST</button>
+                    <button class="btn btn-danger" onclick="hideEditor()">CANCEL</button>
+                </div>
+            </div>
+            
+            <div id="postsList" class="posts-list">
+                <div class="loading">Loading posts...</div>
+            </div>
+        </div>
+    </main>
     
     <script>
         const API_URL = 'https://official-intelligence-api.onrender.com';
