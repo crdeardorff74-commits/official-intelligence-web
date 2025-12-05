@@ -5,7 +5,7 @@
     --text-secondary: #ff00ff;
     --text-tertiary: #00ffff;
     --text-dim: #446655;
-    --neon-pink: #FFB000;
+    --neon-pink: #ff0080;
     --neon-blue: #00d4ff;
     --neon-purple: #8b00ff;
     --neon-green: #00ff88;
@@ -69,7 +69,7 @@ header {
     padding: 30px 20px;
     text-align: center;
     border-bottom: 2px solid var(--neon-pink);
-    box-shadow: 0 0 30px rgba(255, 176, 0, 0.3);
+    box-shadow: 0 0 30px rgba(255, 0, 128, 0.3);
     position: relative;
 }
 
@@ -123,7 +123,7 @@ nav a:hover {
     color: var(--neon-pink);
     border-color: var(--neon-pink);
     text-shadow: 0 0 10px var(--neon-pink);
-    box-shadow: 0 0 20px rgba(255, 176, 0, 0.3);
+    box-shadow: 0 0 20px rgba(255, 0, 128, 0.3);
 }
 
 nav a.active {
@@ -188,9 +188,9 @@ main {
 /* Footer */
 footer {
     text-align: center;
-    padding: 40px 20px;
-    margin-top: 60px;
-    border-top: 2px solid var(--text-dim);
+    padding: 14px 20px;
+    margin-top: 0px;
+    border-top: 2px solid var(--neon-pink);
     font-size: 14px;
     color: var(--text-dim);
 }
