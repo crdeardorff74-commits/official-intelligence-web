@@ -47,7 +47,7 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
+            xheight: 100%;
             pointer-events: none;
             background: repeating-linear-gradient(
                 0deg,
@@ -66,7 +66,7 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
+            xheight: 100%;
             pointer-events: none;
             background-image: 
                 linear-gradient(var(--grid-color) 1px, transparent 1px),
@@ -185,7 +185,7 @@
         
         /* Main Content */
         main {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 40px 20px;
         }
@@ -361,9 +361,9 @@
         /* Footer */
         footer {
             text-align: center;
-            padding: 40px 20px;
-            margin-top: 60px;
-            border-top: 2px solid var(--text-dim);
+            padding: 14px 20px;
+            margin-top: 0px;
+            border-top: 2px solid var(--neon-pink);
             font-size: 14px;
             color: var(--text-dim);
         }
@@ -380,7 +380,7 @@
         /* ASCII Art Decoration */
         .ascii-decoration {
             font-family: monospace;
-            font-size: 10px;
+            font-size: 12px;
             color: var(--text-dim);
             white-space: pre;
             line-height: 1.2;
@@ -590,49 +590,54 @@
     </header>
     
     <main>
-        <!-- Games Section -->
-        <section>
-            <h2 class="section-header">PLAY NOW</h2>
-            
-            <div class="games-grid">
-                <a href="https://blockchainstorm.official-intelligence.art" class="game-card" target="_blank">
-                    <div class="game-card-image">
-                        <div class="placeholder">⬛</div>
-                    </div>
-                    <div class="game-card-content">
-                        <h3>BLOCKCHAINSTORM</h3>
-                        <p>A revolutionary twist on the classic falling blocks game. Journey through the solar system, survive cosmic disasters, and climb the leaderboards!</p>
-                        <span class="status live">● LIVE</span>
-                    </div>
-                </a>
-                
-                <div class="game-card">
-                    <div class="game-card-image">
-                        <div class="placeholder">?</div>
-                    </div>
-                    <div class="game-card-content">
-                        <h3>PROJECT ???</h3>
-                        <p>Something new is brewing in the lab. Stay tuned for our next AI-enhanced gaming experience...</p>
-                        <span class="status coming-soon">COMING SOON</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <!-- Blog Section -->
-        <section>
-            <h2 class="section-header">LATEST TRANSMISSIONS</h2>
-            
-            <div class="blog-posts" id="blogPosts">
-                <!-- Blog posts will be loaded here -->
-                <div class="blog-post">
-                    <h3>LOADING TRANSMISSIONS...</h3>
-                    <p class="excerpt">Establishing connection to the mainframe...</p>
-                </div>
-            </div>
-            
-            <a href="/blog" class="view-all">VIEW ALL POSTS →</a>
-        </section>
+	
+		<div style="display: flex; flex-direction: row; gap: 4em;">
+		
+			<!-- Games Section -->
+			<div style="width: 50%">
+				<h2 class="section-header">PLAY NOW</h2>
+				
+				<div class="games-grid">
+					<a href="https://blockchainstorm.official-intelligence.art" class="game-card" target="_blank">
+						<div class="game-card-image">
+							<div class="placeholder">⬛</div>
+						</div>
+						<div class="game-card-content">
+							<h3>BLOCKCHAINSTORM</h3>
+							<p>A revolutionary twist on the classic falling blocks game. Journey through the solar system, survive cosmic disasters, and climb the leaderboards!</p>
+							<span class="status live">● LIVE</span>
+						</div>
+					</a>
+					
+					<div class="game-card">
+						<div class="game-card-image">
+							<div class="placeholder">?</div>
+						</div>
+						<div class="game-card-content">
+							<h3>PROJECT ???</h3>
+							<p>Something new is brewing in the lab. Stay tuned for our next AI-enhanced gaming experience...</p>
+							<span class="status coming-soon">COMING SOON</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<!-- Blog Section -->
+			<div>
+				<h2 class="section-header">LATEST TRANSMISSIONS</h2>
+				
+				<div class="blog-posts" id="blogPosts">
+					<!-- Blog posts will be loaded here -->
+					<div class="blog-post">
+						<h3>LOADING TRANSMISSIONS...</h3>
+						<p class="excerpt">Establishing connection to the mainframe...</p>
+					</div>
+				</div>
+				
+				<a href="/blog" class="view-all">VIEW ALL POSTS →</a>
+			</div>
+		
+		</div>
         
         <div class="ascii-decoration">▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
  █ OFFICIAL INTELLIGENCE - WHERE AI MEETS ENTERTAINMENT █ 
@@ -642,11 +647,11 @@
     
     <footer>
         <p>© 2025 Official Intelligence • Created with 🤖 by humans & AI</p>
-        <p style="margin-top: 10px;">
+        <!-- p style="margin-top: 10px;">
             <a href="/privacy">Privacy</a> • 
             <a href="/terms">Terms</a> • 
             <a href="https://github.com/official-intelligence" target="_blank">GitHub</a>
-        </p>
+        </p -->
     </footer>
     
     <!-- Login Modal -->
