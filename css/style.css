@@ -19,11 +19,15 @@
     box-sizing: border-box;
 }
 
-html, body {
+html {
+    font-size: clamp(14px, 1.5vw, 18px);
+}
+
+body {
     background: var(--bg-dark);
     color: var(--text-primary);
     font-family: 'VT323', monospace;
-    font-size: 18px;
+    font-size: 1rem;
     min-height: 100vh;
     overflow-x: hidden;
 }
@@ -59,44 +63,44 @@ body::after {
     background-image: 
         linear-gradient(var(--grid-color) 1px, transparent 1px),
         linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-    background-size: 50px 50px;
+    background-size: clamp(30px, 5vw, 50px) clamp(30px, 5vw, 50px);
     z-index: -1;
 }
 
 /* Header */
 header {
     background: linear-gradient(180deg, var(--bg-darker) 0%, transparent 100%);
-    padding: 30px 20px;
+    padding: clamp(1.5rem, 3vw, 2rem) clamp(1rem, 2vw, 1.5rem);
     text-align: center;
     border-bottom: 2px solid var(--neon-pink);
-    box-shadow: 0 0 30px rgba(255, 176, 0, 0.3);
+    box-shadow: 0 0 clamp(1rem, 3vw, 2rem) rgba(255, 176, 0, 0.3);
     position: relative;
 }
 
 .logo {
     font-family: 'Press Start 2P', cursive;
-    font-size: 28px;
+    font-size: clamp(1.25rem, 3vw, 1.75rem);
     text-transform: uppercase;
-    letter-spacing: 4px;
+    letter-spacing: clamp(2px, 0.3vw, 4px);
     color: var(--neon-green);
     text-shadow: 
-        0 0 10px var(--neon-green),
-        0 0 20px var(--neon-green),
-        0 0 40px var(--neon-green);
+        0 0 0.625rem var(--neon-green),
+        0 0 1.25rem var(--neon-green),
+        0 0 2.5rem var(--neon-green);
     animation: glow-pulse 2s ease-in-out infinite alternate;
     text-decoration: none;
     display: inline-block;
 }
 
 @keyframes glow-pulse {
-    from { text-shadow: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green); }
-    to { text-shadow: 0 0 20px var(--neon-green), 0 0 40px var(--neon-green), 0 0 60px var(--neon-green); }
+    from { text-shadow: 0 0 0.625rem var(--neon-green), 0 0 1.25rem var(--neon-green); }
+    to { text-shadow: 0 0 1.25rem var(--neon-green), 0 0 2.5rem var(--neon-green), 0 0 3.75rem var(--neon-green); }
 }
 
 .tagline {
-    font-size: 14px;
+    font-size: clamp(0.7rem, 1.5vw, 0.875rem);
     color: var(--text-tertiary);
-    margin-top: 10px;
+    margin-top: 0.625rem;
     letter-spacing: 2px;
 }
 
@@ -104,17 +108,17 @@ header {
 nav {
     display: flex;
     justify-content: center;
-    gap: 30px;
-    margin-top: 20px;
+    gap: clamp(1rem, 3vw, 2rem);
+    margin-top: 1.25rem;
     flex-wrap: wrap;
 }
 
 nav a {
     font-family: 'Press Start 2P', cursive;
-    font-size: 12px;
+    font-size: clamp(0.5rem, 1.2vw, 0.75rem);
     color: var(--text-tertiary);
     text-decoration: none;
-    padding: 10px 20px;
+    padding: clamp(0.5rem, 1vw, 0.625rem) clamp(0.75rem, 2vw, 1.25rem);
     border: 2px solid transparent;
     transition: all 0.3s;
 }
@@ -122,8 +126,8 @@ nav a {
 nav a:hover {
     color: var(--neon-pink);
     border-color: var(--neon-pink);
-    text-shadow: 0 0 10px var(--neon-pink);
-    box-shadow: 0 0 20px rgba(255, 176, 0, 0.3);
+    text-shadow: 0 0 0.625rem var(--neon-pink);
+    box-shadow: 0 0 1.25rem rgba(255, 176, 0, 0.3);
 }
 
 nav a.active {
@@ -134,17 +138,17 @@ nav a.active {
 /* User Menu */
 .user-menu {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: clamp(0.75rem, 2vw, 1.25rem);
+    right: clamp(0.75rem, 2vw, 1.25rem);
 }
 
 .user-menu button {
     font-family: 'Press Start 2P', cursive;
-    font-size: 10px;
+    font-size: clamp(0.5rem, 1vw, 0.625rem);
     background: transparent;
     color: var(--text-tertiary);
     border: 2px solid var(--text-dim);
-    padding: 8px 16px;
+    padding: clamp(0.4rem, 0.8vw, 0.5rem) clamp(0.75rem, 1.5vw, 1rem);
     cursor: pointer;
     transition: all 0.3s;
 }
@@ -152,28 +156,46 @@ nav a.active {
 .user-menu button:hover {
     border-color: var(--neon-blue);
     color: var(--neon-blue);
-    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+    box-shadow: 0 0 1rem rgba(0, 212, 255, 0.3);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+}
+
+.user-info img {
+    width: clamp(1.5rem, 3vw, 2rem);
+    height: clamp(1.5rem, 3vw, 2rem);
+    border-radius: 4px;
+    border: 2px solid var(--neon-green);
+}
+
+.user-info span {
+    font-size: clamp(0.7rem, 1.2vw, 0.875rem);
+    color: var(--neon-green);
 }
 
 /* Main Content */
 main {
-    max-width: 1200px;
+    max-width: min(1400px, 95vw);
     margin: 0 auto;
-    padding: 40px 20px;
+    padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1rem, 2vw, 1.25rem);
 }
 
 /* Section Headers */
 .section-header {
     font-family: 'Press Start 2P', cursive;
-    font-size: 18px;
+    font-size: clamp(0.875rem, 2vw, 1.125rem);
     color: var(--neon-pink);
     text-transform: uppercase;
-    margin-bottom: 30px;
-    padding-bottom: 10px;
+    margin-bottom: clamp(1.25rem, 3vw, 1.875rem);
+    padding-bottom: 0.625rem;
     border-bottom: 2px solid var(--neon-pink);
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: clamp(0.5rem, 1.5vw, 1rem);
 }
 
 .section-header::before {
@@ -185,13 +207,158 @@ main {
     50% { opacity: 0; }
 }
 
+/* Games Grid */
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+    gap: clamp(1.25rem, 3vw, 1.875rem);
+    margin-bottom: 3.75rem;
+}
+
+.game-card {
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.05) 0%, rgba(255, 176, 0, 0.05) 100%);
+    border: 2px solid var(--text-dim);
+    padding: 0;
+    transition: all 0.3s;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    overflow: hidden;
+}
+
+.game-card:hover {
+    border-color: var(--neon-green);
+    box-shadow: 
+        0 0 1.25rem rgba(0, 255, 136, 0.3),
+        inset 0 0 1.875rem rgba(0, 255, 136, 0.1);
+    transform: translateY(-0.3125rem);
+}
+
+.game-card-image {
+    width: 100%;
+    height: clamp(8rem, 20vw, 11.25rem);
+    background: var(--bg-darker);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 2px solid var(--text-dim);
+    overflow: hidden;
+}
+
+.game-card-image img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+}
+
+.game-card-image .placeholder {
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(2rem, 5vw, 2.5rem);
+    color: var(--text-dim);
+}
+
+.game-card-content {
+    padding: clamp(1rem, 2vw, 1.25rem);
+}
+
+.game-card h3 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(0.7rem, 1.5vw, 0.875rem);
+    color: var(--neon-green);
+    margin-bottom: 0.625rem;
+    line-height: 1.4;
+}
+
+.game-card p {
+    font-size: clamp(0.875rem, 1.5vw, 1rem);
+    color: var(--text-tertiary);
+    line-height: 1.5;
+}
+
+.game-card .status {
+    display: inline-block;
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(0.4rem, 0.8vw, 0.5rem);
+    padding: 0.3125rem 0.625rem;
+    margin-top: 0.9375rem;
+    border: 1px solid;
+}
+
+.status.live {
+    color: var(--neon-green);
+    border-color: var(--neon-green);
+}
+
+.status.coming-soon {
+    color: var(--neon-purple);
+    border-color: var(--neon-purple);
+}
+
+/* Blog Section */
+.blog-posts {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+.blog-post {
+    background: rgba(0, 0, 0, 0.3);
+    border-left: 4px solid var(--neon-pink);
+    padding: clamp(1rem, 2vw, 1.25rem) clamp(1.25rem, 2.5vw, 1.5rem);
+    transition: all 0.3s;
+    text-decoration: none;
+    display: block;
+}
+
+.blog-post:hover {
+    background: rgba(255, 176, 0, 0.1);
+    border-left-color: var(--neon-blue);
+}
+
+.blog-post h3 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(0.625rem, 1.3vw, 0.75rem);
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+.blog-post .date {
+    font-size: clamp(0.75rem, 1.2vw, 0.875rem);
+    color: var(--text-dim);
+    margin-bottom: 0.625rem;
+}
+
+.blog-post .excerpt {
+    font-size: clamp(0.875rem, 1.5vw, 1rem);
+    color: var(--text-tertiary);
+    line-height: 1.6;
+}
+
+.view-all {
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(0.5rem, 1vw, 0.625rem);
+    color: var(--neon-blue);
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 1.25rem;
+    padding: clamp(0.5rem, 1vw, 0.625rem) clamp(1rem, 2vw, 1.25rem);
+    border: 2px solid var(--neon-blue);
+    transition: all 0.3s;
+}
+
+.view-all:hover {
+    background: rgba(0, 212, 255, 0.2);
+    box-shadow: 0 0 1.25rem rgba(0, 212, 255, 0.3);
+}
+
 /* Footer */
 footer {
     text-align: center;
-    padding: 14px 20px;
-    margin-top: 0px;
+    padding: clamp(0.75rem, 1.5vw, 0.875rem) clamp(1rem, 2vw, 1.25rem);
+    margin-top: 0;
     border-top: 2px solid var(--neon-pink);
-    font-size: 14px;
+    font-size: clamp(0.75rem, 1.3vw, 0.875rem);
     color: var(--text-dim);
 }
 
@@ -204,11 +371,23 @@ footer a:hover {
     color: var(--neon-pink);
 }
 
+/* ASCII Art Decoration */
+.ascii-decoration {
+    font-family: monospace;
+    font-size: clamp(0.5rem, 1.2vw, 0.75rem);
+    color: var(--text-dim);
+    white-space: pre;
+    line-height: 1.2;
+    text-align: center;
+    margin: 1.25rem 0;
+    overflow-x: auto;
+}
+
 /* Buttons */
 .btn {
     font-family: 'Press Start 2P', cursive;
-    font-size: 12px;
-    padding: 15px 30px;
+    font-size: clamp(0.6rem, 1.2vw, 0.75rem);
+    padding: clamp(0.75rem, 1.5vw, 0.9375rem) clamp(1.25rem, 2.5vw, 1.875rem);
     border: 2px solid;
     cursor: pointer;
     transition: all 0.3s;
@@ -225,14 +404,534 @@ footer a:hover {
 
 .btn-primary:hover {
     background: rgba(0, 255, 136, 0.2);
-    box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+    box-shadow: 0 0 1.25rem rgba(0, 255, 136, 0.4);
 }
 
-/* Responsive */
+/* Login Modal */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal {
+    background: var(--bg-darker);
+    border: 3px solid var(--neon-green);
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    max-width: min(400px, 90vw);
+    width: 90%;
+    box-shadow: 0 0 3.125rem rgba(0, 255, 136, 0.3);
+}
+
+.modal h2 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(0.875rem, 1.8vw, 1rem);
+    color: var(--neon-green);
+    text-align: center;
+    margin-bottom: clamp(1.25rem, 3vw, 1.875rem);
+}
+
+.modal-close {
+    position: absolute;
+    top: clamp(0.75rem, 1.5vw, 0.9375rem);
+    right: clamp(1rem, 2vw, 1.25rem);
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+    color: var(--text-dim);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.modal-close:hover {
+    color: var(--neon-pink);
+}
+
+.form-group {
+    margin-bottom: clamp(1rem, 2vw, 1.25rem);
+}
+
+.form-group label {
+    display: block;
+    font-size: clamp(0.75rem, 1.3vw, 0.875rem);
+    color: var(--text-tertiary);
+    margin-bottom: 0.5rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: clamp(0.625rem, 1.2vw, 0.75rem);
+    font-family: 'VT323', monospace;
+    font-size: clamp(0.9rem, 1.5vw, 1.125rem);
+    background: var(--bg-dark);
+    border: 2px solid var(--text-dim);
+    color: var(--text-primary);
+    outline: none;
+}
+
+.form-group input:focus {
+    border-color: var(--neon-green);
+    box-shadow: 0 0 0.625rem rgba(0, 255, 136, 0.3);
+}
+
+.divider {
+    text-align: center;
+    margin: clamp(1.25rem, 2.5vw, 1.5rem) 0;
+    color: var(--text-dim);
+    font-size: clamp(0.75rem, 1.2vw, 0.875rem);
+}
+
+.btn-oauth {
+    width: 100%;
+    font-family: 'VT323', monospace;
+    font-size: clamp(0.9rem, 1.5vw, 1.125rem);
+    padding: clamp(0.75rem, 1.5vw, 0.875rem);
+    background: transparent;
+    border: 2px solid var(--text-dim);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+}
+
+.btn-oauth:hover {
+    border-color: var(--neon-blue);
+    color: var(--neon-blue);
+}
+
+.btn-oauth svg {
+    width: clamp(1rem, 2vw, 1.25rem);
+    height: clamp(1rem, 2vw, 1.25rem);
+}
+
+.modal-footer {
+    text-align: center;
+    margin-top: clamp(1.25rem, 2.5vw, 1.5rem);
+    font-size: clamp(0.75rem, 1.2vw, 0.875rem);
+    color: var(--text-dim);
+}
+
+.modal-footer a {
+    color: var(--neon-pink);
+    text-decoration: none;
+}
+
+.modal-footer a:hover {
+    text-decoration: underline;
+}
+
+.error-message {
+    background: rgba(255, 0, 0, 0.2);
+    border: 1px solid #ff0000;
+    color: #ff6666;
+    padding: 0.625rem;
+    margin-bottom: 0.9375rem;
+    font-size: clamp(0.75rem, 1.2vw, 0.875rem);
+    display: none;
+}
+
+/* Blog Full Post Styles */
+.blog-post-full {
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid var(--text-dim);
+    margin-bottom: clamp(1.25rem, 2.5vw, 1.5rem);
+    overflow: hidden;
+}
+
+.blog-post-full:hover {
+    border-color: var(--neon-green);
+}
+
+.back-link {
+    display: inline-block;
+    color: var(--neon-blue);
+    text-decoration: none;
+    margin-bottom: 1.25rem;
+    font-size: clamp(0.875rem, 1.5vw, 1rem);
+}
+
+.back-link:hover {
+    color: var(--neon-pink);
+}
+
+.featured-image {
+    width: 100%;
+    max-height: 25rem;
+    object-fit: cover;
+    margin-bottom: 1.5rem;
+}
+
+.post-title {
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+    color: var(--neon-green);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.post-meta {
+    font-size: clamp(0.75rem, 1.3vw, 0.875rem);
+    color: var(--text-dim);
+    margin-bottom: 1.5rem;
+}
+
+.post-meta .author {
+    margin-left: 1rem;
+}
+
+.post-body {
+    font-size: clamp(1rem, 1.5vw, 1.125rem);
+    line-height: 1.8;
+    color: var(--text-tertiary);
+}
+
+.post-body p {
+    margin-bottom: 1rem;
+}
+
+.post-body h2, .post-body h3 {
+    color: var(--neon-pink);
+    margin: 1.5rem 0 0.75rem;
+}
+
+.post-body a {
+    color: var(--neon-blue);
+}
+
+.post-body a:hover {
+    color: var(--neon-pink);
+}
+
+/* Loading State */
+.loading {
+    text-align: center;
+    padding: 2.5rem;
+    color: var(--text-dim);
+}
+
+.loading .blink {
+    animation: blink 1s step-end infinite;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.625rem;
+    margin-top: 1.875rem;
+}
+
+.pagination button {
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(0.5rem, 1vw, 0.625rem);
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    border: 2px solid var(--text-dim);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.pagination button:hover:not(:disabled) {
+    border-color: var(--neon-green);
+    color: var(--neon-green);
+}
+
+.pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination button.active {
+    border-color: var(--neon-green);
+    color: var(--neon-green);
+}
+
+/* Reset Password Page */
+.reset-container {
+    max-width: min(400px, 90vw);
+    margin: clamp(3rem, 8vw, 5rem) auto;
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    background: var(--bg-darker);
+    border: 3px solid var(--neon-green);
+    box-shadow: 0 0 3.125rem rgba(0, 255, 136, 0.3);
+}
+
+.reset-container h1 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(0.875rem, 1.8vw, 1rem);
+    color: var(--neon-green);
+    text-align: center;
+    margin-bottom: clamp(1.25rem, 3vw, 1.875rem);
+}
+
+/* ============================================
+   ADMIN PANEL STYLES
+   ============================================ */
+
+/* Admin Header */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: clamp(1.25rem, 3vw, 1.875rem);
+    flex-wrap: wrap;
+    gap: clamp(0.75rem, 1.5vw, 1rem);
+}
+
+.admin-header h1 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: var(--neon-green);
+}
+
+.admin-header h2 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+    color: var(--neon-pink);
+}
+
+/* Button variations */
+.btn-danger {
+    color: #ff4444;
+    border-color: #ff4444;
+}
+
+.btn-danger:hover {
+    background: rgba(255, 68, 68, 0.2);
+}
+
+.btn-small {
+    padding: clamp(0.4rem, 0.8vw, 0.5rem) clamp(0.6rem, 1.2vw, 0.75rem);
+    font-size: clamp(0.4rem, 0.8vw, 0.5rem);
+}
+
+/* Posts List */
+.posts-list {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.75rem, 1.5vw, 1rem);
+}
+
+.post-item {
+    background: var(--bg-darker);
+    border: 2px solid var(--text-dim);
+    padding: clamp(1rem, 2vw, 1.25rem);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: clamp(1rem, 2vw, 1.25rem);
+    flex-wrap: wrap;
+}
+
+.post-item:hover {
+    border-color: var(--neon-blue);
+}
+
+.post-info h3 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(0.625rem, 1.2vw, 0.75rem);
+    color: var(--text-tertiary);
+    margin-bottom: 0.5rem;
+}
+
+.post-item .post-meta {
+    font-size: clamp(0.75rem, 1.2vw, 0.875rem);
+    color: var(--text-dim);
+}
+
+.post-status {
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(0.4rem, 0.8vw, 0.5rem);
+    padding: 0.3125rem 0.625rem;
+    border: 1px solid;
+}
+
+.status-published {
+    color: var(--neon-green);
+    border-color: var(--neon-green);
+}
+
+.status-draft {
+    color: var(--neon-pink);
+    border-color: var(--neon-pink);
+}
+
+.post-actions {
+    display: flex;
+    gap: 0.625rem;
+}
+
+/* Editor */
+.editor {
+    display: none;
+    background: var(--bg-darker);
+    border: 2px solid var(--neon-green);
+    padding: clamp(1.25rem, 3vw, 1.875rem);
+    margin-bottom: clamp(1.25rem, 3vw, 1.875rem);
+}
+
+.editor.active {
+    display: block;
+}
+
+.editor h2 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+    color: var(--neon-pink);
+    margin-bottom: clamp(1rem, 2vw, 1.25rem);
+}
+
+.form-group textarea {
+    width: 100%;
+    padding: clamp(0.625rem, 1.2vw, 0.75rem);
+    font-family: 'VT323', monospace;
+    font-size: clamp(0.9rem, 1.5vw, 1.125rem);
+    background: var(--bg-dark);
+    border: 2px solid var(--text-dim);
+    color: var(--text-primary);
+    outline: none;
+    min-height: 18.75rem;
+    resize: vertical;
+}
+
+.form-group textarea:focus {
+    border-color: var(--neon-green);
+}
+
+.form-row {
+    display: flex;
+    gap: clamp(1rem, 2vw, 1.25rem);
+    flex-wrap: wrap;
+}
+
+.form-row .form-group {
+    flex: 1;
+    min-width: 12.5rem;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+}
+
+.checkbox-group input {
+    width: auto;
+}
+
+.editor-actions {
+    display: flex;
+    gap: clamp(0.75rem, 1.5vw, 1rem);
+    margin-top: clamp(1rem, 2vw, 1.25rem);
+}
+
+/* Admin Messages */
+.message {
+    padding: clamp(0.75rem, 1.5vw, 1rem);
+    margin-bottom: clamp(1rem, 2vw, 1.25rem);
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(0.5rem, 1vw, 0.625rem);
+}
+
+.message.success {
+    background: rgba(0, 255, 136, 0.2);
+    border: 2px solid var(--neon-green);
+    color: var(--neon-green);
+}
+
+.message.error {
+    background: rgba(255, 68, 68, 0.2);
+    border: 2px solid #ff4444;
+    color: #ff4444;
+}
+
+/* Image Upload */
+.image-upload-row {
+    display: flex;
+    gap: 0.625rem;
+}
+
+.image-upload-row input[type="text"] {
+    flex: 1;
+}
+
+.image-preview {
+    margin-top: 0.625rem;
+}
+
+.image-preview img {
+    max-width: 18.75rem;
+    max-height: 12.5rem;
+    border: 2px solid var(--text-dim);
+}
+
+.upload-status {
+    margin-top: 0.5rem;
+    font-size: clamp(0.75rem, 1.2vw, 0.875rem);
+}
+
+.upload-status.uploading {
+    color: var(--neon-blue);
+}
+
+.upload-status.success {
+    color: var(--neon-green);
+}
+
+.upload-status.error {
+    color: #ff4444;
+}
+
+.not-admin {
+    text-align: center;
+    padding: clamp(2.5rem, 6vw, 3.75rem) clamp(1rem, 2vw, 1.25rem);
+}
+
+/* ============================================
+   RESPONSIVE BREAKPOINTS
+   ============================================ */
+
 @media (max-width: 768px) {
-    .logo { font-size: 18px; }
-    nav { gap: 15px; }
-    nav a { font-size: 10px; padding: 8px 12px; }
-    .section-header { font-size: 14px; }
-    .user-menu { position: static; text-align: center; margin-top: 20px; }
+    .user-menu {
+        position: static;
+        text-align: center;
+        margin-top: 1.25rem;
+    }
+    
+    nav {
+        gap: 0.75rem;
+    }
+    
+    .games-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .post-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    html {
+        font-size: 14px;
+    }
+    
+    .ascii-decoration {
+        display: none;
+    }
 }
