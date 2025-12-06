@@ -45,9 +45,17 @@
                         <input type="text" id="postSlug" placeholder="auto-generated-from-title">
                     </div>
                     <div class="form-group">
-                        <label>TAGS (comma separated)</label>
-                        <input type="text" id="postTags" placeholder="news, update, game">
+                        <label>AUTHOR</label>
+                        <select id="postAuthor">
+                            <option value="">Me (default)</option>
+                            <option value="Claude">Claude</option>
+                        </select>
                     </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>TAGS (comma separated)</label>
+                    <input type="text" id="postTags" placeholder="news, update, game">
                 </div>
                 
                 <div class="form-group">
@@ -134,6 +142,7 @@
                                 <div class="post-meta">
                                     ${post.published_at ? new Date(post.published_at).toLocaleDateString() : 'Not published'} 
                                     · /${post.slug}
+                                    ${post.author_display_override ? ` · by ${escapeHtml(post.author_display_override)}` : ''}
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 15px;">
@@ -163,6 +172,7 @@
             document.getElementById('postId').value = post?.id || '';
             document.getElementById('postTitle').value = post?.title || '';
             document.getElementById('postSlug').value = post?.slug || '';
+            document.getElementById('postAuthor').value = post?.author_display_override || '';
             document.getElementById('postTags').value = post?.tags || '';
             document.getElementById('postExcerpt').value = post?.excerpt || '';
             document.getElementById('postImage').value = post?.featured_image || '';
@@ -205,6 +215,7 @@
             const postData = {
                 title: document.getElementById('postTitle').value,
                 slug: document.getElementById('postSlug').value || undefined,
+                author_display_override: document.getElementById('postAuthor').value || null,
                 tags: document.getElementById('postTags').value,
                 excerpt: document.getElementById('postExcerpt').value,
                 featured_image: document.getElementById('postImage').value || null,
