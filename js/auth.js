@@ -186,10 +186,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Escape') hideLoginModal();
     });
     
-    // Update game links with auth token
+    // Update game links with auth token (all game subdomains)
     const token = localStorage.getItem('oi_token');
     if (token) {
-        document.querySelectorAll('a[href*="blockchainstorm"]').forEach(link => {
+        const gameSubdomains = ['blockchainstorm', 'tantris'];
+        const selector = gameSubdomains.map(s => `a[href*="${s}"]`).join(', ');
+        document.querySelectorAll(selector).forEach(link => {
             const url = new URL(link.href);
             url.searchParams.set('token', token);
             link.href = url.toString();
