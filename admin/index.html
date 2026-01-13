@@ -6,6 +6,25 @@
     <title>Admin - Official Intelligence</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .stat-card {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid var(--primary);
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-value {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+    </style>
 </head>
 <body>
     <main>
@@ -93,6 +112,33 @@
             <div id="postsList" class="posts-list">
                 <div class="loading">Loading posts...</div>
             </div>
+            
+            <!-- Game Recordings Section -->
+            <div class="admin-header" style="margin-top: 40px;">
+                <h2>> GAME RECORDINGS</h2>
+                <button class="btn btn-primary" onclick="loadRecordings()">🔄 REFRESH</button>
+            </div>
+            
+            <div id="recordingsStats" class="stats-grid" style="margin-bottom: 20px;">
+                <div class="loading">Loading stats...</div>
+            </div>
+            
+            <div class="filters-row" style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <select id="filterPlayerType" onchange="loadRecordings()" style="padding: 8px;">
+                    <option value="">All Players</option>
+                    <option value="human">Human Only</option>
+                    <option value="ai">AI Only</option>
+                </select>
+                <input type="text" id="filterUsername" placeholder="Username..." style="padding: 8px; width: 150px;">
+                <input type="number" id="filterMinScore" placeholder="Min Score" style="padding: 8px; width: 100px;">
+                <button class="btn btn-primary btn-small" onclick="loadRecordings()">FILTER</button>
+            </div>
+            
+            <div id="recordingsList" class="posts-list">
+                <div class="loading">Loading recordings...</div>
+            </div>
+            
+            <div id="recordingsPagination" style="margin-top: 15px; text-align: center;"></div>
         </div>
     </main>
     
@@ -116,6 +162,8 @@
                 if (data.user?.is_admin) {
                     document.getElementById('adminContent').style.display = 'block';
                     loadPosts();
+                    loadRecordingsStats();
+                    loadRecordings();
                 } else {
                     document.getElementById('notAdmin').style.display = 'block';
                 }
@@ -349,6 +397,177 @@
                 preview.innerHTML = '';
             }
         });
+        
+        // ============================================
+        // GAME RECORDINGS FUNCTIONS
+        // ============================================
+        
+        const GAME_API_URL = 'https://blockchainstorm.onrender.com/api';
+        let currentRecordingsPage = 1;
+        
+        async function loadRecordingsStats() {
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/recordings/stats`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    document.getElementById('recordingsStats').innerHTML = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                            <div class="stat-card">
+                                <div class="stat-value">${data.total_recordings}</div>
+                                <div class="stat-label">Total Recordings</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.human_recordings}</div>
+                                <div class="stat-label">Human Games</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.ai_recordings}</div>
+                                <div class="stat-label">AI Games</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.unique_players}</div>
+                                <div class="stat-label">Unique Players</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${formatScore(data.human_avg_score)}</div>
+                                <div class="stat-label">Human Avg</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${formatScore(data.ai_avg_score)}</div>
+                                <div class="stat-label">AI Avg</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.last_24h}</div>
+                                <div class="stat-label">Last 24h</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                document.getElementById('recordingsStats').innerHTML = '<p style="color: var(--text-dim);">Failed to load stats</p>';
+            }
+        }
+        
+        async function loadRecordings(page = 1) {
+            currentRecordingsPage = page;
+            
+            const playerType = document.getElementById('filterPlayerType')?.value || '';
+            const username = document.getElementById('filterUsername')?.value || '';
+            const minScore = document.getElementById('filterMinScore')?.value || '';
+            
+            let url = `${GAME_API_URL}/admin/recordings?page=${page}&per_page=20`;
+            if (playerType) url += `&player_type=${playerType}`;
+            if (username) url += `&username=${encodeURIComponent(username)}`;
+            if (minScore) url += `&min_score=${minScore}`;
+            
+            try {
+                const res = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                const container = document.getElementById('recordingsList');
+                
+                if (data.recordings?.length) {
+                    container.innerHTML = data.recordings.map(rec => `
+                        <div class="post-item">
+                            <div class="post-info">
+                                <h3>${escapeHtml(rec.username)} - ${formatScore(rec.score)}</h3>
+                                <div class="post-meta">
+                                    ${new Date(rec.played_at).toLocaleString()}
+                                    · ${rec.difficulty}
+                                    · ${rec.skill_level}
+                                    ${rec.mode === 'challenge' ? ' · CHALLENGE' : ''}
+                                    · ${Math.floor(rec.duration_seconds / 60)}m ${rec.duration_seconds % 60}s
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <span class="post-status ${rec.player_type === 'human' ? 'status-published' : 'status-draft'}">
+                                    ${rec.player_type.toUpperCase()}
+                                </span>
+                                <div class="post-actions">
+                                    <button class="btn btn-primary btn-small" onclick="downloadRecording(${rec.id})">⬇️ JSON</button>
+                                    <button class="btn btn-danger btn-small" onclick="deleteRecording(${rec.id})">DELETE</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    // Pagination
+                    const pagination = document.getElementById('recordingsPagination');
+                    let pagHtml = '';
+                    if (data.pages > 1) {
+                        if (page > 1) pagHtml += `<button class="btn btn-primary btn-small" onclick="loadRecordings(${page - 1})">← PREV</button> `;
+                        pagHtml += `Page ${page} of ${data.pages} (${data.total} total)`;
+                        if (page < data.pages) pagHtml += ` <button class="btn btn-primary btn-small" onclick="loadRecordings(${page + 1})">NEXT →</button>`;
+                    } else {
+                        pagHtml = `${data.total} recordings`;
+                    }
+                    pagination.innerHTML = pagHtml;
+                } else {
+                    container.innerHTML = '<p style="color: var(--text-dim);">No recordings found</p>';
+                    document.getElementById('recordingsPagination').innerHTML = '';
+                }
+            } catch (err) {
+                showMessage('Failed to load recordings', 'error');
+            }
+        }
+        
+        async function downloadRecording(id) {
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/recordings/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    const filename = `recording_${data.player_type}_${data.username}_${id}.json`;
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                    
+                    URL.revokeObjectURL(url);
+                } else {
+                    showMessage('Failed to download recording', 'error');
+                }
+            } catch (err) {
+                showMessage('Failed to download recording', 'error');
+            }
+        }
+        
+        async function deleteRecording(id) {
+            if (!confirm('Delete this recording? This cannot be undone.')) return;
+            
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/recordings/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (res.ok) {
+                    showMessage('Recording deleted', 'success');
+                    loadRecordings(currentRecordingsPage);
+                    loadRecordingsStats();
+                } else {
+                    showMessage('Failed to delete recording', 'error');
+                }
+            } catch (err) {
+                showMessage('Failed to delete recording', 'error');
+            }
+        }
+        
+        function formatScore(score) {
+            if (!score) return '₿0.0000';
+            const btc = score / 10000000;
+            return `₿${btc.toFixed(4)}`;
+        }
         
         // Init
         checkAdmin();
