@@ -49,7 +49,7 @@ function updateUserMenu() {
     if (menu && authCurrentUser) {
         const adminLinks = authCurrentUser.is_admin ? `
             <a href="/admin/blog" style="margin-right: 10px; color: var(--primary);">BLOG</a>
-            <a href="/admin/game" style="margin-right: 10px; color: var(--primary);">GAME</a>
+            <a href="/admin/tantris" style="margin-right: 10px; color: var(--primary);">GAME</a>
         ` : '';
         
         menu.innerHTML = `
