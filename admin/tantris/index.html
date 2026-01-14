@@ -280,6 +280,14 @@
                                     ${rec.mode === 'challenge' ? ' · CHALLENGE' : ''}
                                     · ${Math.floor(rec.duration_seconds / 60)}m ${rec.duration_seconds % 60}s
                                 </div>
+                                <div class="post-meta" style="margin-top: 4px; color: var(--accent-cyan);">
+                                    ${rec.lines || 0} lines
+                                    · L${rec.level || 1}
+                                    ${rec.tsunamis ? ` · 🌊${rec.tsunamis}` : ''}
+                                    ${rec.blackholes ? ` · 🕳️${rec.blackholes}` : ''}
+                                    ${rec.volcanoes ? ` · 🌋${rec.volcanoes}` : ''}
+                                    ${rec.strikes ? ` · ⚡${rec.strikes}` : ''}
+                                </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 15px;">
                                 <span class="post-status ${rec.player_type === 'human' ? 'status-published' : 'status-draft'}">
