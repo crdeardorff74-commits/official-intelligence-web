@@ -1,10 +1,12 @@
 /**
  * Official Intelligence - Auth Module
  * Shared authentication functions for all pages
+ * Modified for BLOCKCHaiNSTORM game integration
  */
 
-const API_URL = 'https://official-intelligence-api.onrender.com';
-let currentUser = null;
+const AUTH_API_URL = 'https://official-intelligence-api.onrender.com';
+const API_URL = AUTH_API_URL; // Alias for compatibility
+let authCurrentUser = null;
 let isRegisterMode = false;
 
 // Check for OAuth callback token
@@ -25,14 +27,15 @@ async function checkAuth() {
     if (!token) return;
     
     try {
-        const res = await fetch(`${API_URL}/auth/me`, {
+        const res = await fetch(`${AUTH_API_URL}/auth/me`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
         if (res.ok) {
             const data = await res.json();
-            currentUser = data.user;
+            authCurrentUser = data.user;
             updateUserMenu();
+            updateIntroLoginButton();
         } else {
             localStorage.removeItem('oi_token');
         }
@@ -43,24 +46,40 @@ async function checkAuth() {
 
 function updateUserMenu() {
     const menu = document.getElementById('userMenu');
-    if (menu && currentUser) {
+    if (menu && authCurrentUser) {
+        const adminLinks = authCurrentUser.is_admin ? `
+            <a href="/admin/blog" style="margin-right: 10px; color: var(--primary);">BLOG</a>
+            <a href="/admin/game" style="margin-right: 10px; color: var(--primary);">GAME</a>
+        ` : '';
+        
         menu.innerHTML = `
             <div class="user-info">
-                ${currentUser.avatar_url ? `<img src="${currentUser.avatar_url}" alt="">` : ''}
-                <span>${currentUser.display_name || currentUser.username}</span>
+                ${adminLinks}
+                ${authCurrentUser.avatar_url ? `<img src="${authCurrentUser.avatar_url}" alt="">` : ''}
+                <span>${authCurrentUser.display_name || authCurrentUser.username}</span>
                 <button onclick="logout()" style="margin-left: 10px;">LOGOUT</button>
             </div>
         `;
     }
 }
 
+// Update intro screen login button visibility
+function updateIntroLoginButton() {
+    const introLoginBtn = document.getElementById('introLoginBtn');
+    if (introLoginBtn) {
+        const isLoggedIn = !!localStorage.getItem('oi_token');
+        introLoginBtn.classList.toggle('hidden', isLoggedIn);
+    }
+}
+
 function logout() {
     localStorage.removeItem('oi_token');
-    currentUser = null;
+    authCurrentUser = null;
     const menu = document.getElementById('userMenu');
     if (menu) {
         menu.innerHTML = '<button onclick="showLoginModal()">LOGIN</button>';
     }
+    updateIntroLoginButton();
 }
 
 function showLoginModal() {
@@ -83,6 +102,8 @@ function hideLoginModal() {
     if (form) {
         form.reset();
     }
+    // Update intro login button after modal closes
+    updateIntroLoginButton();
 }
 
 function toggleAuthMode(e) {
@@ -131,7 +152,7 @@ async function handleLogin(e) {
         : { email, password };
     
     try {
-        const res = await fetch(`${API_URL}${endpoint}`, {
+        const res = await fetch(`${AUTH_API_URL}${endpoint}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
@@ -141,9 +162,10 @@ async function handleLogin(e) {
         
         if (res.ok && data.token) {
             localStorage.setItem('oi_token', data.token);
-            currentUser = data.user;
+            authCurrentUser = data.user;
             hideLoginModal();
             updateUserMenu();
+            updateIntroLoginButton();
         } else {
             showError(data.error || 'Authentication failed');
         }
@@ -185,16 +207,4 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') hideLoginModal();
     });
-    
-    // Update game links with auth token (all game subdomains)
-    const token = localStorage.getItem('oi_token');
-    if (token) {
-        const gameSubdomains = ['blockchainstorm', 'tantris'];
-        const selector = gameSubdomains.map(s => `a[href*="${s}"]`).join(', ');
-        document.querySelectorAll(selector).forEach(link => {
-            const url = new URL(link.href);
-            url.searchParams.set('token', token);
-            link.href = url.toString();
-        });
-    }
 });
