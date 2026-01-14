@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaNTЯiS Admin - Official Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .stat-card {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid var(--primary);
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-value {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+        .tab-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--primary);
+            padding-bottom: 10px;
+        }
+        .tab-btn {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 10px 20px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            cursor: pointer;
+        }
+        .tab-btn.active {
+            background: var(--primary);
+            color: #000;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .bug-status {
+            padding: 3px 8px;
+            font-size: 9px;
+            border-radius: 3px;
+        }
+        .bug-status.new { background: #ff6b6b; color: #fff; }
+        .bug-status.reviewed { background: #ffd93d; color: #000; }
+        .bug-status.fixed { background: #6bcb77; color: #000; }
+        .bug-status.wontfix { background: #666; color: #fff; }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="admin-header">
+            <h1>> TaNTЯiS ADMIN</h1>
+            <div style="display: flex; gap: 10px;">
+                <a href="/admin/blog" class="btn btn-primary">BLOG ADMIN</a>
+                <a href="/" class="btn btn-primary">← BACK TO SITE</a>
+            </div>
+        </div>
+        
+        <div id="message"></div>
+        
+        <div id="notAdmin" class="not-admin" style="display: none;">
+            <h2 class="section-header">ACCESS DENIED</h2>
+            <p style="margin-top: 20px;">Admin privileges required.</p>
+            <a href="/" class="btn btn-primary" style="margin-top: 20px; display: inline-block;">RETURN HOME</a>
+        </div>
+        
+        <div id="adminContent" style="display: none;">
+            <!-- Tab Navigation -->
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="showTab('recordings')">RECORDINGS</button>
+                <button class="tab-btn" onclick="showTab('bugs')">BUG REPORTS</button>
+            </div>
+            
+            <!-- Recordings Tab -->
+            <div id="recordingsTab" class="tab-content active">
+                <div class="admin-header">
+                    <h2>> GAME RECORDINGS</h2>
+                    <button class="btn btn-primary" onclick="loadRecordings()">🔄 REFRESH</button>
+                </div>
+                
+                <div id="recordingsStats" class="stats-grid" style="margin-bottom: 20px;">
+                    <div class="loading">Loading stats...</div>
+                </div>
+                
+                <div class="filters-row" style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <select id="filterPlayerType" onchange="loadRecordings()" style="padding: 8px;">
+                        <option value="">All Players</option>
+                        <option value="human">Human Only</option>
+                        <option value="ai">AI Only</option>
+                    </select>
+                    <input type="text" id="filterUsername" placeholder="Username..." style="padding: 8px; width: 150px;">
+                    <input type="number" id="filterMinScore" placeholder="Min Score" style="padding: 8px; width: 100px;">
+                    <button class="btn btn-primary btn-small" onclick="loadRecordings()">FILTER</button>
+                </div>
+                
+                <div id="recordingsList" class="posts-list">
+                    <div class="loading">Loading recordings...</div>
+                </div>
+                
+                <div id="recordingsPagination" style="margin-top: 15px; text-align: center;"></div>
+            </div>
+            
+            <!-- Bug Reports Tab -->
+            <div id="bugsTab" class="tab-content">
+                <div class="admin-header">
+                    <h2>> BUG REPORTS</h2>
+                    <button class="btn btn-primary" onclick="loadBugReports()">🔄 REFRESH</button>
+                </div>
+                
+                <div class="filters-row" style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <select id="filterBugStatus" onchange="loadBugReports()" style="padding: 8px;">
+                        <option value="">All Status</option>
+                        <option value="new">New</option>
+                        <option value="reviewed">Reviewed</option>
+                        <option value="fixed">Fixed</option>
+                        <option value="wontfix">Won't Fix</option>
+                    </select>
+                    <button class="btn btn-primary btn-small" onclick="loadBugReports()">FILTER</button>
+                </div>
+                
+                <div id="bugsList" class="posts-list">
+                    <div class="loading">Loading bug reports...</div>
+                </div>
+                
+                <div id="bugsPagination" style="margin-top: 15px; text-align: center;"></div>
+            </div>
+        </div>
+        
+        <!-- Bug Detail Modal -->
+        <div id="bugModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; overflow: auto;">
+            <div style="max-width: 800px; margin: 50px auto; padding: 20px; background: #1a1a2e; border: 2px solid var(--primary);">
+                <div class="admin-header">
+                    <h2>> BUG REPORT #<span id="bugModalId"></span></h2>
+                    <button class="btn btn-danger" onclick="closeBugModal()">✕ CLOSE</button>
+                </div>
+                <div id="bugModalContent"></div>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        const API_URL = 'https://official-intelligence-api.onrender.com';
+        const GAME_API_URL = 'https://blockchainstorm.onrender.com/api';
+        let token = localStorage.getItem('oi_token');
+        let currentRecordingsPage = 1;
+        let currentBugsPage = 1;
+        
+        // Tab switching
+        function showTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tab + 'Tab').classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tab === 'bugs') {
+                loadBugReports();
+            }
+        }
+        
+        // Check admin status
+        async function checkAdmin() {
+            if (!token) {
+                document.getElementById('notAdmin').style.display = 'block';
+                return;
+            }
+            
+            try {
+                const res = await fetch(`${API_URL}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (data.user?.is_admin) {
+                    document.getElementById('adminContent').style.display = 'block';
+                    loadRecordingsStats();
+                    loadRecordings();
+                } else {
+                    document.getElementById('notAdmin').style.display = 'block';
+                }
+            } catch (err) {
+                document.getElementById('notAdmin').style.display = 'block';
+            }
+        }
+        
+        // ============================================
+        // GAME RECORDINGS FUNCTIONS
+        // ============================================
+        
+        async function loadRecordingsStats() {
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/recordings/stats`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    document.getElementById('recordingsStats').innerHTML = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                            <div class="stat-card">
+                                <div class="stat-value">${data.total_recordings}</div>
+                                <div class="stat-label">Total Recordings</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.human_recordings}</div>
+                                <div class="stat-label">Human Games</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.ai_recordings}</div>
+                                <div class="stat-label">AI Games</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.unique_players}</div>
+                                <div class="stat-label">Unique Players</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${formatScore(data.human_avg_score)}</div>
+                                <div class="stat-label">Human Avg</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${formatScore(data.ai_avg_score)}</div>
+                                <div class="stat-label">AI Avg</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.last_24h}</div>
+                                <div class="stat-label">Last 24h</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                document.getElementById('recordingsStats').innerHTML = '<p style="color: var(--text-dim);">Failed to load stats</p>';
+            }
+        }
+        
+        async function loadRecordings(page = 1) {
+            currentRecordingsPage = page;
+            
+            const playerType = document.getElementById('filterPlayerType')?.value || '';
+            const username = document.getElementById('filterUsername')?.value || '';
+            const minScore = document.getElementById('filterMinScore')?.value || '';
+            
+            let url = `${GAME_API_URL}/admin/recordings?page=${page}&per_page=20`;
+            if (playerType) url += `&player_type=${playerType}`;
+            if (username) url += `&username=${encodeURIComponent(username)}`;
+            if (minScore) url += `&min_score=${minScore}`;
+            
+            try {
+                const res = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                const container = document.getElementById('recordingsList');
+                
+                if (data.recordings?.length) {
+                    container.innerHTML = data.recordings.map(rec => `
+                        <div class="post-item">
+                            <div class="post-info">
+                                <h3>${escapeHtml(rec.username)} - ${formatScore(rec.score)}</h3>
+                                <div class="post-meta">
+                                    ${new Date(rec.played_at).toLocaleString()}
+                                    · ${rec.difficulty}
+                                    · ${rec.skill_level}
+                                    ${rec.mode === 'challenge' ? ' · CHALLENGE' : ''}
+                                    · ${Math.floor(rec.duration_seconds / 60)}m ${rec.duration_seconds % 60}s
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <span class="post-status ${rec.player_type === 'human' ? 'status-published' : 'status-draft'}">
+                                    ${rec.player_type.toUpperCase()}
+                                </span>
+                                <div class="post-actions">
+                                    <button class="btn btn-primary btn-small" onclick="downloadRecording(${rec.id})">⬇️ JSON</button>
+                                    <button class="btn btn-danger btn-small" onclick="deleteRecording(${rec.id})">DELETE</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    // Pagination
+                    const pagination = document.getElementById('recordingsPagination');
+                    let pagHtml = '';
+                    if (data.pages > 1) {
+                        if (page > 1) pagHtml += `<button class="btn btn-primary btn-small" onclick="loadRecordings(${page - 1})">← PREV</button> `;
+                        pagHtml += `Page ${page} of ${data.pages} (${data.total} total)`;
+                        if (page < data.pages) pagHtml += ` <button class="btn btn-primary btn-small" onclick="loadRecordings(${page + 1})">NEXT →</button>`;
+                    } else {
+                        pagHtml = `${data.total} recordings`;
+                    }
+                    pagination.innerHTML = pagHtml;
+                } else {
+                    container.innerHTML = '<p style="color: var(--text-dim);">No recordings found</p>';
+                    document.getElementById('recordingsPagination').innerHTML = '';
+                }
+            } catch (err) {
+                showMessage('Failed to load recordings', 'error');
+            }
+        }
+        
+        async function downloadRecording(id) {
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/recordings/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    const filename = `recording_${data.player_type}_${data.username}_${id}.json`;
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                    
+                    URL.revokeObjectURL(url);
+                } else {
+                    showMessage('Failed to download recording', 'error');
+                }
+            } catch (err) {
+                showMessage('Failed to download recording', 'error');
+            }
+        }
+        
+        async function deleteRecording(id) {
+            if (!confirm('Delete this recording? This cannot be undone.')) return;
+            
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/recordings/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (res.ok) {
+                    showMessage('Recording deleted', 'success');
+                    loadRecordings(currentRecordingsPage);
+                    loadRecordingsStats();
+                } else {
+                    showMessage('Failed to delete recording', 'error');
+                }
+            } catch (err) {
+                showMessage('Failed to delete recording', 'error');
+            }
+        }
+        
+        // ============================================
+        // BUG REPORTS FUNCTIONS
+        // ============================================
+        
+        async function loadBugReports(page = 1) {
+            currentBugsPage = page;
+            
+            const status = document.getElementById('filterBugStatus')?.value || '';
+            
+            let url = `${GAME_API_URL}/admin/bug-reports?page=${page}&per_page=20`;
+            if (status) url += `&status=${status}`;
+            
+            try {
+                const res = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                const container = document.getElementById('bugsList');
+                
+                if (data.bug_reports?.length) {
+                    container.innerHTML = data.bug_reports.map(bug => `
+                        <div class="post-item">
+                            <div class="post-info">
+                                <h3>#${bug.id} - ${escapeHtml(bug.username)}</h3>
+                                <div class="post-meta">
+                                    ${new Date(bug.reported_at).toLocaleString()}
+                                    · ${bug.difficulty || 'unknown'}
+                                    · ${bug.player_type}
+                                    · Score: ${formatScore(bug.score)}
+                                </div>
+                                <div style="margin-top: 5px; color: var(--text-dim); font-size: 12px;">
+                                    ${bug.bug_description ? escapeHtml(bug.bug_description.substring(0, 100)) + (bug.bug_description.length > 100 ? '...' : '') : '<em>No description</em>'}
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <span class="bug-status ${bug.status}">${bug.status.toUpperCase()}</span>
+                                <div class="post-actions">
+                                    <button class="btn btn-primary btn-small" onclick="viewBugReport(${bug.id})">VIEW</button>
+                                    <select onchange="updateBugStatus(${bug.id}, this.value)" style="padding: 5px; font-size: 10px;">
+                                        <option value="new" ${bug.status === 'new' ? 'selected' : ''}>New</option>
+                                        <option value="reviewed" ${bug.status === 'reviewed' ? 'selected' : ''}>Reviewed</option>
+                                        <option value="fixed" ${bug.status === 'fixed' ? 'selected' : ''}>Fixed</option>
+                                        <option value="wontfix" ${bug.status === 'wontfix' ? 'selected' : ''}>Won't Fix</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    // Pagination
+                    const pagination = document.getElementById('bugsPagination');
+                    let pagHtml = '';
+                    if (data.pages > 1) {
+                        if (page > 1) pagHtml += `<button class="btn btn-primary btn-small" onclick="loadBugReports(${page - 1})">← PREV</button> `;
+                        pagHtml += `Page ${page} of ${data.pages} (${data.total} total)`;
+                        if (page < data.pages) pagHtml += ` <button class="btn btn-primary btn-small" onclick="loadBugReports(${page + 1})">NEXT →</button>`;
+                    } else {
+                        pagHtml = `${data.total} bug reports`;
+                    }
+                    pagination.innerHTML = pagHtml;
+                } else {
+                    container.innerHTML = '<p style="color: var(--text-dim);">No bug reports found</p>';
+                    document.getElementById('bugsPagination').innerHTML = '';
+                }
+            } catch (err) {
+                showMessage('Failed to load bug reports', 'error');
+            }
+        }
+        
+        async function viewBugReport(id) {
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/bug-reports/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const bug = await res.json();
+                
+                if (res.ok) {
+                    document.getElementById('bugModalId').textContent = bug.id;
+                    document.getElementById('bugModalContent').innerHTML = `
+                        <div style="margin-bottom: 20px;">
+                            <strong>User:</strong> ${escapeHtml(bug.username)}<br>
+                            <strong>Reported:</strong> ${new Date(bug.reported_at).toLocaleString()}<br>
+                            <strong>Status:</strong> <span class="bug-status ${bug.status}">${bug.status.toUpperCase()}</span>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <strong>Game State:</strong><br>
+                            Difficulty: ${bug.difficulty || 'unknown'} | Skill: ${bug.skill_level || 'unknown'}<br>
+                            Mode: ${bug.mode || 'normal'} | Player: ${bug.player_type}<br>
+                            Score: ${formatScore(bug.score)} | Level: ${bug.level} | Lines: ${bug.lines}
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <strong>Description:</strong>
+                            <div style="background: #0a0a1a; padding: 15px; margin-top: 5px; border: 1px solid #333; white-space: pre-wrap;">
+${bug.bug_description || '<em>No description provided</em>'}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <strong>Debug Log:</strong>
+                            <div style="background: #0a0a1a; padding: 15px; margin-top: 5px; border: 1px solid #333; max-height: 400px; overflow: auto; font-family: monospace; font-size: 11px; white-space: pre;">
+${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary" onclick="downloadBugLog(${bug.id})">⬇️ DOWNLOAD LOG</button>
+                        </div>
+                    `;
+                    document.getElementById('bugModal').style.display = 'block';
+                }
+            } catch (err) {
+                showMessage('Failed to load bug report', 'error');
+            }
+        }
+        
+        function closeBugModal() {
+            document.getElementById('bugModal').style.display = 'none';
+        }
+        
+        async function updateBugStatus(id, status) {
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/bug-reports/${id}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ status })
+                });
+                
+                if (res.ok) {
+                    showMessage('Status updated', 'success');
+                    loadBugReports(currentBugsPage);
+                } else {
+                    showMessage('Failed to update status', 'error');
+                }
+            } catch (err) {
+                showMessage('Failed to update status', 'error');
+            }
+        }
+        
+        async function downloadBugLog(id) {
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/bug-reports/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const bug = await res.json();
+                
+                if (res.ok && bug.debug_log) {
+                    const filename = `bug_${id}_${bug.username}_log.txt`;
+                    const content = `Bug Report #${id}\n` +
+                        `User: ${bug.username}\n` +
+                        `Reported: ${bug.reported_at}\n` +
+                        `Status: ${bug.status}\n` +
+                        `Difficulty: ${bug.difficulty}\n` +
+                        `Skill: ${bug.skill_level}\n` +
+                        `Score: ${bug.score}\n` +
+                        `\nDescription:\n${bug.bug_description || 'None'}\n` +
+                        `\n${'='.repeat(50)}\nDEBUG LOG:\n${'='.repeat(50)}\n\n` +
+                        bug.debug_log;
+                    
+                    const blob = new Blob([content], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                    
+                    URL.revokeObjectURL(url);
+                }
+            } catch (err) {
+                showMessage('Failed to download log', 'error');
+            }
+        }
+        
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        
+        function showMessage(text, type) {
+            const el = document.getElementById('message');
+            el.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(() => el.innerHTML = '', 3000);
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function formatScore(score) {
+            if (!score) return '₿0.0000';
+            const btc = score / 10000000;
+            return `₿${btc.toFixed(4)}`;
+        }
+        
+        // Close modal on ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeBugModal();
+            }
+        });
+        
+        // Init
+        checkAdmin();
+    </script>
+</body>
+</html>
