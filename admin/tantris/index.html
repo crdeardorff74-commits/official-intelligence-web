@@ -601,7 +601,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
         
         async function loadVisitStats() {
             try {
-                const res = await fetch(`${GAME_API_URL}/admin/visits/stats`, {
+                const res = await fetch(`${GAME_API_URL}/admin/visits/stats?_=${Date.now()}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
