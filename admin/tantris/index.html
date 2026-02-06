@@ -609,7 +609,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                 if (res.ok) {
                     // Summary stats
                     document.getElementById('visitStats').innerHTML = `
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px;">
                             <div class="stat-card">
                                 <div class="stat-value">${data.total_visits}</div>
                                 <div class="stat-label">Total Visits</div>
@@ -623,8 +623,12 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                                 <div class="stat-label">Started Game</div>
                             </div>
                             <div class="stat-card">
-                                <div class="stat-value">${data.conversion_rate}% → ${data.start_rate}%</div>
-                                <div class="stat-label">Play / Start Rate (All)</div>
+                                <div class="stat-value">${data.total_finished}</div>
+                                <div class="stat-label">Finished Game</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.conversion_rate}% → ${data.start_rate}% → ${data.finish_rate}%</div>
+                                <div class="stat-label">Play / Start / Finish Rate</div>
                             </div>
                             <div class="stat-card">
                                 <div class="stat-value">${data.avg_time_to_play}s</div>
@@ -633,16 +637,16 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                         </div>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;">
                             <div class="stat-card">
-                                <div class="stat-value">${data.visits_24h} → ${data.played_24h} → ${data.started_24h}</div>
-                                <div class="stat-label">Last 24h (${data.conversion_24h}% play, ${data.start_rate_24h}% start)</div>
+                                <div class="stat-value">${data.visits_24h} → ${data.played_24h} → ${data.started_24h} → ${data.finished_24h}</div>
+                                <div class="stat-label">Last 24h (${data.conversion_24h}% / ${data.start_rate_24h}% / ${data.finish_rate_24h}%)</div>
                             </div>
                             <div class="stat-card">
-                                <div class="stat-value">${data.visits_7d} → ${data.played_7d} → ${data.started_7d}</div>
-                                <div class="stat-label">Last 7d (${data.conversion_7d}% play, ${data.start_rate_7d}% start)</div>
+                                <div class="stat-value">${data.visits_7d} → ${data.played_7d} → ${data.started_7d} → ${data.finished_7d}</div>
+                                <div class="stat-label">Last 7d (${data.conversion_7d}% / ${data.start_rate_7d}% / ${data.finish_rate_7d}%)</div>
                             </div>
                             <div class="stat-card">
-                                <div class="stat-value">${data.visits_30d} → ${data.played_30d} → ${data.started_30d}</div>
-                                <div class="stat-label">Last 30d (${data.conversion_30d}% play, ${data.start_rate_30d}% start)</div>
+                                <div class="stat-value">${data.visits_30d} → ${data.played_30d} → ${data.started_30d} → ${data.finished_30d}</div>
+                                <div class="stat-label">Last 30d (${data.conversion_30d}% / ${data.start_rate_30d}% / ${data.finish_rate_30d}%)</div>
                             </div>
                         </div>
                     `;
@@ -658,19 +662,21 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                             const visitBar = Math.round(d.visits * barWidth);
                             const playedBar = Math.round(d.played * barWidth);
                             const startedBar = Math.round(d.started * barWidth);
+                            const finishedBar = Math.round(d.finished * barWidth);
                             const date = d.day.substring(5); // MM-DD
                             chartHtml += `<div style="margin: 2px 0; display: flex; align-items: center; gap: 8px;">
                                 <span style="width: 50px; color: var(--text-dim);">${date}</span>
                                 <div style="flex: 1; position: relative; height: 16px; background: rgba(255,255,255,0.05);">
                                     <div style="position: absolute; height: 100%; width: ${visitBar}%; background: rgba(0,150,255,0.4);"></div>
                                     <div style="position: absolute; height: 100%; width: ${playedBar}%; background: rgba(0,255,100,0.4);"></div>
-                                    <div style="position: absolute; height: 100%; width: ${startedBar}%; background: rgba(255,200,0,0.6);"></div>
+                                    <div style="position: absolute; height: 100%; width: ${startedBar}%; background: rgba(255,200,0,0.5);"></div>
+                                    <div style="position: absolute; height: 100%; width: ${finishedBar}%; background: rgba(255,80,80,0.6);"></div>
                                 </div>
-                                <span style="width: 100px; text-align: right; color: var(--text-dim);">${d.visits}/${d.played}/${d.started}</span>
+                                <span style="width: 120px; text-align: right; color: var(--text-dim);">${d.visits}/${d.played}/${d.started}/${d.finished}</span>
                             </div>`;
                         });
                         chartHtml += '</div>';
-                        chartHtml += '<div style="margin-top: 5px; font-size: 11px; color: var(--text-dim);"><span style="color: rgba(0,150,255,0.7);">■</span> Visits &nbsp; <span style="color: rgba(0,255,100,0.7);">■</span> Played &nbsp; <span style="color: rgba(255,200,0,0.8);">■</span> Started</div>';
+                        chartHtml += '<div style="margin-top: 5px; font-size: 11px; color: var(--text-dim);"><span style="color: rgba(0,150,255,0.7);">■</span> Visits &nbsp; <span style="color: rgba(0,255,100,0.7);">■</span> Played &nbsp; <span style="color: rgba(255,200,0,0.8);">■</span> Started &nbsp; <span style="color: rgba(255,80,80,0.8);">■</span> Finished</div>';
                         document.getElementById('visitChart').innerHTML = chartHtml;
                     }
                     
@@ -678,12 +684,12 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                     if (data.top_referrers && data.top_referrers.length > 0) {
                         let refHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Top Referrers</h3>';
                         refHtml += '<table style="width: 100%; border-collapse: collapse;">';
-                        refHtml += '<tr style="border-bottom: 1px solid var(--primary);"><th style="text-align: left; padding: 5px;">Referrer</th><th style="text-align: right; padding: 5px;">Visits</th><th style="text-align: right; padding: 5px;">Played</th><th style="text-align: right; padding: 5px;">Started</th><th style="text-align: right; padding: 5px;">Conv%</th></tr>';
+                        refHtml += '<tr style="border-bottom: 1px solid var(--primary);"><th style="text-align: left; padding: 5px;">Referrer</th><th style="text-align: right; padding: 5px;">Visits</th><th style="text-align: right; padding: 5px;">Played</th><th style="text-align: right; padding: 5px;">Started</th><th style="text-align: right; padding: 5px;">Finished</th><th style="text-align: right; padding: 5px;">Conv%</th></tr>';
                         data.top_referrers.forEach(r => {
-                            const conv = r.visits > 0 ? (r.started / r.visits * 100).toFixed(1) : '0.0';
+                            const conv = r.visits > 0 ? (r.finished / r.visits * 100).toFixed(1) : '0.0';
                             // Truncate long referrers
                             const shortRef = r.referrer.length > 60 ? r.referrer.substring(0, 60) + '...' : r.referrer;
-                            refHtml += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.1);"><td style="padding: 5px; color: var(--text-dim); word-break: break-all;">${escapeHtml(shortRef)}</td><td style="text-align: right; padding: 5px;">${r.visits}</td><td style="text-align: right; padding: 5px;">${r.played}</td><td style="text-align: right; padding: 5px;">${r.started}</td><td style="text-align: right; padding: 5px;">${conv}%</td></tr>`;
+                            refHtml += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.1);"><td style="padding: 5px; color: var(--text-dim); word-break: break-all;">${escapeHtml(shortRef)}</td><td style="text-align: right; padding: 5px;">${r.visits}</td><td style="text-align: right; padding: 5px;">${r.played}</td><td style="text-align: right; padding: 5px;">${r.started}</td><td style="text-align: right; padding: 5px;">${r.finished}</td><td style="text-align: right; padding: 5px;">${conv}%</td></tr>`;
                         });
                         refHtml += '</table>';
                         document.getElementById('visitReferrers').innerHTML = refHtml;
@@ -693,10 +699,10 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                     if (data.top_languages && data.top_languages.length > 0) {
                         let langHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Top Languages</h3>';
                         langHtml += '<table style="width: 100%; border-collapse: collapse;">';
-                        langHtml += '<tr style="border-bottom: 1px solid var(--primary);"><th style="text-align: left; padding: 5px;">Language</th><th style="text-align: right; padding: 5px;">Visits</th><th style="text-align: right; padding: 5px;">Played</th><th style="text-align: right; padding: 5px;">Started</th><th style="text-align: right; padding: 5px;">Conv%</th></tr>';
+                        langHtml += '<tr style="border-bottom: 1px solid var(--primary);"><th style="text-align: left; padding: 5px;">Language</th><th style="text-align: right; padding: 5px;">Visits</th><th style="text-align: right; padding: 5px;">Played</th><th style="text-align: right; padding: 5px;">Started</th><th style="text-align: right; padding: 5px;">Finished</th><th style="text-align: right; padding: 5px;">Conv%</th></tr>';
                         data.top_languages.forEach(l => {
-                            const conv = l.visits > 0 ? (l.started / l.visits * 100).toFixed(1) : '0.0';
-                            langHtml += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.1);"><td style="padding: 5px;">${escapeHtml(l.language)}</td><td style="text-align: right; padding: 5px;">${l.visits}</td><td style="text-align: right; padding: 5px;">${l.played}</td><td style="text-align: right; padding: 5px;">${l.started}</td><td style="text-align: right; padding: 5px;">${conv}%</td></tr>`;
+                            const conv = l.visits > 0 ? (l.finished / l.visits * 100).toFixed(1) : '0.0';
+                            langHtml += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.1);"><td style="padding: 5px;">${escapeHtml(l.language)}</td><td style="text-align: right; padding: 5px;">${l.visits}</td><td style="text-align: right; padding: 5px;">${l.played}</td><td style="text-align: right; padding: 5px;">${l.started}</td><td style="text-align: right; padding: 5px;">${l.finished}</td><td style="text-align: right; padding: 5px;">${conv}%</td></tr>`;
                         });
                         langHtml += '</table>';
                         document.getElementById('visitLanguages').innerHTML = langHtml;
