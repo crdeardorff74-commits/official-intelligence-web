@@ -619,26 +619,30 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                                 <div class="stat-label">Clicked Play</div>
                             </div>
                             <div class="stat-card">
-                                <div class="stat-value">${data.conversion_rate}%</div>
-                                <div class="stat-label">Conversion (All Time)</div>
+                                <div class="stat-value">${data.total_started}</div>
+                                <div class="stat-label">Started Game</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.conversion_rate}% → ${data.start_rate}%</div>
+                                <div class="stat-label">Play / Start Rate (All)</div>
                             </div>
                             <div class="stat-card">
                                 <div class="stat-value">${data.avg_time_to_play}s</div>
                                 <div class="stat-label">Avg Time to Play</div>
                             </div>
                         </div>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;">
                             <div class="stat-card">
-                                <div class="stat-value">${data.visits_24h} → ${data.played_24h} (${data.conversion_24h}%)</div>
-                                <div class="stat-label">Last 24 Hours</div>
+                                <div class="stat-value">${data.visits_24h} → ${data.played_24h} → ${data.started_24h}</div>
+                                <div class="stat-label">Last 24h (${data.conversion_24h}% play, ${data.start_rate_24h}% start)</div>
                             </div>
                             <div class="stat-card">
-                                <div class="stat-value">${data.visits_7d} → ${data.played_7d} (${data.conversion_7d}%)</div>
-                                <div class="stat-label">Last 7 Days</div>
+                                <div class="stat-value">${data.visits_7d} → ${data.played_7d} → ${data.started_7d}</div>
+                                <div class="stat-label">Last 7d (${data.conversion_7d}% play, ${data.start_rate_7d}% start)</div>
                             </div>
                             <div class="stat-card">
-                                <div class="stat-value">${data.visits_30d} → ${data.played_30d} (${data.conversion_30d}%)</div>
-                                <div class="stat-label">Last 30 Days</div>
+                                <div class="stat-value">${data.visits_30d} → ${data.played_30d} → ${data.started_30d}</div>
+                                <div class="stat-label">Last 30d (${data.conversion_30d}% play, ${data.start_rate_30d}% start)</div>
                             </div>
                         </div>
                     `;
@@ -653,18 +657,20 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                         data.daily_visits.forEach(d => {
                             const visitBar = Math.round(d.visits * barWidth);
                             const playedBar = Math.round(d.played * barWidth);
+                            const startedBar = Math.round(d.started * barWidth);
                             const date = d.day.substring(5); // MM-DD
                             chartHtml += `<div style="margin: 2px 0; display: flex; align-items: center; gap: 8px;">
                                 <span style="width: 50px; color: var(--text-dim);">${date}</span>
                                 <div style="flex: 1; position: relative; height: 16px; background: rgba(255,255,255,0.05);">
                                     <div style="position: absolute; height: 100%; width: ${visitBar}%; background: rgba(0,150,255,0.4);"></div>
-                                    <div style="position: absolute; height: 100%; width: ${playedBar}%; background: rgba(0,255,100,0.6);"></div>
+                                    <div style="position: absolute; height: 100%; width: ${playedBar}%; background: rgba(0,255,100,0.4);"></div>
+                                    <div style="position: absolute; height: 100%; width: ${startedBar}%; background: rgba(255,200,0,0.6);"></div>
                                 </div>
-                                <span style="width: 80px; text-align: right; color: var(--text-dim);">${d.visits}/${d.played}</span>
+                                <span style="width: 100px; text-align: right; color: var(--text-dim);">${d.visits}/${d.played}/${d.started}</span>
                             </div>`;
                         });
                         chartHtml += '</div>';
-                        chartHtml += '<div style="margin-top: 5px; font-size: 11px; color: var(--text-dim);"><span style="color: rgba(0,150,255,0.7);">■</span> Visits &nbsp; <span style="color: rgba(0,255,100,0.8);">■</span> Played</div>';
+                        chartHtml += '<div style="margin-top: 5px; font-size: 11px; color: var(--text-dim);"><span style="color: rgba(0,150,255,0.7);">■</span> Visits &nbsp; <span style="color: rgba(0,255,100,0.7);">■</span> Played &nbsp; <span style="color: rgba(255,200,0,0.8);">■</span> Started</div>';
                         document.getElementById('visitChart').innerHTML = chartHtml;
                     }
                     
