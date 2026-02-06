@@ -297,7 +297,7 @@
                             <div class="post-info">
                                 <h3>${escapeHtml(rec.username)} - ${formatScore(rec.score)}</h3>
                                 <div class="post-meta">
-                                    ${new Date(rec.played_at).toLocaleString()}
+                                    ${new Date(rec.played_at).toLocaleString('en-US', { timeZone: 'America/Chicago' })}
                                     · ${rec.difficulty}
                                     · ${rec.skill_level}
                                     ${rec.mode === 'challenge' ? ' · CHALLENGE' : ''}
