@@ -646,8 +646,8 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                                 <div class="stat-label">Play / Start / Finish / Share Rate</div>
                             </div>
                             <div class="stat-card">
-                                <div class="stat-value">${data.avg_time_to_play}s</div>
-                                <div class="stat-label">Avg Time to Play</div>
+                                <div class="stat-value">${data.median_time_to_play}s</div>
+                                <div class="stat-label">Median Time to Play (avg: ${data.avg_time_to_play}s / raw: ${data.raw_avg_time_to_play}s)</div>
                             </div>
                         </div>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;">
