@@ -735,7 +735,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                             const color = deviceColors[d.type] || '#888';
                             const icon = deviceIcons[d.type] || '';
                             deviceHtml += `<div style="margin: 6px 0; display: flex; align-items: center; gap: 8px;">
-                                <span style="width: 80px; color: var(--text-dim);">${icon} ${d.type}</span>
+                                <span style="min-width: 80px; white-space: nowrap; color: var(--text-dim);">${icon} ${d.type}</span>
                                 <div style="flex: 1; height: 16px; background: rgba(255,255,255,0.05);">
                                     <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
                                 </div>
@@ -754,7 +754,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                             const pct = (o.count / totalOS * 100).toFixed(1);
                             const color = osColors[o.os] || '#888';
                             osHtml += `<div style="margin: 6px 0; display: flex; align-items: center; gap: 8px;">
-                                <span style="width: 80px; color: var(--text-dim);">${escapeHtml(o.os)}</span>
+                                <span style="min-width: 80px; white-space: nowrap; color: var(--text-dim);">${escapeHtml(o.os)}</span>
                                 <div style="flex: 1; height: 16px; background: rgba(255,255,255,0.05);">
                                     <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
                                 </div>
@@ -775,7 +775,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                             const color = shareColors[d.platform] || '#888';
                             const icon = shareIcons[d.platform] || '';
                             shareHtml += `<div style="margin: 6px 0; display: flex; align-items: center; gap: 8px;">
-                                <span style="width: 80px; color: var(--text-dim);">${icon} ${d.platform}</span>
+                                <span style="min-width: 80px; white-space: nowrap; color: var(--text-dim);">${icon} ${d.platform}</span>
                                 <div style="flex: 1; height: 16px; background: rgba(255,255,255,0.05);">
                                     <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
                                 </div>
@@ -796,7 +796,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                             const color = diffColors[d.difficulty] || '#888';
                             const icon = diffIcons[d.difficulty] || '';
                             diffHtml += `<div style="margin: 6px 0; display: flex; align-items: center; gap: 8px;">
-                                <span style="width: 90px; color: var(--text-dim);">${icon} ${d.difficulty}</span>
+                                <span style="min-width: 90px; white-space: nowrap; color: var(--text-dim);">${icon} ${d.difficulty}</span>
                                 <div style="flex: 1; height: 16px; background: rgba(255,255,255,0.05);">
                                     <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
                                 </div>
@@ -817,7 +817,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                             const color = skillColors[d.skill_level] || '#888';
                             const icon = skillIcons[d.skill_level] || '';
                             skillHtml += `<div style="margin: 6px 0; display: flex; align-items: center; gap: 8px;">
-                                <span style="width: 90px; color: var(--text-dim);">${icon} ${d.skill_level}</span>
+                                <span style="min-width: 90px; white-space: nowrap; color: var(--text-dim);">${icon} ${d.skill_level}</span>
                                 <div style="flex: 1; height: 16px; background: rgba(255,255,255,0.05);">
                                     <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
                                 </div>
@@ -838,7 +838,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                             const color = modeColors[d.mode] || '#888';
                             const icon = modeIcons[d.mode] || '';
                             modeHtml += `<div style="margin: 6px 0; display: flex; align-items: center; gap: 8px;">
-                                <span style="width: 100px; color: var(--text-dim);">${icon} ${d.mode}</span>
+                                <span style="min-width: 100px; white-space: nowrap; color: var(--text-dim);">${icon} ${d.mode}</span>
                                 <div style="flex: 1; height: 16px; background: rgba(255,255,255,0.05);">
                                     <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
                                 </div>
@@ -857,7 +857,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                             const pct = (d.count / totalChal * 100).toFixed(1);
                             const color = chalColors[d.challenge] || '#888';
                             chalHtml += `<div style="margin: 6px 0; display: flex; align-items: center; gap: 8px;">
-                                <span style="width: 90px; color: var(--text-dim);">${d.challenge}</span>
+                                <span style="min-width: 90px; white-space: nowrap; color: var(--text-dim);">${d.challenge}</span>
                                 <div style="flex: 1; height: 16px; background: rgba(255,255,255,0.05);">
                                     <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
                                 </div>
