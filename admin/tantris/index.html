@@ -851,7 +851,14 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                     // Challenge breakdown
                     if (data.challenge_breakdown && data.challenge_breakdown.length > 0) {
                         const totalChal = data.challenge_breakdown.reduce((s, d) => s + d.count, 0);
-                        const chalColors = { stranger: '#FF6B6B', dyslexic: '#C084FC', phantom: '#45B7D1', amnesia: '#FFD93D', vertigo: '#52B788', gremlin: '#FF8C00' };
+                        const chalColors = {
+                            stranger: '#FF6B6B', dyslexic: '#C084FC', phantom: '#45B7D1',
+                            rubber: '#FFD93D', oz: '#52B788', thinner: '#FF8C00', thicker: '#E8596A',
+                            carrie: '#DC143C', nokings: '#8B6914', longago: '#B8860B', comingsoon: '#00CED1',
+                            nervous: '#FF69B4', sixseven: '#7B68EE', gremlins: '#32CD32',
+                            lattice: '#DDA0DD', yesand: '#20B2AA', mercurial: '#CD853F',
+                            shadowless: '#708090', sorandom: '#FF1493'
+                        };
                         let chalHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Challenges Played</h3>';
                         data.challenge_breakdown.forEach(d => {
                             const pct = (d.count / totalChal * 100).toFixed(1);
