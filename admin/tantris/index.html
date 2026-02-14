@@ -125,6 +125,7 @@
                 <button class="tab-btn" onclick="showTab('visits')">VISITS</button>
             </div>
             <div style="display: flex; gap: 10px;">
+                <button id="adminRefresh" class="btn btn-primary" style="display: none;" onclick="refreshCurrentTab()">🔄 REFRESH</button>
                 <a href="/admin/blog" class="btn btn-primary">BLOG ADMIN</a>
                 <a href="/" class="btn btn-primary">← BACK TO SITE</a>
             </div>
@@ -142,10 +143,6 @@
             
             <!-- Recordings Tab -->
             <div id="recordingsTab" class="tab-content active">
-                <div class="admin-header">
-                    <h2>> GAME RECORDINGS</h2>
-                    <button class="btn btn-primary" onclick="loadRecordingsStats(); loadRecordings()">🔄 REFRESH</button>
-                </div>
                 
                 <div id="recordingsStats" class="stats-grid" style="margin-bottom: 20px;">
                     <div class="loading">Loading stats...</div>
@@ -171,10 +168,6 @@
             
             <!-- Bug Reports Tab -->
             <div id="bugsTab" class="tab-content">
-                <div class="admin-header">
-                    <h2>> BUG REPORTS</h2>
-                    <button class="btn btn-primary" onclick="loadBugReports()">🔄 REFRESH</button>
-                </div>
                 
                 <div class="filters-row" style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
                     <select id="filterBugStatus" onchange="loadBugReports()" style="padding: 8px;">
@@ -195,10 +188,6 @@
             </div>
         <!-- Visits Tab -->
             <div id="visitsTab" class="tab-content">
-                <div class="admin-header">
-                    <h2>> PAGE VISITS</h2>
-                    <button class="btn btn-primary" onclick="loadVisitStats()">🔄 REFRESH</button>
-                </div>
                 
                 <div class="visits-two-col">
                     <div class="visits-left">
@@ -242,17 +231,31 @@
         let currentBugsPage = 1;
         
         // Tab switching
+        let currentActiveTab = 'recordings';
+        
         function showTab(tab) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             
             document.getElementById(tab + 'Tab').classList.add('active');
             event.target.classList.add('active');
+            currentActiveTab = tab;
             
             if (tab === 'bugs') {
                 loadBugReports();
             }
             if (tab === 'visits') {
+                loadVisitStats();
+            }
+        }
+        
+        function refreshCurrentTab() {
+            if (currentActiveTab === 'recordings') {
+                loadRecordingsStats();
+                loadRecordings();
+            } else if (currentActiveTab === 'bugs') {
+                loadBugReports();
+            } else if (currentActiveTab === 'visits') {
                 loadVisitStats();
             }
         }
@@ -273,6 +276,7 @@
                 if (data.user?.is_admin) {
                     document.getElementById('adminContent').style.display = 'block';
                     document.getElementById('adminTabs').style.display = 'flex';
+                    document.getElementById('adminRefresh').style.display = '';
                     loadRecordingsStats();
                     loadRecordings();
                 } else {
