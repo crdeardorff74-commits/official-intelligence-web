@@ -3,196 +3,939 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Official Intelligence</title>
-    <meta name="description" content="AI-powered games and experiments from Official Intelligence">
-
-	<meta name="keywords" content="AI games, Tetris, block puzzle, Claude AI, artificial intelligence games, indie games, browser games, falling blocks">
-	<meta name="author" content="Official Intelligence">
-	<meta name="robots" content="index, follow">
-	<link rel="canonical" href="https://official-intelligence.art/">
-	
-	<!-- Open Graph / Facebook -->
-	<meta property="og:type" content="website">
-	<meta property="og:url" content="https://official-intelligence.art/">
-	<meta property="og:title" content="Official Intelligence - AI-Powered Games & Experiments">
-	<meta property="og:description" content="Play BLOCKCHaiNSTOЯM and other AI-powered games. Where artificial intelligence meets entertainment.">
-	<meta property="og:image" content="https://res.cloudinary.com/dzlhmwvlx/image/upload/v1764977477/BLOCKCHaiNSTO%D0%AFM_thumb_pceyvy.png">
-	
-	<!-- Twitter -->
-	<meta name="twitter:card" content="summary_large_image">
-	<meta name="twitter:title" content="Official Intelligence - AI-Powered Games & Experiments">
-	<meta name="twitter:description" content="Play BLOCKCHaiNSTOЯM and other AI-powered games. Where artificial intelligence meets entertainment.">
-	<meta name="twitter:image" content="https://res.cloudinary.com/dzlhmwvlx/image/upload/v1764977477/BLOCKCHaiNSTO%D0%AFM_thumb_pceyvy.png">
-    
-    <!-- Retro Fonts -->
+    <title>TaNTЯiS Admin - Official Intelligence</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .stat-card {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid var(--primary);
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-value {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+        .tab-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--primary);
+            padding-bottom: 10px;
+        }
+        .tab-btn {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 10px 20px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            cursor: pointer;
+        }
+        .tab-btn.active {
+            background: var(--primary);
+            color: #000;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .bug-status {
+            padding: 3px 8px;
+            font-size: 9px;
+            border-radius: 3px;
+        }
+        .bug-status.new { background: #ff6b6b; color: #fff; }
+        .bug-status.reviewed { background: #ffd93d; color: #000; }
+        .bug-status.fixed { background: #6bcb77; color: #000; }
+        .bug-status.wontfix { background: #666; color: #fff; }
+        .chart-row {
+            margin: 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .chart-label {
+            min-width: 100px;
+            white-space: nowrap;
+            color: var(--text-dim);
+        }
+        .chart-bar-bg {
+            flex: 1;
+            height: 16px;
+            background: rgba(255,255,255,0.05);
+        }
+        .chart-count {
+            min-width: 100px;
+            text-align: right;
+            color: var(--text-dim);
+            white-space: nowrap;
+        }
+        /* Full-width override */
+        main { max-width: 100% !important; width: 100% !important; padding: 1vw 2vw !important; box-sizing: border-box; }
+        .visits-two-col {
+            display: flex;
+            gap: 2vw;
+            margin-top: 20px;
+        }
+        .visits-left {
+            flex: 1;
+            min-width: 0;
+        }
+        .visits-right {
+            flex: 1;
+            min-width: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            align-content: start;
+        }
+        .visits-right > div {
+            min-width: 0;
+        }
+        #visitChallenges {
+            grid-column: 1 / -1;
+        }
+        @media (max-width: 1200px) {
+            .visits-two-col { flex-direction: column; }
+            .visits-right { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 768px) {
+            .visits-right { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-17791773957"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'AW-17791773957');
-</script>
 <body>
-    <header>
-        <div class="logo">Official Intelligence</div>
-        <div class="tagline">AI-POWERED GAMES & EXPERIMENTS</div>
-        
-        <nav>
-            <a href="/" class="active">HOME</a>
-            <a href="/blog">BLOG</a>
-        </nav>
-        
-        <div class="user-menu" id="userMenu">
-            <button onclick="showLoginModal()">LOGIN</button>
-        </div>
-    </header>
-    
     <main>
-        <div style="display: flex; flex-direction: row; gap: 3em; flex-wrap: wrap;">
+        <div class="admin-header">
+            <h1>> TaNTЯiS ADMIN</h1>
+            <div style="display: flex; gap: 10px;">
+                <a href="/admin/blog" class="btn btn-primary">BLOG ADMIN</a>
+                <a href="/" class="btn btn-primary">← BACK TO SITE</a>
+            </div>
+        </div>
         
-            <!-- Games Section -->
-            <div style="flex: 1; min-width: 280px;">
-                <h2 class="section-header">PLAY NOW</h2>
-                
-                <div class="games-grid">
-                    <a href="https://tantris.official-intelligence.art" class="game-card" target="_blank">
-                        <div class="game-card-image">
-							<img src="https://res.cloudinary.com/dzlhmwvlx/image/upload/v1764977477/BLOCKCHaiNSTO%D0%AFM_thumb_pceyvy.png" />
-                            <!-- div class="placeholder">⬛</div -->
-                        </div>
-                        <div class="game-card-content">
-                            <h3>TaNTЯiS</h3>
-                            <p>A revolutionary twist on the classic falling blocks game. Journey through the solar system, survive cosmic disasters, and climb the leaderboards!
-							It's like Tetris on peyote while sneezing slowly for six hours...</p>
-                            <span class="status live">● LIVE</span>
-                        </div>
-                    </a>
-                    
-                    <div class="game-card">
-                        <div class="game-card-image">
-                            <div class="placeholder">?</div>
-                        </div>
-                        <div class="game-card-content">
-                            <h3>PROJECT ???</h3>
-                            <p>Something new is brewing in the lab. Stay tuned for our next AI-enhanced gaming experience...</p>
-                            <span class="status coming-soon">COMING SOON</span>
-                        </div>
-                    </div>
-                </div>
+        <div id="message"></div>
+        
+        <div id="notAdmin" class="not-admin" style="display: none;">
+            <h2 class="section-header">ACCESS DENIED</h2>
+            <p style="margin-top: 20px;">Admin privileges required.</p>
+            <a href="/" class="btn btn-primary" style="margin-top: 20px; display: inline-block;">RETURN HOME</a>
+        </div>
+        
+        <div id="adminContent" style="display: none;">
+            <!-- Tab Navigation -->
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="showTab('recordings')">RECORDINGS</button>
+                <button class="tab-btn" onclick="showTab('bugs')">BUG REPORTS</button>
+                <button class="tab-btn" onclick="showTab('visits')">VISITS</button>
             </div>
             
-            <!-- Blog Section -->
-            <div style="flex: 1; min-width: 280px;">
-                <h2 class="section-header">LATEST TRANSMISSIONS</h2>
-                
-                <div class="blog-posts" id="blogPosts">
-                    <!-- Blog posts will be loaded here -->
-                    <div class="blog-post">
-                        <h3>LOADING TRANSMISSIONS...</h3>
-                        <p class="excerpt">Establishing connection to the mainframe...</p>
-                    </div>
+            <!-- Recordings Tab -->
+            <div id="recordingsTab" class="tab-content active">
+                <div class="admin-header">
+                    <h2>> GAME RECORDINGS</h2>
+                    <button class="btn btn-primary" onclick="loadRecordingsStats(); loadRecordings()">🔄 REFRESH</button>
                 </div>
                 
-                <a href="/blog" class="view-all">VIEW ALL POSTS →</a>
+                <div id="recordingsStats" class="stats-grid" style="margin-bottom: 20px;">
+                    <div class="loading">Loading stats...</div>
+                </div>
+                
+                <div class="filters-row" style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <select id="filterPlayerType" onchange="loadRecordings()" style="padding: 8px;">
+                        <option value="">All Players</option>
+                        <option value="human">Human Only</option>
+                        <option value="ai">AI Only</option>
+                    </select>
+                    <input type="text" id="filterUsername" placeholder="Username..." style="padding: 8px; width: 150px;">
+                    <input type="number" id="filterMinScore" placeholder="Min Score" style="padding: 8px; width: 100px;">
+                    <button class="btn btn-primary btn-small" onclick="loadRecordings()">FILTER</button>
+                </div>
+                
+                <div id="recordingsList" class="posts-list">
+                    <div class="loading">Loading recordings...</div>
+                </div>
+                
+                <div id="recordingsPagination" style="margin-top: 15px; text-align: center;"></div>
             </div>
-        
+            
+            <!-- Bug Reports Tab -->
+            <div id="bugsTab" class="tab-content">
+                <div class="admin-header">
+                    <h2>> BUG REPORTS</h2>
+                    <button class="btn btn-primary" onclick="loadBugReports()">🔄 REFRESH</button>
+                </div>
+                
+                <div class="filters-row" style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <select id="filterBugStatus" onchange="loadBugReports()" style="padding: 8px;">
+                        <option value="">All Status</option>
+                        <option value="new">New</option>
+                        <option value="reviewed">Reviewed</option>
+                        <option value="fixed">Fixed</option>
+                        <option value="wontfix">Won't Fix</option>
+                    </select>
+                    <button class="btn btn-primary btn-small" onclick="loadBugReports()">FILTER</button>
+                </div>
+                
+                <div id="bugsList" class="posts-list">
+                    <div class="loading">Loading bug reports...</div>
+                </div>
+                
+                <div id="bugsPagination" style="margin-top: 15px; text-align: center;"></div>
+            </div>
+        <!-- Visits Tab -->
+            <div id="visitsTab" class="tab-content">
+                <div class="admin-header">
+                    <h2>> PAGE VISITS</h2>
+                    <button class="btn btn-primary" onclick="loadVisitStats()">🔄 REFRESH</button>
+                </div>
+                
+                <div class="visits-two-col">
+                    <div class="visits-left">
+                        <div id="visitStats">
+                            <div class="loading">Loading visit stats...</div>
+                        </div>
+                        <div id="visitChart" style="margin-top: 20px;"></div>
+                        <div id="visitReferrers" style="margin-top: 20px;"></div>
+                        <div id="visitLanguages" style="margin-top: 20px;"></div>
+                    </div>
+                    <div class="visits-right">
+                        <div id="visitDevices"></div>
+                        <div id="visitOS"></div>
+                        <div id="visitShares"></div>
+                        <div id="visitDifficulty"></div>
+                        <div id="visitSkillLevel"></div>
+                        <div id="visitModes"></div>
+                        <div id="visitChallenges"></div>
+                    </div>
+                </div>
+            </div>
         </div>
         
-        <div class="ascii-decoration">▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
- █ OFFICIAL INTELLIGENCE - WHERE AI MEETS ENTERTAINMENT █ 
- ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ 
+        <!-- Bug Detail Modal -->
+        <div id="bugModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; overflow: auto;">
+            <div style="max-width: 800px; margin: 50px auto; padding: 20px; background: #1a1a2e; border: 2px solid var(--primary);">
+                <div class="admin-header">
+                    <h2>> BUG REPORT #<span id="bugModalId"></span></h2>
+                    <button class="btn btn-danger" onclick="closeBugModal()">✕ CLOSE</button>
+                </div>
+                <div id="bugModalContent"></div>
+            </div>
         </div>
     </main>
     
-    <footer>
-        <p>© 2025 Official Intelligence • Created with 🤖 by humans & AI</p>
-    </footer>
-    
-    <!-- Login Modal -->
-    <div class="modal-overlay" id="loginModal">
-        <div class="modal" style="position: relative;">
-            <button class="modal-close" onclick="hideLoginModal()">&times;</button>
-            
-            <h2 id="modalTitle">LOGIN</h2>
-            
-            <div class="error-message" id="loginError"></div>
-            
-            <form id="loginForm" onsubmit="handleLogin(event)">
-                <div class="form-group" id="usernameGroup" style="display: none;">
-                    <label>USERNAME</label>
-                    <input type="text" id="username" name="username" autocomplete="username">
-                </div>
-                
-                <div class="form-group">
-                    <label>EMAIL</label>
-                    <input type="email" id="email" name="email" required autocomplete="email">
-                </div>
-                
-                <div class="form-group">
-                    <label>PASSWORD</label>
-                    <input type="password" id="password" name="password" required autocomplete="current-password">
-                </div>
-                
-                <div style="text-align: right; margin-bottom: 15px;">
-                    <a href="/reset-password" style="font-size: 12px; color: var(--text-dim);">Forgot password?</a>
-                </div>
-                
-                <button type="submit" class="btn btn-primary" id="submitBtn" style="width: 100%;">ENTER</button>
-            </form>
-            
-            <div class="divider">OR</div>
-            
-            <div class="oauth-buttons">
-                <a href="https://official-intelligence-api.onrender.com/auth/google/login" class="btn btn-oauth">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                    Continue with Google
-                </a>
-            </div>
-            
-            <div class="modal-footer">
-                <span id="authToggleText">No account?</span>
-                <a href="#" id="authToggle" onclick="toggleAuthMode(event)">Sign up</a>
-            </div>
-        </div>
-    </div>
-    
-    <script src="/js/auth.js"></script>
     <script>
-        // Load blog posts for homepage
-        async function loadBlogPosts() {
+        const API_URL = 'https://official-intelligence-api.onrender.com';
+        const GAME_API_URL = 'https://blockchainstorm.onrender.com/api';
+        let token = localStorage.getItem('oi_token');
+        let currentRecordingsPage = 1;
+        let currentBugsPage = 1;
+        
+        // Tab switching
+        function showTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tab + 'Tab').classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tab === 'bugs') {
+                loadBugReports();
+            }
+            if (tab === 'visits') {
+                loadVisitStats();
+            }
+        }
+        
+        // Check admin status
+        async function checkAdmin() {
+            if (!token) {
+                document.getElementById('notAdmin').style.display = 'block';
+                return;
+            }
+            
             try {
-                const res = await fetch(`${API_URL}/blog/posts/latest?limit=3`);
+                const res = await fetch(`${API_URL}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 const data = await res.json();
                 
-                const container = document.getElementById('blogPosts');
-                
-                if (data.posts && data.posts.length > 0) {
-                    container.innerHTML = data.posts.map(post => `
-                        <a href="/blog/${post.slug}" class="blog-post">
-                            <h3>${escapeHtml(post.title)}</h3>
-                            <div class="date">${formatDate(post.published_at)}</div>
-                            <p class="excerpt">${post.excerpt || ''}</p>
-                        </a>
-                    `).join('');
+                if (data.user?.is_admin) {
+                    document.getElementById('adminContent').style.display = 'block';
+                    loadRecordingsStats();
+                    loadRecordings();
                 } else {
-                    container.innerHTML = `
-                        <div class="blog-post">
-                            <h3>NO TRANSMISSIONS YET</h3>
-                            <p class="excerpt">Check back soon for updates!</p>
+                    document.getElementById('notAdmin').style.display = 'block';
+                }
+            } catch (err) {
+                document.getElementById('notAdmin').style.display = 'block';
+            }
+        }
+        
+        // ============================================
+        // GAME RECORDINGS FUNCTIONS
+        // ============================================
+        
+        async function loadRecordingsStats() {
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/recordings/stats`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    document.getElementById('recordingsStats').innerHTML = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                            <div class="stat-card">
+                                <div class="stat-value">${data.total_recordings}</div>
+                                <div class="stat-label">Total Recordings</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.human_recordings}</div>
+                                <div class="stat-label">Human Games</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.ai_recordings}</div>
+                                <div class="stat-label">AI Games</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.unique_players}</div>
+                                <div class="stat-label">Unique Players</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${formatScore(data.human_avg_score)}</div>
+                                <div class="stat-label">Human Avg</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${formatScore(data.ai_avg_score)}</div>
+                                <div class="stat-label">AI Avg</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.last_24h}</div>
+                                <div class="stat-label">Last 24h</div>
+                            </div>
                         </div>
                     `;
                 }
             } catch (err) {
-                console.error('Failed to load blog posts:', err);
+                document.getElementById('recordingsStats').innerHTML = '<p style="color: var(--text-dim);">Failed to load stats</p>';
             }
         }
         
-        document.addEventListener('DOMContentLoaded', loadBlogPosts);
+        async function loadRecordings(page = 1) {
+            currentRecordingsPage = page;
+            
+            const playerType = document.getElementById('filterPlayerType')?.value || '';
+            const username = document.getElementById('filterUsername')?.value || '';
+            const minScore = document.getElementById('filterMinScore')?.value || '';
+            
+            let url = `${GAME_API_URL}/admin/recordings?page=${page}&per_page=20`;
+            if (playerType) url += `&player_type=${playerType}`;
+            if (username) url += `&username=${encodeURIComponent(username)}`;
+            if (minScore) url += `&min_score=${minScore}`;
+            
+            try {
+                const res = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                const container = document.getElementById('recordingsList');
+                
+                if (data.recordings?.length) {
+                    container.innerHTML = data.recordings.map(rec => `
+                        <div class="post-item">
+                            <div class="post-info">
+                                <h3>${escapeHtml(rec.username)} - ${formatScore(rec.score)}</h3>
+                                <div class="post-meta">
+                                    ${new Date(rec.played_at).toLocaleString('en-US', { timeZone: 'America/Chicago' })}
+                                    · ${rec.difficulty}
+                                    · ${rec.skill_level}
+                                    ${rec.mode === 'challenge' ? ' · CHALLENGE' : ''}
+                                    · ${Math.floor(rec.duration_seconds / 60)}m ${rec.duration_seconds % 60}s
+                                </div>
+                                <div class="post-meta" style="margin-top: 4px; color: var(--accent-cyan);">
+                                    ${rec.lines || 0} lines
+                                    · L${rec.level || 1}
+                                    ${rec.tsunamis ? ` · 🌊${rec.tsunamis}` : ''}
+                                    ${rec.blackholes ? ` · 🕳️${rec.blackholes}` : ''}
+                                    ${rec.volcanoes ? ` · 🌋${rec.volcanoes}` : ''}
+                                    ${rec.strikes ? ` · ⚡${rec.strikes}` : ''}
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <span class="post-status ${rec.player_type === 'human' ? 'status-published' : 'status-draft'}">
+                                    ${rec.player_type.toUpperCase()}
+                                </span>
+                                <div class="post-actions">
+                                    <button class="btn btn-primary btn-small" onclick="downloadRecording(${rec.id})">⬇️ JSON</button>
+                                    <button class="btn btn-danger btn-small" onclick="deleteRecording(${rec.id})">DELETE</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    // Pagination
+                    const pagination = document.getElementById('recordingsPagination');
+                    let pagHtml = '';
+                    if (data.pages > 1) {
+                        if (page > 1) pagHtml += `<button class="btn btn-primary btn-small" onclick="loadRecordings(${page - 1})">← PREV</button> `;
+                        pagHtml += `Page ${page} of ${data.pages} (${data.total} total)`;
+                        if (page < data.pages) pagHtml += ` <button class="btn btn-primary btn-small" onclick="loadRecordings(${page + 1})">NEXT →</button>`;
+                    } else {
+                        pagHtml = `${data.total} recordings`;
+                    }
+                    pagination.innerHTML = pagHtml;
+                } else {
+                    container.innerHTML = '<p style="color: var(--text-dim);">No recordings found</p>';
+                    document.getElementById('recordingsPagination').innerHTML = '';
+                }
+            } catch (err) {
+                showMessage('Failed to load recordings', 'error');
+            }
+        }
+        
+        async function downloadRecording(id) {
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/recordings/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    const filename = `recording_${data.player_type}_${data.username}_${id}.json`;
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                    
+                    URL.revokeObjectURL(url);
+                } else {
+                    showMessage('Failed to download recording', 'error');
+                }
+            } catch (err) {
+                showMessage('Failed to download recording', 'error');
+            }
+        }
+        
+        async function deleteRecording(id) {
+            if (!confirm('Delete this recording? This cannot be undone.')) return;
+            
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/recordings/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (res.ok) {
+                    showMessage('Recording deleted', 'success');
+                    loadRecordings(currentRecordingsPage);
+                    loadRecordingsStats();
+                } else {
+                    showMessage('Failed to delete recording', 'error');
+                }
+            } catch (err) {
+                showMessage('Failed to delete recording', 'error');
+            }
+        }
+        
+        // ============================================
+        // BUG REPORTS FUNCTIONS
+        // ============================================
+        
+        async function loadBugReports(page = 1) {
+            currentBugsPage = page;
+            
+            const status = document.getElementById('filterBugStatus')?.value || '';
+            
+            let url = `${GAME_API_URL}/admin/bug-reports?page=${page}&per_page=20`;
+            if (status) url += `&status=${status}`;
+            
+            try {
+                const res = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                const container = document.getElementById('bugsList');
+                
+                if (data.bug_reports?.length) {
+                    container.innerHTML = data.bug_reports.map(bug => `
+                        <div class="post-item">
+                            <div class="post-info">
+                                <h3>#${bug.id} - ${escapeHtml(bug.username)}</h3>
+                                <div class="post-meta">
+                                    ${new Date(bug.reported_at).toLocaleString()}
+                                    · ${bug.difficulty || 'unknown'}
+                                    · ${bug.player_type}
+                                    · Score: ${formatScore(bug.score)}
+                                </div>
+                                <div style="margin-top: 5px; color: var(--text-dim); font-size: 12px;">
+                                    ${bug.bug_description ? escapeHtml(bug.bug_description.substring(0, 100)) + (bug.bug_description.length > 100 ? '...' : '') : '<em>No description</em>'}
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <span class="bug-status ${bug.status}">${bug.status.toUpperCase()}</span>
+                                <div class="post-actions">
+                                    <button class="btn btn-primary btn-small" onclick="viewBugReport(${bug.id})">VIEW</button>
+                                    <select onchange="updateBugStatus(${bug.id}, this.value)" style="padding: 5px; font-size: 10px;">
+                                        <option value="new" ${bug.status === 'new' ? 'selected' : ''}>New</option>
+                                        <option value="reviewed" ${bug.status === 'reviewed' ? 'selected' : ''}>Reviewed</option>
+                                        <option value="fixed" ${bug.status === 'fixed' ? 'selected' : ''}>Fixed</option>
+                                        <option value="wontfix" ${bug.status === 'wontfix' ? 'selected' : ''}>Won't Fix</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    // Pagination
+                    const pagination = document.getElementById('bugsPagination');
+                    let pagHtml = '';
+                    if (data.pages > 1) {
+                        if (page > 1) pagHtml += `<button class="btn btn-primary btn-small" onclick="loadBugReports(${page - 1})">← PREV</button> `;
+                        pagHtml += `Page ${page} of ${data.pages} (${data.total} total)`;
+                        if (page < data.pages) pagHtml += ` <button class="btn btn-primary btn-small" onclick="loadBugReports(${page + 1})">NEXT →</button>`;
+                    } else {
+                        pagHtml = `${data.total} bug reports`;
+                    }
+                    pagination.innerHTML = pagHtml;
+                } else {
+                    container.innerHTML = '<p style="color: var(--text-dim);">No bug reports found</p>';
+                    document.getElementById('bugsPagination').innerHTML = '';
+                }
+            } catch (err) {
+                showMessage('Failed to load bug reports', 'error');
+            }
+        }
+        
+        async function viewBugReport(id) {
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/bug-reports/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const bug = await res.json();
+                
+                if (res.ok) {
+                    document.getElementById('bugModalId').textContent = bug.id;
+                    document.getElementById('bugModalContent').innerHTML = `
+                        <div style="margin-bottom: 20px;">
+                            <strong>User:</strong> ${escapeHtml(bug.username)}<br>
+                            <strong>Reported:</strong> ${new Date(bug.reported_at).toLocaleString()}<br>
+                            <strong>Status:</strong> <span class="bug-status ${bug.status}">${bug.status.toUpperCase()}</span>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <strong>Game State:</strong><br>
+                            Difficulty: ${bug.difficulty || 'unknown'} | Skill: ${bug.skill_level || 'unknown'}<br>
+                            Mode: ${bug.mode || 'normal'} | Player: ${bug.player_type}<br>
+                            Score: ${formatScore(bug.score)} | Level: ${bug.level} | Lines: ${bug.lines}
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <strong>Description:</strong>
+                            <div style="background: #0a0a1a; padding: 15px; margin-top: 5px; border: 1px solid #333; white-space: pre-wrap;">
+${bug.bug_description || '<em>No description provided</em>'}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <strong>Debug Log:</strong>
+                            <div style="background: #0a0a1a; padding: 15px; margin-top: 5px; border: 1px solid #333; max-height: 400px; overflow: auto; font-family: monospace; font-size: 11px; white-space: pre;">
+${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary" onclick="downloadBugLog(${bug.id})">⬇️ DOWNLOAD LOG</button>
+                        </div>
+                    `;
+                    document.getElementById('bugModal').style.display = 'block';
+                }
+            } catch (err) {
+                showMessage('Failed to load bug report', 'error');
+            }
+        }
+        
+        function closeBugModal() {
+            document.getElementById('bugModal').style.display = 'none';
+        }
+        
+        async function updateBugStatus(id, status) {
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/bug-reports/${id}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ status })
+                });
+                
+                if (res.ok) {
+                    showMessage('Status updated', 'success');
+                    loadBugReports(currentBugsPage);
+                } else {
+                    showMessage('Failed to update status', 'error');
+                }
+            } catch (err) {
+                showMessage('Failed to update status', 'error');
+            }
+        }
+        
+        async function downloadBugLog(id) {
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/bug-reports/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const bug = await res.json();
+                
+                if (res.ok && bug.debug_log) {
+                    const filename = `bug_${id}_${bug.username}_log.txt`;
+                    const content = `Bug Report #${id}\n` +
+                        `User: ${bug.username}\n` +
+                        `Reported: ${bug.reported_at}\n` +
+                        `Status: ${bug.status}\n` +
+                        `Difficulty: ${bug.difficulty}\n` +
+                        `Skill: ${bug.skill_level}\n` +
+                        `Score: ${bug.score}\n` +
+                        `\nDescription:\n${bug.bug_description || 'None'}\n` +
+                        `\n${'='.repeat(50)}\nDEBUG LOG:\n${'='.repeat(50)}\n\n` +
+                        bug.debug_log;
+                    
+                    const blob = new Blob([content], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                    
+                    URL.revokeObjectURL(url);
+                }
+            } catch (err) {
+                showMessage('Failed to download log', 'error');
+            }
+        }
+        
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        
+        function showMessage(text, type) {
+            const el = document.getElementById('message');
+            el.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(() => el.innerHTML = '', 3000);
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function formatScore(score) {
+            if (!score) return '₿0.0000';
+            const btc = score / 10000000;
+            return `₿${btc.toFixed(4)}`;
+        }
+        
+        // Close modal on ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeBugModal();
+            }
+        });
+        
+        // ============================================
+        // VISIT TRACKING FUNCTIONS
+        // ============================================
+        
+        async function loadVisitStats() {
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/visits/stats?_=${Date.now()}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    // Summary stats
+                    document.getElementById('visitStats').innerHTML = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px;">
+                            <div class="stat-card">
+                                <div class="stat-value">${data.total_visits}</div>
+                                <div class="stat-label">Total Visits</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.total_played}</div>
+                                <div class="stat-label">Clicked Play</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.total_started}</div>
+                                <div class="stat-label">Started Game</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.total_finished}</div>
+                                <div class="stat-label">Finished Game</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.total_shared}</div>
+                                <div class="stat-label">Shared Game</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.conversion_rate}% → ${data.start_rate}% → ${data.finish_rate}% → ${data.share_rate}%</div>
+                                <div class="stat-label">Play / Start / Finish / Share Rate</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.median_time_to_play}s</div>
+                                <div class="stat-label">Median Time to Play (avg: ${data.avg_time_to_play}s / raw: ${data.raw_avg_time_to_play}s)</div>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;">
+                            <div class="stat-card">
+                                <div class="stat-value">${data.visits_24h} → ${data.played_24h} → ${data.started_24h} → ${data.finished_24h} → ${data.shared_24h}</div>
+                                <div class="stat-label">Last 24h (${data.conversion_24h}% / ${data.start_rate_24h}% / ${data.finish_rate_24h}% / ${data.share_rate_24h}%)</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.visits_7d} → ${data.played_7d} → ${data.started_7d} → ${data.finished_7d} → ${data.shared_7d}</div>
+                                <div class="stat-label">Last 7d (${data.conversion_7d}% / ${data.start_rate_7d}% / ${data.finish_rate_7d}% / ${data.share_rate_7d}%)</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.visits_30d} → ${data.played_30d} → ${data.started_30d} → ${data.finished_30d} → ${data.shared_30d}</div>
+                                <div class="stat-label">Last 30d (${data.conversion_30d}% / ${data.start_rate_30d}% / ${data.finish_rate_30d}% / ${data.share_rate_30d}%)</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Daily chart (text-based bar chart)
+                    if (data.daily_visits && data.daily_visits.length > 0) {
+                        const maxVisits = Math.max(...data.daily_visits.map(d => d.visits));
+                        const barWidth = maxVisits > 0 ? 100 / maxVisits : 0;
+                        
+                        let chartHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Daily Visits (30 days)</h3>';
+                        chartHtml += '<div style="font-family: monospace; font-size: 12px;">';
+                        data.daily_visits.forEach(d => {
+                            const visitBar = Math.round(d.visits * barWidth);
+                            const playedBar = Math.round(d.played * barWidth);
+                            const startedBar = Math.round(d.started * barWidth);
+                            const finishedBar = Math.round(d.finished * barWidth);
+                            const date = d.day.substring(5); // MM-DD
+                            chartHtml += `<div style="margin: 2px 0; display: flex; align-items: center; gap: 8px;">
+                                <span style="width: 50px; color: var(--text-dim);">${date}</span>
+                                <div style="flex: 1; position: relative; height: 16px; background: rgba(255,255,255,0.05);">
+                                    <div style="position: absolute; height: 100%; width: ${visitBar}%; background: rgba(0,150,255,0.4);"></div>
+                                    <div style="position: absolute; height: 100%; width: ${playedBar}%; background: rgba(0,255,100,0.4);"></div>
+                                    <div style="position: absolute; height: 100%; width: ${startedBar}%; background: rgba(255,200,0,0.5);"></div>
+                                    <div style="position: absolute; height: 100%; width: ${finishedBar}%; background: rgba(255,80,80,0.6);"></div>
+                                    <div style="position: absolute; height: 100%; width: ${Math.round((d.shared || 0) * barWidth)}%; background: rgba(180,80,255,0.6);"></div>
+                                </div>
+                                <span style="width: 140px; text-align: right; color: var(--text-dim);">${d.visits}/${d.played}/${d.started}/${d.finished}/${d.shared || 0}</span>
+                            </div>`;
+                        });
+                        chartHtml += '</div>';
+                        chartHtml += '<div style="margin-top: 5px; font-size: 11px; color: var(--text-dim);"><span style="color: rgba(0,150,255,0.7);">■</span> Visits &nbsp; <span style="color: rgba(0,255,100,0.7);">■</span> Played &nbsp; <span style="color: rgba(255,200,0,0.8);">■</span> Started &nbsp; <span style="color: rgba(255,80,80,0.8);">■</span> Finished &nbsp; <span style="color: rgba(180,80,255,0.8);">■</span> Shared</div>';
+                        document.getElementById('visitChart').innerHTML = chartHtml;
+                    }
+                    
+                    // Top referrers
+                    if (data.top_referrers && data.top_referrers.length > 0) {
+                        let refHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Top Referrers</h3>';
+                        refHtml += '<table style="width: 100%; border-collapse: collapse;">';
+                        refHtml += '<tr style="border-bottom: 1px solid var(--primary);"><th style="text-align: left; padding: 5px;">Referrer</th><th style="text-align: right; padding: 5px;">Visits</th><th style="text-align: right; padding: 5px;">Played</th><th style="text-align: right; padding: 5px;">Started</th><th style="text-align: right; padding: 5px;">Finished</th><th style="text-align: right; padding: 5px;">Conv%</th></tr>';
+                        data.top_referrers.forEach(r => {
+                            const conv = r.visits > 0 ? (r.finished / r.visits * 100).toFixed(1) : '0.0';
+                            // Truncate long referrers
+                            const shortRef = r.referrer.length > 60 ? r.referrer.substring(0, 60) + '...' : r.referrer;
+                            refHtml += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.1);"><td style="padding: 5px; color: var(--text-dim); word-break: break-all;">${escapeHtml(shortRef)}</td><td style="text-align: right; padding: 5px;">${r.visits}</td><td style="text-align: right; padding: 5px;">${r.played}</td><td style="text-align: right; padding: 5px;">${r.started}</td><td style="text-align: right; padding: 5px;">${r.finished}</td><td style="text-align: right; padding: 5px;">${conv}%</td></tr>`;
+                        });
+                        refHtml += '</table>';
+                        document.getElementById('visitReferrers').innerHTML = refHtml;
+                    }
+                    
+                    // Top languages
+                    if (data.top_languages && data.top_languages.length > 0) {
+                        let langHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Top Languages</h3>';
+                        langHtml += '<table style="width: 100%; border-collapse: collapse;">';
+                        langHtml += '<tr style="border-bottom: 1px solid var(--primary);"><th style="text-align: left; padding: 5px;">Language</th><th style="text-align: right; padding: 5px;">Visits</th><th style="text-align: right; padding: 5px;">Played</th><th style="text-align: right; padding: 5px;">Started</th><th style="text-align: right; padding: 5px;">Finished</th><th style="text-align: right; padding: 5px;">Conv%</th></tr>';
+                        data.top_languages.forEach(l => {
+                            const conv = l.visits > 0 ? (l.finished / l.visits * 100).toFixed(1) : '0.0';
+                            langHtml += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.1);"><td style="padding: 5px;">${escapeHtml(l.language)}</td><td style="text-align: right; padding: 5px;">${l.visits}</td><td style="text-align: right; padding: 5px;">${l.played}</td><td style="text-align: right; padding: 5px;">${l.started}</td><td style="text-align: right; padding: 5px;">${l.finished}</td><td style="text-align: right; padding: 5px;">${conv}%</td></tr>`;
+                        });
+                        langHtml += '</table>';
+                        document.getElementById('visitLanguages').innerHTML = langHtml;
+                    }
+
+                    // Device type breakdown
+                    if (data.device_breakdown && data.device_breakdown.length > 0) {
+                        const totalDevices = data.device_breakdown.reduce((s, d) => s + d.count, 0);
+                        const deviceColors = { desktop: '#0096ff', tablet: '#00ff64', phone: '#ffc800' };
+                        const deviceIcons = { desktop: '🖥️', tablet: '📱', phone: '📲' };
+                        let deviceHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Devices</h3>';
+                        data.device_breakdown.forEach(d => {
+                            const pct = (d.count / totalDevices * 100).toFixed(1);
+                            const color = deviceColors[d.type] || '#888';
+                            const icon = deviceIcons[d.type] || '';
+                            deviceHtml += `<div class="chart-row">
+                                <span class="chart-label">${icon} ${d.type}</span>
+                                <div class="chart-bar-bg">
+                                    <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
+                                </div>
+                                <span class="chart-count">${d.count} (${pct}%)</span>
+                            </div>`;
+                        });
+                        document.getElementById('visitDevices').innerHTML = deviceHtml;
+                    }
+
+                    // OS breakdown
+                    if (data.os_breakdown && data.os_breakdown.length > 0) {
+                        const totalOS = data.os_breakdown.reduce((s, o) => s + o.count, 0);
+                        const osColors = { Windows: '#0078d4', iOS: '#a2aaad', Android: '#3ddc84', macOS: '#555', Linux: '#f5a623', Other: '#888' };
+                        let osHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Operating Systems</h3>';
+                        data.os_breakdown.forEach(o => {
+                            const pct = (o.count / totalOS * 100).toFixed(1);
+                            const color = osColors[o.os] || '#888';
+                            osHtml += `<div class="chart-row">
+                                <span class="chart-label">${escapeHtml(o.os)}</span>
+                                <div class="chart-bar-bg">
+                                    <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
+                                </div>
+                                <span class="chart-count">${o.count} (${pct}%)</span>
+                            </div>`;
+                        });
+                        document.getElementById('visitOS').innerHTML = osHtml;
+                    }
+
+                    // Share platform breakdown
+                    if (data.share_breakdown && data.share_breakdown.length > 0) {
+                        const totalShares = data.share_breakdown.reduce((s, d) => s + d.count, 0);
+                        const shareColors = { twitter: '#1DA1F2', facebook: '#4267B2', reddit: '#FF4500', whatsapp: '#25D366', telegram: '#0088cc', copylink: '#888' };
+                        const shareIcons = { twitter: '𝕏', facebook: 'f', reddit: '⬆', whatsapp: '💬', telegram: '✈', copylink: '🔗' };
+                        let shareHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Share Platforms</h3>';
+                        data.share_breakdown.forEach(d => {
+                            const pct = (d.count / totalShares * 100).toFixed(1);
+                            const color = shareColors[d.platform] || '#888';
+                            const icon = shareIcons[d.platform] || '';
+                            shareHtml += `<div class="chart-row">
+                                <span class="chart-label">${icon} ${d.platform}</span>
+                                <div class="chart-bar-bg">
+                                    <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
+                                </div>
+                                <span class="chart-count">${d.count} (${pct}%)</span>
+                            </div>`;
+                        });
+                        document.getElementById('visitShares').innerHTML = shareHtml;
+                    }
+
+                    // Difficulty breakdown
+                    if (data.difficulty_breakdown && data.difficulty_breakdown.length > 0) {
+                        const totalDiff = data.difficulty_breakdown.reduce((s, d) => s + d.count, 0);
+                        const diffColors = { drizzle: '#52B788', downpour: '#45B7D1', hailstorm: '#FFD93D', blizzard: '#FF6B6B', hurricane: '#C084FC' };
+                        const diffIcons = { drizzle: '🌧️', downpour: '⛈️', hailstorm: '🌨️', blizzard: '❄️', hurricane: '🌀' };
+                        let diffHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Difficulty</h3>';
+                        data.difficulty_breakdown.forEach(d => {
+                            const pct = (d.count / totalDiff * 100).toFixed(1);
+                            const color = diffColors[d.difficulty] || '#888';
+                            const icon = diffIcons[d.difficulty] || '';
+                            diffHtml += `<div class="chart-row">
+                                <span class="chart-label">${icon} ${d.difficulty}</span>
+                                <div class="chart-bar-bg">
+                                    <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
+                                </div>
+                                <span class="chart-count">${d.count} (${pct}%)</span>
+                            </div>`;
+                        });
+                        document.getElementById('visitDifficulty').innerHTML = diffHtml;
+                    }
+
+                    // Skill level breakdown
+                    if (data.skill_breakdown && data.skill_breakdown.length > 0) {
+                        const totalSkill = data.skill_breakdown.reduce((s, d) => s + d.count, 0);
+                        const skillColors = { breeze: '#52B788', tempest: '#FFD93D', maelstrom: '#FF6B6B' };
+                        const skillIcons = { breeze: '🌤️', tempest: '🌪️', maelstrom: '🌀' };
+                        let skillHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Skill Level</h3>';
+                        data.skill_breakdown.forEach(d => {
+                            const pct = (d.count / totalSkill * 100).toFixed(1);
+                            const color = skillColors[d.skill_level] || '#888';
+                            const icon = skillIcons[d.skill_level] || '';
+                            skillHtml += `<div class="chart-row">
+                                <span class="chart-label">${icon} ${d.skill_level}</span>
+                                <div class="chart-bar-bg">
+                                    <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
+                                </div>
+                                <span class="chart-count">${d.count} (${pct}%)</span>
+                            </div>`;
+                        });
+                        document.getElementById('visitSkillLevel').innerHTML = skillHtml;
+                    }
+
+                    // Mode breakdown
+                    if (data.mode_breakdown && data.mode_breakdown.length > 0) {
+                        const totalMode = data.mode_breakdown.reduce((s, d) => s + d.count, 0);
+                        const modeColors = { normal: '#45B7D1', challenge: '#FFD93D', ai: '#C084FC', 'ai-challenge': '#FF6B6B' };
+                        const modeIcons = { normal: '🎮', challenge: '🏆', ai: '🤖', 'ai-challenge': '🤖🏆' };
+                        let modeHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Game Mode</h3>';
+                        data.mode_breakdown.forEach(d => {
+                            const pct = (d.count / totalMode * 100).toFixed(1);
+                            const color = modeColors[d.mode] || '#888';
+                            const icon = modeIcons[d.mode] || '';
+                            modeHtml += `<div class="chart-row">
+                                <span class="chart-label">${icon} ${d.mode}</span>
+                                <div class="chart-bar-bg">
+                                    <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
+                                </div>
+                                <span class="chart-count">${d.count} (${pct}%)</span>
+                            </div>`;
+                        });
+                        document.getElementById('visitModes').innerHTML = modeHtml;
+                    }
+
+                    // Challenge breakdown
+                    if (data.challenge_breakdown && data.challenge_breakdown.length > 0) {
+                        const totalChal = data.challenge_breakdown.reduce((s, d) => s + d.count, 0);
+                        const chalColors = {
+                            stranger: '#FF6B6B', dyslexic: '#C084FC', phantom: '#45B7D1',
+                            rubber: '#FFD93D', oz: '#52B788', thinner: '#FF8C00', thicker: '#E8596A',
+                            carrie: '#DC143C', nokings: '#8B6914', longago: '#B8860B', comingsoon: '#00CED1',
+                            nervous: '#FF69B4', sixseven: '#7B68EE', gremlins: '#32CD32',
+                            lattice: '#DDA0DD', yesand: '#20B2AA', mercurial: '#CD853F',
+                            shadowless: '#708090', sorandom: '#FF1493'
+                        };
+                        let chalHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Challenges Played</h3>';
+                        data.challenge_breakdown.forEach(d => {
+                            const pct = (d.count / totalChal * 100).toFixed(1);
+                            const color = chalColors[d.challenge] || '#888';
+                            chalHtml += `<div class="chart-row">
+                                <span class="chart-label">${d.challenge}</span>
+                                <div class="chart-bar-bg">
+                                    <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
+                                </div>
+                                <span class="chart-count">${d.count} (${pct}%)</span>
+                            </div>`;
+                        });
+                        document.getElementById('visitChallenges').innerHTML = chalHtml;
+                    }
+                }
+            } catch (err) {
+                document.getElementById('visitStats').innerHTML = '<p style="color: var(--text-dim);">Failed to load visit stats</p>';
+            }
+        }
+        
+        // Init
+        checkAdmin();
     </script>
 </body>
 </html>
