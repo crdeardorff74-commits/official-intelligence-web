@@ -59,6 +59,28 @@
         .bug-status.reviewed { background: #ffd93d; color: #000; }
         .bug-status.fixed { background: #6bcb77; color: #000; }
         .bug-status.wontfix { background: #666; color: #fff; }
+        .chart-row {
+            margin: 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .chart-label {
+            min-width: 100px;
+            white-space: nowrap;
+            color: var(--text-dim);
+        }
+        .chart-bar-bg {
+            flex: 1;
+            height: 16px;
+            background: rgba(255,255,255,0.05);
+        }
+        .chart-count {
+            min-width: 100px;
+            text-align: right;
+            color: var(--text-dim);
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -734,12 +756,12 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                             const pct = (d.count / totalDevices * 100).toFixed(1);
                             const color = deviceColors[d.type] || '#888';
                             const icon = deviceIcons[d.type] || '';
-                            deviceHtml += `<div style="margin: 6px 0; display: flex; align-items: center; gap: 8px;">
-                                <span style="min-width: 80px; white-space: nowrap; color: var(--text-dim);">${icon} ${d.type}</span>
-                                <div style="flex: 1; height: 16px; background: rgba(255,255,255,0.05);">
+                            deviceHtml += `<div class="chart-row">
+                                <span class="chart-label">${icon} ${d.type}</span>
+                                <div class="chart-bar-bg">
                                     <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
                                 </div>
-                                <span style="width: 80px; text-align: right; color: var(--text-dim);">${d.count} (${pct}%)</span>
+                                <span class="chart-count">${d.count} (${pct}%)</span>
                             </div>`;
                         });
                         document.getElementById('visitDevices').innerHTML = deviceHtml;
@@ -753,12 +775,12 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                         data.os_breakdown.forEach(o => {
                             const pct = (o.count / totalOS * 100).toFixed(1);
                             const color = osColors[o.os] || '#888';
-                            osHtml += `<div style="margin: 6px 0; display: flex; align-items: center; gap: 8px;">
-                                <span style="min-width: 80px; white-space: nowrap; color: var(--text-dim);">${escapeHtml(o.os)}</span>
-                                <div style="flex: 1; height: 16px; background: rgba(255,255,255,0.05);">
+                            osHtml += `<div class="chart-row">
+                                <span class="chart-label">${escapeHtml(o.os)}</span>
+                                <div class="chart-bar-bg">
                                     <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
                                 </div>
-                                <span style="width: 80px; text-align: right; color: var(--text-dim);">${o.count} (${pct}%)</span>
+                                <span class="chart-count">${o.count} (${pct}%)</span>
                             </div>`;
                         });
                         document.getElementById('visitOS').innerHTML = osHtml;
@@ -774,12 +796,12 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                             const pct = (d.count / totalShares * 100).toFixed(1);
                             const color = shareColors[d.platform] || '#888';
                             const icon = shareIcons[d.platform] || '';
-                            shareHtml += `<div style="margin: 6px 0; display: flex; align-items: center; gap: 8px;">
-                                <span style="min-width: 80px; white-space: nowrap; color: var(--text-dim);">${icon} ${d.platform}</span>
-                                <div style="flex: 1; height: 16px; background: rgba(255,255,255,0.05);">
+                            shareHtml += `<div class="chart-row">
+                                <span class="chart-label">${icon} ${d.platform}</span>
+                                <div class="chart-bar-bg">
                                     <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
                                 </div>
-                                <span style="width: 80px; text-align: right; color: var(--text-dim);">${d.count} (${pct}%)</span>
+                                <span class="chart-count">${d.count} (${pct}%)</span>
                             </div>`;
                         });
                         document.getElementById('visitShares').innerHTML = shareHtml;
@@ -795,12 +817,12 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                             const pct = (d.count / totalDiff * 100).toFixed(1);
                             const color = diffColors[d.difficulty] || '#888';
                             const icon = diffIcons[d.difficulty] || '';
-                            diffHtml += `<div style="margin: 6px 0; display: flex; align-items: center; gap: 8px;">
-                                <span style="min-width: 90px; white-space: nowrap; color: var(--text-dim);">${icon} ${d.difficulty}</span>
-                                <div style="flex: 1; height: 16px; background: rgba(255,255,255,0.05);">
+                            diffHtml += `<div class="chart-row">
+                                <span class="chart-label">${icon} ${d.difficulty}</span>
+                                <div class="chart-bar-bg">
                                     <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
                                 </div>
-                                <span style="width: 80px; text-align: right; color: var(--text-dim);">${d.count} (${pct}%)</span>
+                                <span class="chart-count">${d.count} (${pct}%)</span>
                             </div>`;
                         });
                         document.getElementById('visitDifficulty').innerHTML = diffHtml;
@@ -816,12 +838,12 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                             const pct = (d.count / totalSkill * 100).toFixed(1);
                             const color = skillColors[d.skill_level] || '#888';
                             const icon = skillIcons[d.skill_level] || '';
-                            skillHtml += `<div style="margin: 6px 0; display: flex; align-items: center; gap: 8px;">
-                                <span style="min-width: 90px; white-space: nowrap; color: var(--text-dim);">${icon} ${d.skill_level}</span>
-                                <div style="flex: 1; height: 16px; background: rgba(255,255,255,0.05);">
+                            skillHtml += `<div class="chart-row">
+                                <span class="chart-label">${icon} ${d.skill_level}</span>
+                                <div class="chart-bar-bg">
                                     <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
                                 </div>
-                                <span style="width: 80px; text-align: right; color: var(--text-dim);">${d.count} (${pct}%)</span>
+                                <span class="chart-count">${d.count} (${pct}%)</span>
                             </div>`;
                         });
                         document.getElementById('visitSkillLevel').innerHTML = skillHtml;
@@ -837,12 +859,12 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                             const pct = (d.count / totalMode * 100).toFixed(1);
                             const color = modeColors[d.mode] || '#888';
                             const icon = modeIcons[d.mode] || '';
-                            modeHtml += `<div style="margin: 6px 0; display: flex; align-items: center; gap: 8px;">
-                                <span style="min-width: 100px; white-space: nowrap; color: var(--text-dim);">${icon} ${d.mode}</span>
-                                <div style="flex: 1; height: 16px; background: rgba(255,255,255,0.05);">
+                            modeHtml += `<div class="chart-row">
+                                <span class="chart-label">${icon} ${d.mode}</span>
+                                <div class="chart-bar-bg">
                                     <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
                                 </div>
-                                <span style="width: 80px; text-align: right; color: var(--text-dim);">${d.count} (${pct}%)</span>
+                                <span class="chart-count">${d.count} (${pct}%)</span>
                             </div>`;
                         });
                         document.getElementById('visitModes').innerHTML = modeHtml;
@@ -863,12 +885,12 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                         data.challenge_breakdown.forEach(d => {
                             const pct = (d.count / totalChal * 100).toFixed(1);
                             const color = chalColors[d.challenge] || '#888';
-                            chalHtml += `<div style="margin: 6px 0; display: flex; align-items: center; gap: 8px;">
-                                <span style="min-width: 90px; white-space: nowrap; color: var(--text-dim);">${d.challenge}</span>
-                                <div style="flex: 1; height: 16px; background: rgba(255,255,255,0.05);">
+                            chalHtml += `<div class="chart-row">
+                                <span class="chart-label">${d.challenge}</span>
+                                <div class="chart-bar-bg">
                                     <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
                                 </div>
-                                <span style="width: 80px; text-align: right; color: var(--text-dim);">${d.count} (${pct}%)</span>
+                                <span class="chart-count">${d.count} (${pct}%)</span>
                             </div>`;
                         });
                         document.getElementById('visitChallenges').innerHTML = chalHtml;
