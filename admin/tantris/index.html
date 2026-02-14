@@ -81,6 +81,38 @@
             color: var(--text-dim);
             white-space: nowrap;
         }
+        /* Full-width override */
+        main { max-width: 100% !important; width: 100% !important; padding: 1vw 2vw !important; box-sizing: border-box; }
+        .visits-two-col {
+            display: flex;
+            gap: 2vw;
+            margin-top: 20px;
+        }
+        .visits-left {
+            flex: 1;
+            min-width: 0;
+        }
+        .visits-right {
+            flex: 1;
+            min-width: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            align-content: start;
+        }
+        .visits-right > div {
+            min-width: 0;
+        }
+        #visitChallenges {
+            grid-column: 1 / -1;
+        }
+        @media (max-width: 1200px) {
+            .visits-two-col { flex-direction: column; }
+            .visits-right { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 768px) {
+            .visits-right { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -169,24 +201,25 @@
                     <button class="btn btn-primary" onclick="loadVisitStats()">🔄 REFRESH</button>
                 </div>
                 
-                <div id="visitStats">
-                    <div class="loading">Loading visit stats...</div>
+                <div class="visits-two-col">
+                    <div class="visits-left">
+                        <div id="visitStats">
+                            <div class="loading">Loading visit stats...</div>
+                        </div>
+                        <div id="visitChart" style="margin-top: 20px;"></div>
+                        <div id="visitReferrers" style="margin-top: 20px;"></div>
+                        <div id="visitLanguages" style="margin-top: 20px;"></div>
+                    </div>
+                    <div class="visits-right">
+                        <div id="visitDevices"></div>
+                        <div id="visitOS"></div>
+                        <div id="visitShares"></div>
+                        <div id="visitDifficulty"></div>
+                        <div id="visitSkillLevel"></div>
+                        <div id="visitModes"></div>
+                        <div id="visitChallenges"></div>
+                    </div>
                 </div>
-                
-                <div id="visitChart" style="margin-top: 20px;"></div>
-                <div id="visitReferrers" style="margin-top: 20px;"></div>
-                <div id="visitLanguages" style="margin-top: 20px;"></div>
-                <div style="display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap;">
-                    <div id="visitDevices" style="flex: 1; min-width: 200px;"></div>
-                    <div id="visitOS" style="flex: 1; min-width: 200px;"></div>
-                    <div id="visitShares" style="flex: 1; min-width: 200px;"></div>
-                </div>
-                <div style="display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap;">
-                    <div id="visitDifficulty" style="flex: 1; min-width: 200px;"></div>
-                    <div id="visitSkillLevel" style="flex: 1; min-width: 200px;"></div>
-                    <div id="visitModes" style="flex: 1; min-width: 200px;"></div>
-                </div>
-                <div id="visitChallenges" style="margin-top: 20px;"></div>
             </div>
         </div>
         
