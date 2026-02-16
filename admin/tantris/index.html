@@ -145,6 +145,38 @@
         .stage-panel.active {
             display: block;
         }
+        .rec-row {
+            display: flex;
+            align-items: center;
+            gap: 1vw;
+            padding: 0.5vh 0.8vw;
+            border-bottom: 1px solid rgba(0, 255, 65, 0.1);
+            font-size: 11px;
+        }
+        .rec-row:hover {
+            background: rgba(0, 255, 65, 0.05);
+        }
+        .rec-name {
+            color: var(--primary);
+            font-weight: bold;
+            min-width: 10vw;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .rec-score {
+            color: #ffc800;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            min-width: 6vw;
+        }
+        .rec-detail {
+            color: var(--text-dim);
+            white-space: nowrap;
+        }
+        .rec-date {
+            margin-left: auto;
+        }
     </style>
 </head>
 <body>
@@ -400,34 +432,17 @@
                 
                 if (data.recordings?.length) {
                     container.innerHTML = data.recordings.map(rec => `
-                        <div class="post-item">
-                            <div class="post-info">
-                                <h3>${escapeHtml(rec.username)} - ${formatScore(rec.score)}</h3>
-                                <div class="post-meta">
-                                    ${new Date(rec.played_at).toLocaleString('en-US', { timeZone: 'America/Chicago' })}
-                                    · ${rec.difficulty}
-                                    · ${rec.skill_level}
-                                    ${rec.mode === 'challenge' ? ' · CHALLENGE' : ''}
-                                    · ${Math.floor(rec.duration_seconds / 60)}m ${rec.duration_seconds % 60}s
-                                </div>
-                                <div class="post-meta" style="margin-top: 4px; color: var(--accent-cyan);">
-                                    ${rec.lines || 0} lines
-                                    · L${rec.level || 1}
-                                    ${rec.tsunamis ? ` · 🌊${rec.tsunamis}` : ''}
-                                    ${rec.blackholes ? ` · 🕳️${rec.blackholes}` : ''}
-                                    ${rec.volcanoes ? ` · 🌋${rec.volcanoes}` : ''}
-                                    ${rec.strikes ? ` · ⚡${rec.strikes}` : ''}
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 15px;">
-                                <span class="post-status ${rec.player_type === 'human' ? 'status-published' : 'status-draft'}">
-                                    ${rec.player_type.toUpperCase()}
-                                </span>
-                                <div class="post-actions">
-                                    <button class="btn btn-primary btn-small" onclick="downloadRecording(${rec.id})">⬇️ JSON</button>
-                                    <button class="btn btn-danger btn-small" onclick="deleteRecording(${rec.id})">DELETE</button>
-                                </div>
-                            </div>
+                        <div class="rec-row">
+                            <span class="rec-name">${escapeHtml(rec.username)}</span>
+                            <span class="rec-score">${formatScore(rec.score)}</span>
+                            <span class="rec-detail">${rec.lines || 0}L · L${rec.level || 1}</span>
+                            <span class="rec-detail">${rec.difficulty} · ${rec.skill_level}${rec.mode === 'challenge' ? ' · CH' : ''}</span>
+                            <span class="rec-detail">${Math.floor(rec.duration_seconds / 60)}m${rec.duration_seconds % 60}s</span>
+                            <span class="rec-detail rec-date">${new Date(rec.played_at).toLocaleString('en-US', { timeZone: 'America/Chicago', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+                            <span class="rec-detail">${rec.tsunamis ? '🌊' + rec.tsunamis : ''}${rec.blackholes ? '🕳️' + rec.blackholes : ''}${rec.volcanoes ? '🌋' + rec.volcanoes : ''}${rec.strikes ? '⚡' + rec.strikes : ''}</span>
+                            <span class="post-status ${rec.player_type === 'human' ? 'status-published' : 'status-draft'}" style="font-size:9px;padding:2px 6px;">${rec.player_type.toUpperCase()}</span>
+                            <button class="btn btn-primary btn-small" onclick="downloadRecording(${rec.id})" style="padding:2px 8px;font-size:9px;">JSON</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteRecording(${rec.id})" style="padding:2px 8px;font-size:9px;">DEL</button>
                         </div>
                     `).join('');
                     
