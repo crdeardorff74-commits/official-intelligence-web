@@ -115,6 +115,36 @@
         @media (max-width: 768px) {
             .visits-right { grid-template-columns: 1fr; }
         }
+        .stage-tabs {
+            display: flex;
+            gap: 0.3vw;
+            margin-bottom: 0.8vh;
+        }
+        .stage-tab {
+            background: rgba(0, 255, 65, 0.08);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            color: rgba(0, 255, 65, 0.5);
+            padding: 0.3vh 0.6vw;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.75em;
+            transition: all 0.2s;
+        }
+        .stage-tab:hover {
+            background: rgba(0, 255, 65, 0.15);
+            color: rgba(0, 255, 65, 0.8);
+        }
+        .stage-tab.active {
+            background: rgba(0, 255, 65, 0.2);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .stage-panel {
+            display: none;
+        }
+        .stage-panel.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -663,6 +693,14 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
             return div.innerHTML;
         }
         
+        function switchStageTab(btn, group) {
+            document.querySelectorAll(`.stage-tab[onclick*="'${group}'"]`).forEach(t => t.classList.remove('active'));
+            document.querySelectorAll(`.stage-panel[data-group="${group}"]`).forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            const stage = btn.getAttribute('data-stage');
+            document.querySelector(`.stage-panel[data-group="${group}"][data-stage="${stage}"]`).classList.add('active');
+        }
+        
         function formatScore(score) {
             if (!score) return '₿0.0000';
             const btc = score / 10000000;
@@ -770,42 +808,76 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                         document.getElementById('visitLanguages').innerHTML = langHtml;
                     }
 
-                    // Device type breakdown
-                    if (data.device_breakdown && data.device_breakdown.length > 0) {
-                        const totalDevices = data.device_breakdown.reduce((s, d) => s + d.count, 0);
+                    // Device type breakdown (per funnel stage)
+                    if (data.device_breakdown) {
                         const deviceColors = { desktop: '#0096ff', tablet: '#00ff64', phone: '#ffc800' };
                         const deviceIcons = { desktop: '🖥️', tablet: '📱', phone: '📲' };
+                        const stages = ['visit', 'start', 'finish', 'share'];
+                        const stageLabels = { visit: 'Visit', start: 'Start', finish: 'Finish', share: 'Share' };
                         let deviceHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Devices</h3>';
-                        data.device_breakdown.forEach(d => {
-                            const pct = (d.count / totalDevices * 100).toFixed(1);
-                            const color = deviceColors[d.type] || '#888';
-                            const icon = deviceIcons[d.type] || '';
-                            deviceHtml += `<div class="chart-row">
-                                <span class="chart-label">${icon} ${d.type}</span>
-                                <div class="chart-bar-bg">
-                                    <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
-                                </div>
-                                <span class="chart-count">${d.count} (${pct}%)</span>
-                            </div>`;
+                        deviceHtml += '<div class="stage-tabs" data-group="devices">';
+                        stages.forEach((s, i) => {
+                            deviceHtml += `<button class="stage-tab${i === 0 ? ' active' : ''}" data-stage="${s}" onclick="switchStageTab(this, 'devices')">${stageLabels[s]}</button>`;
+                        });
+                        deviceHtml += '</div>';
+                        stages.forEach((stage, i) => {
+                            const items = data.device_breakdown[stage] || [];
+                            const total = items.reduce((s, d) => s + d.count, 0);
+                            deviceHtml += `<div class="stage-panel${i === 0 ? ' active' : ''}" data-group="devices" data-stage="${stage}">`;
+                            if (items.length === 0) {
+                                deviceHtml += '<div style="color: #666; padding: 5px;">No data</div>';
+                            } else {
+                                items.sort((a, b) => b.count - a.count);
+                                items.forEach(d => {
+                                    const pct = (d.count / total * 100).toFixed(1);
+                                    const color = deviceColors[d.type] || '#888';
+                                    const icon = deviceIcons[d.type] || '';
+                                    deviceHtml += `<div class="chart-row">
+                                        <span class="chart-label">${icon} ${d.type}</span>
+                                        <div class="chart-bar-bg">
+                                            <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
+                                        </div>
+                                        <span class="chart-count">${d.count} (${pct}%)</span>
+                                    </div>`;
+                                });
+                            }
+                            deviceHtml += '</div>';
                         });
                         document.getElementById('visitDevices').innerHTML = deviceHtml;
                     }
 
-                    // OS breakdown
-                    if (data.os_breakdown && data.os_breakdown.length > 0) {
-                        const totalOS = data.os_breakdown.reduce((s, o) => s + o.count, 0);
+                    // OS breakdown (per funnel stage)
+                    if (data.os_breakdown) {
                         const osColors = { Windows: '#0078d4', iOS: '#a2aaad', Android: '#3ddc84', macOS: '#555', Linux: '#f5a623', Other: '#888' };
+                        const stages = ['visit', 'start', 'finish', 'share'];
+                        const stageLabels = { visit: 'Visit', start: 'Start', finish: 'Finish', share: 'Share' };
                         let osHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Operating Systems</h3>';
-                        data.os_breakdown.forEach(o => {
-                            const pct = (o.count / totalOS * 100).toFixed(1);
-                            const color = osColors[o.os] || '#888';
-                            osHtml += `<div class="chart-row">
-                                <span class="chart-label">${escapeHtml(o.os)}</span>
-                                <div class="chart-bar-bg">
-                                    <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
-                                </div>
-                                <span class="chart-count">${o.count} (${pct}%)</span>
-                            </div>`;
+                        osHtml += '<div class="stage-tabs" data-group="os">';
+                        stages.forEach((s, i) => {
+                            osHtml += `<button class="stage-tab${i === 0 ? ' active' : ''}" data-stage="${s}" onclick="switchStageTab(this, 'os')">${stageLabels[s]}</button>`;
+                        });
+                        osHtml += '</div>';
+                        stages.forEach((stage, i) => {
+                            const items = data.os_breakdown[stage] || [];
+                            const total = items.reduce((s, o) => s + o.count, 0);
+                            osHtml += `<div class="stage-panel${i === 0 ? ' active' : ''}" data-group="os" data-stage="${stage}">`;
+                            if (items.length === 0) {
+                                osHtml += '<div style="color: #666; padding: 5px;">No data</div>';
+                            } else {
+                                items.sort((a, b) => b.count - a.count);
+                                items.forEach(o => {
+                                    const pct = (o.count / total * 100).toFixed(1);
+                                    const color = osColors[o.os] || '#888';
+                                    osHtml += `<div class="chart-row">
+                                        <span class="chart-label">${escapeHtml(o.os)}</span>
+                                        <div class="chart-bar-bg">
+                                            <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
+                                        </div>
+                                        <span class="chart-count">${o.count} (${pct}%)</span>
+                                    </div>`;
+                                });
+                            }
+                            osHtml += '</div>';
                         });
                         document.getElementById('visitOS').innerHTML = osHtml;
                     }
