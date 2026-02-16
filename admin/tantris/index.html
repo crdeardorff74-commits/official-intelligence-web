@@ -163,6 +163,8 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
         }
         .rec-score {
             color: #ffc800;
@@ -173,6 +175,7 @@
         .rec-detail {
             color: var(--text-dim);
             white-space: nowrap;
+            font-size: 12px;
         }
         .rec-date {
             margin-left: auto;
@@ -417,7 +420,7 @@
             const username = document.getElementById('filterUsername')?.value || '';
             const minScore = document.getElementById('filterMinScore')?.value || '';
             
-            let url = `${GAME_API_URL}/admin/recordings?page=${page}&per_page=20`;
+            let url = `${GAME_API_URL}/admin/recordings?page=${page}&per_page=15`;
             if (playerType) url += `&player_type=${playerType}`;
             if (username) url += `&username=${encodeURIComponent(username)}`;
             if (minScore) url += `&min_score=${minScore}`;
