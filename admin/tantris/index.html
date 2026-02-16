@@ -216,11 +216,13 @@
                 </div>
                 
                 <div class="filters-row" style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-                    <select id="filterPlayerType" onchange="loadRecordings()" style="padding: 8px;">
+                    <select id="filterPlayerType" onchange="onPlayerTypeChange()" style="padding: 8px;">
                         <option value="">All Players</option>
                         <option value="human">Human Only</option>
+                        <option value="named_human">Named Human</option>
                         <option value="ai">AI Only</option>
                     </select>
+                    <select id="filterPlayerName" onchange="loadRecordings()" style="padding: 8px; display: none;"></select>
                     <input type="text" id="filterUsername" placeholder="Username..." style="padding: 8px; width: 150px;">
                     <input type="number" id="filterMinScore" placeholder="Min Score" style="padding: 8px; width: 100px;">
                     <button class="btn btn-primary btn-small" onclick="loadRecordings()">FILTER</button>
@@ -413,16 +415,43 @@
             }
         }
         
+        async function onPlayerTypeChange() {
+            const typeVal = document.getElementById('filterPlayerType').value;
+            const nameDropdown = document.getElementById('filterPlayerName');
+            
+            if (typeVal === 'named_human') {
+                try {
+                    const res = await fetch(`${GAME_API_URL}/admin/recordings/named-humans`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await res.json();
+                    nameDropdown.innerHTML = '<option value="">All Named</option>';
+                    (data.players || []).forEach(p => {
+                        nameDropdown.innerHTML += `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)} (${p.count})</option>`;
+                    });
+                } catch (err) {
+                    nameDropdown.innerHTML = '<option value="">Failed to load</option>';
+                }
+                nameDropdown.style.display = '';
+            } else {
+                nameDropdown.style.display = 'none';
+                nameDropdown.value = '';
+            }
+            loadRecordings();
+        }
+
         async function loadRecordings(page = 1) {
             currentRecordingsPage = page;
             
             const playerType = document.getElementById('filterPlayerType')?.value || '';
+            const playerName = document.getElementById('filterPlayerName')?.value || '';
             const username = document.getElementById('filterUsername')?.value || '';
             const minScore = document.getElementById('filterMinScore')?.value || '';
             
             let url = `${GAME_API_URL}/admin/recordings?page=${page}&per_page=15`;
             if (playerType) url += `&player_type=${playerType}`;
-            if (username) url += `&username=${encodeURIComponent(username)}`;
+            if (playerName) url += `&username=${encodeURIComponent(playerName)}&exact=1`;
+            else if (username) url += `&username=${encodeURIComponent(username)}`;
             if (minScore) url += `&min_score=${minScore}`;
             
             try {
