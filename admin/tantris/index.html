@@ -152,8 +152,8 @@
             padding: 0.15vh 0.8vw;
             border-bottom: 1px solid rgba(0, 255, 65, 0.07);
             font-size: 14px;
-            height: 1.5em;
-            line-height: 1.5em;
+            height: 2.4em;
+            line-height: 2.4em;
             overflow: visible;
         }
         .rec-row:hover {
@@ -162,7 +162,7 @@
         .rec-name {
             color: var(--primary);
             font-weight: bold;
-            min-width: 12vw;
+            min-width: 10vw;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -423,24 +423,31 @@
             const nameDropdown = document.getElementById('filterPlayerName');
             
             if (typeVal === 'named_human') {
-                try {
-                    const res = await fetch(`${GAME_API_URL}/admin/recordings/named-humans`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    const data = await res.json();
-                    nameDropdown.innerHTML = '<option value="">All Named</option>';
-                    (data.players || []).forEach(p => {
-                        nameDropdown.innerHTML += `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)} (${p.count})</option>`;
-                    });
-                } catch (err) {
-                    nameDropdown.innerHTML = '<option value="">Failed to load</option>';
-                }
+                await refreshNamedHumans();
                 nameDropdown.style.display = '';
             } else {
                 nameDropdown.style.display = 'none';
                 nameDropdown.value = '';
             }
             loadRecordings();
+        }
+
+        async function refreshNamedHumans() {
+            const nameDropdown = document.getElementById('filterPlayerName');
+            const currentVal = nameDropdown.value;
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/recordings/named-humans`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                nameDropdown.innerHTML = '<option value="">All Named</option>';
+                (data.players || []).forEach(p => {
+                    nameDropdown.innerHTML += `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)} (${p.count})</option>`;
+                });
+                if (currentVal) nameDropdown.value = currentVal;
+            } catch (err) {
+                nameDropdown.innerHTML = '<option value="">Failed to load</option>';
+            }
         }
 
         async function loadRecordings(page = 1) {
@@ -498,6 +505,9 @@
                 }
             } catch (err) {
                 showMessage('Failed to load recordings', 'error');
+            }
+            if (document.getElementById('filterPlayerType')?.value === 'named_human') {
+                refreshNamedHumans();
             }
         }
         
