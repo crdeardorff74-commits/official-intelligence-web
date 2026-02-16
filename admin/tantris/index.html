@@ -182,6 +182,9 @@
         }
         .rec-date {
             margin-left: auto;
+            min-width: 12em;
+            text-align: right;
+            color: #aaa;
         }
     </style>
 </head>
@@ -480,7 +483,7 @@
                             <span class="rec-detail">${rec.lines || 0}L · L${rec.level || 1}</span>
                             <span class="rec-detail">${rec.difficulty} · ${rec.skill_level}${rec.mode === 'challenge' ? ' · CH' : ''}</span>
                             <span class="rec-detail">${Math.floor(rec.duration_seconds / 60)}m${rec.duration_seconds % 60}s</span>
-                            <span class="rec-detail rec-date">${new Date(rec.played_at).toLocaleString('en-US', { timeZone: 'America/Chicago', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+                            <span class="rec-detail rec-date">${new Date(rec.played_at + 'Z').toLocaleString('en-US', { timeZone: 'America/Chicago', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
                             <span class="rec-detail">${rec.tsunamis ? '🌊' + rec.tsunamis : ''}${rec.blackholes ? '🕳️' + rec.blackholes : ''}${rec.volcanoes ? '🌋' + rec.volcanoes : ''}${rec.strikes ? '⚡' + rec.strikes : ''}</span>
                             <span class="post-status ${rec.player_type === 'human' ? 'status-published' : 'status-draft'}" style="font-size:9px;padding:2px 6px;">${rec.player_type.toUpperCase()}</span>
                             <button class="btn btn-primary btn-small" onclick="downloadRecording(${rec.id})" style="padding:2px 8px;font-size:9px;">JSON</button>
