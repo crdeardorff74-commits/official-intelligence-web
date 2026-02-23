@@ -6,10 +6,13 @@
 <body>
     <p>Logging in...</p>
     <script>
-        const params = new URLSearchParams(window.location.search);
-        const token = params.get('token');
-        const error = params.get('error');
-        
+        // Token arrives via hash fragment (#token=...) for security (keeps it out of server logs)
+        // Fall back to query params (?token=...) for backwards compatibility
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const queryParams = new URLSearchParams(window.location.search);
+        const token = hashParams.get('token') || queryParams.get('token');
+        const error = hashParams.get('error') || queryParams.get('error');
+
         if (token) {
             localStorage.setItem('oi_token', token);
             window.location.href = '/';
