@@ -954,8 +954,8 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                     // Share platform breakdown
                     if (data.share_breakdown && data.share_breakdown.length > 0) {
                         const totalShares = data.share_breakdown.reduce((s, d) => s + d.count, 0);
-                        const shareColors = { twitter: '#1DA1F2', facebook: '#4267B2', reddit: '#FF4500', whatsapp: '#25D366', telegram: '#0088cc', copylink: '#888' };
-                        const shareIcons = { twitter: '𝕏', facebook: 'f', reddit: '⬆', whatsapp: '💬', telegram: '✈', copylink: '🔗' };
+                        const shareColors = { twitter: '#1DA1F2', facebook: '#4267B2', reddit: '#FF4500', whatsapp: '#25D366', telegram: '#0088cc', copylink: '#888', suno: '#FFD700' };
+                        const shareIcons = { twitter: '𝕏', facebook: 'f', reddit: '⬆', whatsapp: '💬', telegram: '✈', copylink: '🔗', suno: '♫' };
                         let shareHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Share Platforms</h3>';
                         data.share_breakdown.forEach(d => {
                             const pct = (d.count / totalShares * 100).toFixed(1);
