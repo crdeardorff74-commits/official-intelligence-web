@@ -283,6 +283,7 @@
                         <div id="visitDevices"></div>
                         <div id="visitOS"></div>
                         <div id="visitShares"></div>
+                        <div id="visitSunoClicks"></div>
                         <div id="visitDifficulty"></div>
                         <div id="visitSkillLevel"></div>
                         <div id="visitModes"></div>
@@ -954,8 +955,8 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                     // Share platform breakdown
                     if (data.share_breakdown && data.share_breakdown.length > 0) {
                         const totalShares = data.share_breakdown.reduce((s, d) => s + d.count, 0);
-                        const shareColors = { twitter: '#1DA1F2', facebook: '#4267B2', reddit: '#FF4500', whatsapp: '#25D366', telegram: '#0088cc', copylink: '#888', suno: '#FFD700' };
-                        const shareIcons = { twitter: '𝕏', facebook: 'f', reddit: '⬆', whatsapp: '💬', telegram: '✈', copylink: '🔗', suno: '♫' };
+                        const shareColors = { twitter: '#1DA1F2', facebook: '#4267B2', reddit: '#FF4500', whatsapp: '#25D366', telegram: '#0088cc', copylink: '#888' };
+                        const shareIcons = { twitter: '𝕏', facebook: 'f', reddit: '⬆', whatsapp: '💬', telegram: '✈', copylink: '🔗' };
                         let shareHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Share Platforms</h3>';
                         data.share_breakdown.forEach(d => {
                             const pct = (d.count / totalShares * 100).toFixed(1);
@@ -970,6 +971,29 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                             </div>`;
                         });
                         document.getElementById('visitShares').innerHTML = shareHtml;
+                    }
+
+                    // Suno link click breakdown
+                    if (data.suno_breakdown && data.suno_breakdown.length > 0) {
+                        const totalSuno = data.suno_breakdown.reduce((s, d) => s + d.count, 0);
+                        const sunoColors = { artist: '#FFD700', song1: '#FF6B6B', song2: '#A78BFA' };
+                        const sunoIcons = { artist: '🎵', song1: '🥚', song2: '🥚' };
+                        const sunoLabels = { artist: 'Artist Profile', song1: 'Easter Egg 1', song2: 'Easter Egg 2' };
+                        let sunoHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Suno Link Clicks</h3>';
+                        data.suno_breakdown.forEach(d => {
+                            const pct = (d.count / totalSuno * 100).toFixed(1);
+                            const color = sunoColors[d.link] || '#888';
+                            const icon = sunoIcons[d.link] || '♫';
+                            const label = sunoLabels[d.link] || d.link;
+                            sunoHtml += `<div class="chart-row">
+                                <span class="chart-label">${icon} ${label}</span>
+                                <div class="chart-bar-bg">
+                                    <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
+                                </div>
+                                <span class="chart-count">${d.count} (${pct}%)</span>
+                            </div>`;
+                        });
+                        document.getElementById('visitSunoClicks').innerHTML = sunoHtml;
                     }
 
                     // Difficulty breakdown
