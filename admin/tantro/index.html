@@ -986,7 +986,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                             const icon = sunoIcons[d.link] || '♫';
                             const label = sunoLabels[d.link] || d.link;
                             sunoHtml += `<div class="chart-row">
-                                <span class="chart-label">${icon} ${label}</span>
+                                <span class="chart-label" style="width: 150px; min-width: 150px;">${icon} ${label}</span>
                                 <div class="chart-bar-bg">
                                     <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
                                 </div>
