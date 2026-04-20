@@ -976,10 +976,10 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                     // Suno link click breakdown
                     if (data.suno_breakdown && data.suno_breakdown.length > 0) {
                         const totalSuno = data.suno_breakdown.reduce((s, d) => s + d.count, 0);
-                        const sunoColors = { artist: '#FFD700', song1: '#FF6B6B', song2: '#A78BFA' };
-                        const sunoIcons = { artist: '🎵', song1: '🥚', song2: '🥚' };
-                        const sunoLabels = { artist: 'Artist Profile', song1: 'Final Destination', song2: 'Final Score' };
-                        let sunoHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Suno Link Clicks</h3>';
+                        const sunoColors = { artist: '#FFD700', song1: '#FF6B6B', song2: '#A78BFA', song3: '#34D399', song4: '#F472B6', song5: '#FB923C', spotify: '#1DB954', apple: '#FA243C' };
+                        const sunoIcons = { artist: '🎵', song1: '🥚', song2: '🥚', song3: '🥚', song4: '🥚', song5: '🥚', spotify: '🟢', apple: '🍎' };
+                        const sunoLabels = { artist: 'Artist Profile', song1: 'Final Destination', song2: 'Final Score', song3: 'Consumption', song4: 'Malcolm', song5: 'Dog', spotify: 'Spotify', apple: 'Apple Music' };
+                        let sunoHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Soundtrack Link Clicks</h3>';
                         data.suno_breakdown.forEach(d => {
                             const pct = (d.count / totalSuno * 100).toFixed(1);
                             const color = sunoColors[d.link] || '#888';
