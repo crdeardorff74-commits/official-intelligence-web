@@ -1,1 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Songs Admin - Official Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        main { max-width: 100% !important; padding: 1vw 2vw !important; box-sizing: border-box; }
 
+        .two-col { display: grid; grid-template-columns: 2fr 1fr; gap: 2vw; align-items: start; }
+        @media (max-width: 60rem) { .two-col { grid-template-columns: 1fr; } }
+
+        .panel { background: var(--bg-darker); border: 2px solid var(--text-dim); padding: 1rem; }
+        .panel h3 { font-family: 'Press Start 2P', cursive; font-size: 0.75rem; color: var(--neon-pink); margin-bottom: 0.75rem; }
+
+        .search-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .search-row input, .search-row select {
+            padding: 0.5rem; background: var(--bg-dark); border: 2px solid var(--text-dim);
+            color: var(--text-primary); font-family: 'VT323', monospace; font-size: 1rem;
+        }
+        .search-row input { flex: 1; min-width: 10rem; }
+        .search-row input:focus, .search-row select:focus { border-color: var(--neon-green); outline: none; }
+
+        .song-row {
+            display: grid; grid-template-columns: 1fr auto auto; gap: 0.75rem;
+            align-items: center; padding: 0.6rem 0.75rem; border: 1px solid var(--text-dim);
+            margin-bottom: 0.4rem; background: var(--bg-dark);
+        }
+        .song-row:hover { border-color: var(--neon-blue); }
+        .song-row .song-label { font-size: 1rem; color: var(--text-tertiary); }
+        .song-row .song-meta { font-size: 0.85rem; color: var(--text-dim); margin-top: 0.15rem; }
+        .song-row .chips { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+        .chip {
+            font-family: 'Press Start 2P', cursive; font-size: 0.4rem;
+            padding: 0.2rem 0.4rem; border: 1px solid var(--neon-green); color: var(--neon-green);
+        }
+        .chip.has-pos { border-color: var(--neon-pink); color: var(--neon-pink); }
+
+        .row-actions { display: flex; gap: 0.3rem; }
+
+        /* Editor */
+        .editor { display: none; }
+        .editor.active { display: block; }
+        .membership-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(min(14rem, 100%), 1fr));
+            gap: 0.5rem; margin-top: 0.5rem;
+        }
+        .membership-grid label {
+            display: flex; gap: 0.5rem; align-items: center;
+            padding: 0.5rem; border: 1px solid var(--text-dim); cursor: pointer;
+        }
+        .membership-grid label:hover { border-color: var(--neon-blue); }
+        .membership-grid input[type="checkbox"] { width: auto; }
+
+        /* Reorder list */
+        .reorder-row {
+            display: grid; grid-template-columns: auto 1fr auto; gap: 0.75rem;
+            align-items: center; padding: 0.4rem 0.6rem; border: 1px solid var(--text-dim);
+            margin-bottom: 0.3rem; background: var(--bg-dark);
+        }
+        .reorder-row[draggable="true"] { cursor: move; }
+        .reorder-row.dragging { opacity: 0.4; }
+        .reorder-row.drag-over { border-color: var(--neon-green); border-style: dashed; }
+        .reorder-pos {
+            font-family: 'Press Start 2P', cursive; font-size: 0.55rem; color: var(--neon-pink);
+            min-width: 2.5rem; text-align: right;
+        }
+        .reorder-label { font-size: 1rem; color: var(--text-tertiary); }
+        .reorder-controls { display: flex; gap: 0.2rem; }
+        .reorder-controls button { padding: 0.2rem 0.5rem; font-size: 0.75rem; }
+
+        .empty { color: var(--text-dim); padding: 1rem; text-align: center; }
+        .count-badge { color: var(--text-dim); font-size: 0.85rem; margin-left: 0.5rem; }
+
+        /* Better contrast for input fields in this page */
+        .form-group input[type="text"] {
+            width: 100%; padding: 0.625rem;
+            background: var(--bg-dark); border: 2px solid var(--text-dim);
+            color: var(--text-primary); font-family: 'VT323', monospace; font-size: 1rem;
+            outline: none;
+        }
+        .form-group input[type="text"]:focus { border-color: var(--neon-green); }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="admin-header">
+            <h1>> SONGS ADMIN</h1>
+            <div>
+                <a href="/admin" class="btn btn-primary">← BACK TO ADMIN</a>
+                <a href="/" class="btn btn-primary">← BACK TO SITE</a>
+            </div>
+        </div>
+
+        <div id="message"></div>
+
+        <div id="notAdmin" style="display: none;">
+            <h2 class="section-header">ACCESS DENIED</h2>
+            <p style="margin-top: 20px;">Admin privileges required.</p>
+            <a href="/" class="btn btn-primary" style="margin-top: 20px; display: inline-block;">RETURN HOME</a>
+        </div>
+
+        <div id="adminContent" style="display: none;">
+            <!-- Editor (new/edit song) -->
+            <div id="editor" class="editor panel" style="border-color: var(--neon-green);">
+                <h2 id="editorTitle" style="font-family: 'Press Start 2P'; font-size: 0.75rem; color: var(--neon-pink); margin-bottom: 1rem;">> NEW SONG</h2>
+                <input type="hidden" id="songId">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>LABEL</label>
+                        <input type="text" id="songLabel" placeholder="You Say Tornado">
+                    </div>
+                    <div class="form-group">
+                        <label>KEY (auto from label)</label>
+                        <input type="text" id="songKey" placeholder="you_say_tornado">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>FILENAME (relative to CDN base)</label>
+                    <input type="text" id="songFilename" placeholder="You.Say.Tornado.mp3">
+                </div>
+
+                <div class="form-group">
+                    <label>LIST MEMBERSHIPS</label>
+                    <div id="membershipGrid" class="membership-grid"></div>
+                </div>
+
+                <div class="editor-actions">
+                    <button class="btn btn-primary" onclick="saveSong()">SAVE SONG</button>
+                    <button class="btn btn-danger" onclick="hideEditor()">CANCEL</button>
+                </div>
+            </div>
+
+            <div class="two-col">
+                <!-- Songs list -->
+                <div class="panel">
+                    <div class="admin-header" style="margin-bottom: 1rem;">
+                        <h2>> ALL SONGS <span id="songCount" class="count-badge"></span></h2>
+                        <button class="btn btn-primary" onclick="showEditor()">+ NEW SONG</button>
+                    </div>
+                    <div class="search-row">
+                        <input type="text" id="searchInput" placeholder="Search label, key, filename…" oninput="renderSongs()">
+                        <select id="filterGame" onchange="renderSongs()">
+                            <option value="">All games</option>
+                        </select>
+                        <select id="filterList" onchange="renderSongs()">
+                            <option value="">All lists</option>
+                        </select>
+                    </div>
+                    <div id="songsList"><div class="empty">Loading…</div></div>
+                </div>
+
+                <!-- List order manager -->
+                <div class="panel">
+                    <h3>LIST ORDER</h3>
+                    <p style="font-size: 0.95rem; color: var(--text-dim); margin-bottom: 0.75rem;">
+                        Curated order for one list (e.g. <code>tantro / album_intro</code>). Drag rows or use ↑/↓ buttons. Songs without a position will appear unordered at the bottom of the game-side shuffle.
+                    </p>
+                    <div class="search-row">
+                        <select id="orderGame" onchange="loadOrderList()"></select>
+                        <select id="orderList" onchange="loadOrderList()"></select>
+                    </div>
+                    <div id="orderRows"><div class="empty">Pick a game and list above.</div></div>
+                    <div class="editor-actions" style="margin-top: 1rem;">
+                        <button id="saveOrderBtn" class="btn btn-primary" onclick="saveOrder()" disabled>SAVE ORDER</button>
+                        <button class="btn btn-primary" onclick="loadOrderList()">RESET</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_URL = 'https://official-intelligence-api.onrender.com';
+        const token = localStorage.getItem('oi_token');
+
+        // Known (game, list) pairs the admin UI surfaces by default. The
+        // back-end accepts arbitrary game/list strings, so adding a new
+        // game is just a matter of adding entries here.
+        const KNOWN_GAMES = ['tantro', 'circuitousness'];
+        const KNOWN_LISTS = ['gameplay', 'credits', 'album_intro', 'menu_only'];
+
+        let allSongs = [];          // populated from /api/admin/songs
+        let orderWorkingSet = [];   // mutable order working set for the order panel
+        let orderDirty = false;
+
+        // ------------------------------------------------------------
+        // Boot
+        // ------------------------------------------------------------
+        async function checkAdmin() {
+            if (!token) { document.getElementById('notAdmin').style.display = 'block'; return; }
+            try {
+                const res = await fetch(`${API_URL}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.user?.is_admin) {
+                    document.getElementById('adminContent').style.display = 'block';
+                    populateFilters();
+                    populateMembershipGrid();
+                    populateOrderSelectors();
+                    await loadSongs();
+                } else {
+                    document.getElementById('notAdmin').style.display = 'block';
+                }
+            } catch (e) {
+                document.getElementById('notAdmin').style.display = 'block';
+            }
+        }
+
+        function populateFilters() {
+            const fGame = document.getElementById('filterGame');
+            const fList = document.getElementById('filterList');
+            for (const g of KNOWN_GAMES) fGame.innerHTML += `<option value="${g}">${g}</option>`;
+            for (const l of KNOWN_LISTS) fList.innerHTML += `<option value="${l}">${l}</option>`;
+        }
+
+        function populateMembershipGrid() {
+            const grid = document.getElementById('membershipGrid');
+            grid.innerHTML = '';
+            for (const g of KNOWN_GAMES) {
+                for (const l of KNOWN_LISTS) {
+                    const id = `mem_${g}_${l}`;
+                    grid.innerHTML += `
+                        <label>
+                            <input type="checkbox" id="${id}" data-game="${g}" data-list="${l}">
+                            <span>${g} / ${l}</span>
+                        </label>
+                    `;
+                }
+            }
+        }
+
+        function populateOrderSelectors() {
+            const og = document.getElementById('orderGame');
+            const ol = document.getElementById('orderList');
+            og.innerHTML = KNOWN_GAMES.map(g => `<option value="${g}">${g}</option>`).join('');
+            ol.innerHTML = KNOWN_LISTS.map(l => `<option value="${l}">${l}</option>`).join('');
+            og.value = 'tantro';
+            ol.value = 'album_intro';
+        }
+
+        // ------------------------------------------------------------
+        // Load + render all songs
+        // ------------------------------------------------------------
+        async function loadSongs() {
+            try {
+                const res = await fetch(`${API_URL}/api/admin/songs`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                allSongs = data.songs || [];
+                document.getElementById('songCount').textContent = `(${allSongs.length})`;
+                renderSongs();
+                loadOrderList();
+            } catch (e) {
+                showMessage('Failed to load songs', 'error');
+            }
+        }
+
+        function renderSongs() {
+            const search = (document.getElementById('searchInput').value || '').toLowerCase();
+            const fGame = document.getElementById('filterGame').value;
+            const fList = document.getElementById('filterList').value;
+
+            let visible = allSongs;
+            if (search) visible = visible.filter(s =>
+                (s.label || '').toLowerCase().includes(search) ||
+                (s.key || '').toLowerCase().includes(search) ||
+                (s.filename || '').toLowerCase().includes(search));
+            if (fGame || fList) visible = visible.filter(s =>
+                (s.memberships || []).some(m =>
+                    (!fGame || m.game === fGame) && (!fList || m.list_name === fList)));
+
+            const container = document.getElementById('songsList');
+            if (!visible.length) { container.innerHTML = '<div class="empty">No songs match.</div>'; return; }
+
+            container.innerHTML = visible.map(s => {
+                const chips = (s.memberships || []).map(m => {
+                    const cls = (m.position !== null && m.position !== undefined) ? 'chip has-pos' : 'chip';
+                    const pos = (m.position !== null && m.position !== undefined) ? `#${m.position + 1}` : '';
+                    return `<span class="${cls}">${m.game}/${m.list_name} ${pos}</span>`;
+                }).join('');
+                return `
+                    <div class="song-row">
+                        <div>
+                            <div class="song-label">${escapeHtml(s.label)}</div>
+                            <div class="song-meta">${escapeHtml(s.key)} · <code>${escapeHtml(s.filename)}</code></div>
+                            <div class="chips" style="margin-top: 0.3rem;">${chips || '<span class="song-meta">unassigned</span>'}</div>
+                        </div>
+                        <div></div>
+                        <div class="row-actions">
+                            <button class="btn btn-primary btn-small" onclick="editSong(${s.id})">EDIT</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteSong(${s.id})">DEL</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ------------------------------------------------------------
+        // Editor (new / edit)
+        // ------------------------------------------------------------
+        function showEditor(song = null) {
+            const editor = document.getElementById('editor');
+            editor.classList.add('active');
+            editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            document.getElementById('editorTitle').textContent = song ? '> EDIT SONG' : '> NEW SONG';
+            document.getElementById('songId').value = song?.id || '';
+            document.getElementById('songLabel').value = song?.label || '';
+            document.getElementById('songKey').value = song?.key || '';
+            document.getElementById('songFilename').value = song?.filename || '';
+
+            // Reset checkboxes, then check the ones the song has memberships for
+            document.querySelectorAll('#membershipGrid input[type="checkbox"]').forEach(cb => cb.checked = false);
+            for (const m of (song?.memberships || [])) {
+                const cb = document.getElementById(`mem_${m.game}_${m.list_name}`);
+                if (cb) cb.checked = true;
+            }
+        }
+
+        function hideEditor() {
+            document.getElementById('editor').classList.remove('active');
+        }
+
+        function editSong(id) {
+            const song = allSongs.find(s => s.id === id);
+            if (song) showEditor(song);
+        }
+
+        async function saveSong() {
+            const id = document.getElementById('songId').value;
+            const label = document.getElementById('songLabel').value.trim();
+            const filename = document.getElementById('songFilename').value.trim();
+            const keyOverride = document.getElementById('songKey').value.trim();
+
+            if (!label) { showMessage('Label required', 'error'); return; }
+            if (!filename) { showMessage('Filename required', 'error'); return; }
+
+            const memberships = [];
+            document.querySelectorAll('#membershipGrid input[type="checkbox"]:checked').forEach(cb => {
+                memberships.push({ game: cb.dataset.game, list_name: cb.dataset.list });
+            });
+
+            const body = {
+                label,
+                filename,
+                memberships
+            };
+            if (keyOverride) body.key = keyOverride;
+
+            try {
+                const url = id ? `${API_URL}/api/admin/songs/${id}` : `${API_URL}/api/admin/songs`;
+                const method = id ? 'PUT' : 'POST';
+                const res = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showMessage(id ? 'Song updated' : 'Song created', 'success');
+                    hideEditor();
+                    await loadSongs();
+                } else {
+                    showMessage(data.error || 'Save failed', 'error');
+                }
+            } catch (e) {
+                showMessage('Save failed', 'error');
+            }
+        }
+
+        async function deleteSong(id) {
+            const song = allSongs.find(s => s.id === id);
+            if (!song) return;
+            if (!confirm(`Delete "${song.label}"? This removes it from every list.`)) return;
+
+            try {
+                const res = await fetch(`${API_URL}/api/admin/songs/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    showMessage('Deleted', 'success');
+                    await loadSongs();
+                } else {
+                    const data = await res.json().catch(() => ({}));
+                    showMessage(data.error || 'Delete failed', 'error');
+                }
+            } catch (e) {
+                showMessage('Delete failed', 'error');
+            }
+        }
+
+        // ------------------------------------------------------------
+        // List ordering
+        // ------------------------------------------------------------
+        function loadOrderList() {
+            const game = document.getElementById('orderGame').value;
+            const list = document.getElementById('orderList').value;
+            if (!game || !list) return;
+
+            // Build a working set from allSongs that have membership in (game, list).
+            // Sort by current position (NULLs last, then by label).
+            const rows = allSongs
+                .map(s => {
+                    const m = (s.memberships || []).find(m => m.game === game && m.list_name === list);
+                    if (!m) return null;
+                    return { id: s.id, key: s.key, label: s.label, position: m.position };
+                })
+                .filter(Boolean);
+
+            rows.sort((a, b) => {
+                const ap = a.position === null || a.position === undefined ? 1e9 : a.position;
+                const bp = b.position === null || b.position === undefined ? 1e9 : b.position;
+                if (ap !== bp) return ap - bp;
+                return a.label.localeCompare(b.label);
+            });
+
+            orderWorkingSet = rows;
+            orderDirty = false;
+            document.getElementById('saveOrderBtn').disabled = true;
+            renderOrderRows();
+        }
+
+        function renderOrderRows() {
+            const container = document.getElementById('orderRows');
+            if (!orderWorkingSet.length) {
+                container.innerHTML = '<div class="empty">No songs assigned to this list yet.</div>';
+                return;
+            }
+            container.innerHTML = orderWorkingSet.map((s, idx) => `
+                <div class="reorder-row" draggable="true" data-idx="${idx}"
+                     ondragstart="onDragStart(event)" ondragover="onDragOver(event)"
+                     ondrop="onDrop(event)" ondragleave="onDragLeave(event)"
+                     ondragend="onDragEnd(event)">
+                    <div class="reorder-pos">#${idx + 1}</div>
+                    <div class="reorder-label">${escapeHtml(s.label)}</div>
+                    <div class="reorder-controls">
+                        <button class="btn btn-primary btn-small" onclick="moveUp(${idx})" ${idx === 0 ? 'disabled' : ''}>↑</button>
+                        <button class="btn btn-primary btn-small" onclick="moveDown(${idx})" ${idx === orderWorkingSet.length - 1 ? 'disabled' : ''}>↓</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function moveUp(idx) {
+            if (idx === 0) return;
+            [orderWorkingSet[idx - 1], orderWorkingSet[idx]] = [orderWorkingSet[idx], orderWorkingSet[idx - 1]];
+            markOrderDirty();
+            renderOrderRows();
+        }
+
+        function moveDown(idx) {
+            if (idx >= orderWorkingSet.length - 1) return;
+            [orderWorkingSet[idx + 1], orderWorkingSet[idx]] = [orderWorkingSet[idx], orderWorkingSet[idx + 1]];
+            markOrderDirty();
+            renderOrderRows();
+        }
+
+        // HTML5 drag-and-drop
+        let dragIdx = null;
+        function onDragStart(e) {
+            dragIdx = parseInt(e.currentTarget.dataset.idx, 10);
+            e.currentTarget.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+        function onDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+        function onDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+        function onDrop(e) {
+            e.preventDefault();
+            const dropIdx = parseInt(e.currentTarget.dataset.idx, 10);
+            e.currentTarget.classList.remove('drag-over');
+            if (dragIdx === null || dragIdx === dropIdx) return;
+            const moved = orderWorkingSet.splice(dragIdx, 1)[0];
+            orderWorkingSet.splice(dropIdx, 0, moved);
+            markOrderDirty();
+            renderOrderRows();
+        }
+        function onDragEnd(e) {
+            e.currentTarget.classList.remove('dragging');
+            document.querySelectorAll('.reorder-row.drag-over').forEach(r => r.classList.remove('drag-over'));
+            dragIdx = null;
+        }
+
+        function markOrderDirty() {
+            orderDirty = true;
+            document.getElementById('saveOrderBtn').disabled = false;
+        }
+
+        async function saveOrder() {
+            const game = document.getElementById('orderGame').value;
+            const list = document.getElementById('orderList').value;
+            const orderedKeys = orderWorkingSet.map(s => s.key);
+
+            try {
+                const res = await fetch(`${API_URL}/api/admin/songs/list-order`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ game, list_name: list, ordered_keys: orderedKeys })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showMessage('Order saved', 'success');
+                    await loadSongs();  // refresh chips on the left list
+                } else {
+                    showMessage(data.error || 'Save failed', 'error');
+                }
+            } catch (e) {
+                showMessage('Save failed', 'error');
+            }
+        }
+
+        // ------------------------------------------------------------
+        // Auto-derive key from label
+        // ------------------------------------------------------------
+        document.addEventListener('DOMContentLoaded', () => {
+            const labelEl = document.getElementById('songLabel');
+            const keyEl = document.getElementById('songKey');
+            labelEl.addEventListener('input', () => {
+                if (!document.getElementById('songId').value && !keyEl.dataset.manual) {
+                    keyEl.value = labelEl.value.toLowerCase()
+                        .replace(/[^a-z0-9]+/g, '_')
+                        .replace(/^_|_$/g, '');
+                }
+            });
+            keyEl.addEventListener('input', () => { keyEl.dataset.manual = 'true'; });
+        });
+
+        // ------------------------------------------------------------
+        // Helpers
+        // ------------------------------------------------------------
+        function showMessage(text, type) {
+            const el = document.getElementById('message');
+            el.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(() => el.innerHTML = '', 3000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text == null ? '' : String(text);
+            return div.innerHTML;
+        }
+
+        checkAdmin();
+    </script>
+</body>
+</html>
