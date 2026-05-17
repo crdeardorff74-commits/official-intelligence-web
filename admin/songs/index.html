@@ -420,7 +420,11 @@
 
             orderWorkingSet = rows;
             orderDirty = false;
-            document.getElementById('saveOrderBtn').disabled = true;
+            // Cancel any in-flight auto-save timer — it would fire against
+            // the NEW dropdown values but with the OLD list's ordered_keys,
+            // accidentally clobbering the freshly-loaded list's positions.
+            if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
+            setSaveStatus('clean');
             renderOrderRows();
         }
 
@@ -489,12 +493,61 @@
             dragIdx = null;
         }
 
+        // Auto-save: every drag-drop / ↑↓ move schedules a debounced save.
+        // The "SAVE ORDER" button stays in the DOM but is repurposed as a
+        // status indicator (and a click target for manual retry when the
+        // auto-save fails). No more SAVE button forgotten clicks.
+        const AUTO_SAVE_DELAY_MS = 400;
+        let autoSaveTimer = null;
+
+        function setSaveStatus(state) {
+            // state: 'clean' | 'dirty' | 'saving' | 'error'
+            const btn = document.getElementById('saveOrderBtn');
+            if (!btn) return;
+            switch (state) {
+                case 'clean':
+                    btn.textContent = '✓ SAVED';
+                    btn.disabled = true;
+                    btn.className = 'btn btn-secondary';
+                    break;
+                case 'dirty':
+                    btn.textContent = 'SAVING…';
+                    btn.disabled = true;
+                    btn.className = 'btn btn-primary';
+                    break;
+                case 'saving':
+                    btn.textContent = 'SAVING…';
+                    btn.disabled = true;
+                    btn.className = 'btn btn-primary';
+                    break;
+                case 'error':
+                    btn.textContent = '⚠ SAVE FAILED — RETRY';
+                    btn.disabled = false;
+                    btn.className = 'btn btn-primary';
+                    break;
+            }
+        }
+
+        function scheduleAutoSave() {
+            if (autoSaveTimer) clearTimeout(autoSaveTimer);
+            setSaveStatus('dirty');
+            autoSaveTimer = setTimeout(() => {
+                autoSaveTimer = null;
+                saveOrder();
+            }, AUTO_SAVE_DELAY_MS);
+        }
+
         function markOrderDirty() {
             orderDirty = true;
-            document.getElementById('saveOrderBtn').disabled = false;
+            scheduleAutoSave();
         }
 
         async function saveOrder() {
+            // Cancel any pending debounced save so we don't double-fire if
+            // the user clicks the retry button while a timer was still
+            // counting down.
+            if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
+            setSaveStatus('saving');
             const game = document.getElementById('orderGame').value;
             const list = document.getElementById('orderList').value;
             const orderedKeys = orderWorkingSet.map(s => s.key);
@@ -507,12 +560,18 @@
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    showMessage('Order saved', 'success');
-                    await loadSongs();  // refresh chips on the left list
+                    orderDirty = false;
+                    setSaveStatus('clean');
+                    // Skip the loud "Order saved" toast on every drag —
+                    // the button status is enough feedback. Only refresh
+                    // the left-side chip list so its rank numbers update.
+                    await loadSongs();
                 } else {
+                    setSaveStatus('error');
                     showMessage(data.error || 'Save failed', 'error');
                 }
             } catch (e) {
+                setSaveStatus('error');
                 showMessage('Save failed', 'error');
             }
         }
