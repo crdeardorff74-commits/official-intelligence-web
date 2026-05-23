@@ -1,1 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circuitousness Admin - Official Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .stat-card {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid var(--primary);
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-value {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            color: var(--primary);
+            margin-bottom: 5px;
+            line-height: 1.8;
+        }
+        .stat-label {
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+        .chart-row {
+            margin: 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .chart-label {
+            min-width: 130px;
+            white-space: nowrap;
+            color: var(--text-dim);
+        }
+        .chart-bar-bg {
+            flex: 1;
+            height: 16px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .chart-count {
+            min-width: 110px;
+            text-align: right;
+            color: var(--text-dim);
+            white-space: nowrap;
+        }
+        /* Full-width override — mirrors Tantro admin page so the funnel
+           charts have room to breathe. */
+        main { max-width: 100% !important; width: 100% !important; padding: 1vw 2vw !important; box-sizing: border-box; }
+        .visits-two-col {
+            display: flex;
+            gap: 2vw;
+            margin-top: 20px;
+        }
+        .visits-left {
+            flex: 1;
+            min-width: 0;
+        }
+        .visits-right {
+            flex: 1;
+            min-width: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-content: start;
+        }
+        .visits-right > div { min-width: 0; }
+        @media (max-width: 1200px) {
+            .visits-two-col { flex-direction: column; }
+        }
+        @media (max-width: 768px) {
+            .visits-right { grid-template-columns: 1fr; }
+        }
+        /* Per-stage tab switcher inside the device / OS panels. Same
+           styling as Tantro's so the two admin pages feel related. */
+        .stage-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+        }
+        .stage-tab {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 4px 10px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            cursor: pointer;
+            opacity: 0.5;
+        }
+        .stage-tab.active {
+            opacity: 1;
+            background: rgba(0, 255, 0, 0.15);
+        }
+        .stage-panel { display: none; }
+        .stage-panel.active { display: block; }
+        .window-tabs {
+            display: flex;
+            gap: 8px;
+            margin: 15px 0;
+        }
+        .window-tab {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 6px 14px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px;
+            cursor: pointer;
+            opacity: 0.5;
+        }
+        .window-tab.active {
+            opacity: 1;
+            background: rgba(0, 255, 0, 0.15);
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="admin-header" style="display: flex; align-items: center; gap: 20px;">
+            <h1 style="margin: 0;">> CIRCUITOUSNESS ADMIN</h1>
+            <div style="display: flex; gap: 10px; margin-left: auto;">
+                <button id="adminRefresh" class="btn btn-primary" style="display: none;" onclick="loadVisitStats()">🔄 REFRESH</button>
+                <a href="/admin/" class="btn btn-primary">← ADMIN HUB</a>
+                <a href="/" class="btn btn-primary">← BACK TO SITE</a>
+            </div>
+        </div>
 
+        <div id="message"></div>
+
+        <div id="notAdmin" class="not-admin" style="display: none;">
+            <h2 class="section-header">ACCESS DENIED</h2>
+            <p style="margin-top: 20px;">Admin privileges required.</p>
+            <a href="/" class="btn btn-primary" style="margin-top: 20px; display: inline-block;">RETURN HOME</a>
+        </div>
+
+        <div id="adminContent" style="display: none;">
+            <!-- Window picker — lifetime / 24h / 7d / 30d. Re-renders the
+                 summary stats cards (the daily chart + breakdowns stay
+                 lifetime since they're inherently time-scoped anyway). -->
+            <div class="window-tabs">
+                <button class="window-tab active" data-window="lifetime" onclick="setWindow(this, 'lifetime')">LIFETIME</button>
+                <button class="window-tab"        data-window="24h"      onclick="setWindow(this, '24h')">LAST 24H</button>
+                <button class="window-tab"        data-window="7d"       onclick="setWindow(this, '7d')">LAST 7D</button>
+                <button class="window-tab"        data-window="30d"      onclick="setWindow(this, '30d')">LAST 30D</button>
+            </div>
+
+            <div class="visits-two-col">
+                <div class="visits-left">
+                    <div id="visitStats"><div class="loading">Loading visit stats...</div></div>
+                    <div id="visitChart"      style="margin-top: 20px;"></div>
+                    <div id="visitReferrers"  style="margin-top: 20px;"></div>
+                    <div id="visitLanguages"  style="margin-top: 20px;"></div>
+                </div>
+                <div class="visits-right">
+                    <div id="visitDevices"></div>
+                    <div id="visitOS"></div>
+                    <div id="visitShares"></div>
+                    <div id="visitCredits"></div>
+                    <div id="visitModes"></div>
+                    <div id="visitGameTypes"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Two API bases:
+        //   API_URL      → central OI auth (issues + validates JWTs)
+        //   GAME_API_URL → Circuitousness's own back-end (this page's data)
+        const API_URL      = 'https://official-intelligence-api.onrender.com';
+        const GAME_API_URL = 'https://circuitousness-api.onrender.com/api';
+        const token        = localStorage.getItem('oi_token');
+        let cachedStats    = null;
+        let currentWindow  = 'lifetime';
+
+        function escapeHtml(s) {
+            return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // ── Auth gate ──
+        // OI's central auth API authoritatively says whether this token's
+        // user is an admin. The game back-end ALSO verifies the same token
+        // on /admin/visits/stats with the same SECRET_KEY (it has its own
+        // User row with is_admin=true that the token's user_id resolves to),
+        // so the actual stats fetch double-checks.
+        async function checkAdmin() {
+            if (!token) {
+                document.getElementById('notAdmin').style.display = 'block';
+                return;
+            }
+            try {
+                const res  = await fetch(`${API_URL}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.user && data.user.is_admin) {
+                    document.getElementById('adminContent').style.display = 'block';
+                    document.getElementById('adminRefresh').style.display = '';
+                    loadVisitStats();
+                } else {
+                    document.getElementById('notAdmin').style.display = 'block';
+                }
+            } catch (err) {
+                document.getElementById('notAdmin').style.display = 'block';
+            }
+        }
+
+        async function loadVisitStats() {
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/visits/stats?_=${Date.now()}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    document.getElementById('visitStats').innerHTML =
+                        '<div style="color: #f55;">Failed to load: ' + escapeHtml(data.error || res.status) + '</div>';
+                    return;
+                }
+                cachedStats = data;
+                renderSummary();
+                renderDailyChart();
+                renderTopReferrers();
+                renderTopLanguages();
+                renderDeviceBreakdown();
+                renderOsBreakdown();
+                renderShareBreakdown();
+                renderCreditsBreakdown();
+                renderModeBreakdown();
+                renderGameTypeBreakdown();
+            } catch (e) {
+                document.getElementById('visitStats').innerHTML =
+                    '<div style="color: #f55;">Network error: ' + escapeHtml(e.message || e) + '</div>';
+            }
+        }
+
+        function setWindow(btn, win) {
+            document.querySelectorAll('.window-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentWindow = win;
+            if (cachedStats) renderSummary();
+        }
+
+        function renderSummary() {
+            if (!cachedStats) return;
+            // Lifetime fields have no suffix; rolling windows are *_24h / *_7d / *_30d.
+            const d = cachedStats;
+            const isLifetime = currentWindow === 'lifetime';
+            const suffix = '_' + currentWindow;
+            const v  = isLifetime ? d.total_visits   : d['visits'   + suffix];
+            const st = isLifetime ? d.total_started  : d['started'  + suffix];
+            const fi = isLifetime ? d.total_finished : d['finished' + suffix];
+            const sh = isLifetime ? d.total_shared   : d['shared'   + suffix];
+            const sr = isLifetime ? d.start_rate     : d['start_rate'  + suffix];
+            const fr = isLifetime ? d.finish_rate    : d['finish_rate' + suffix];
+            const shr= isLifetime ? d.share_rate     : d['share_rate'  + suffix];
+            document.getElementById('visitStats').innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px;">
+                    <div class="stat-card"><div class="stat-value">${v}</div><div class="stat-label">Visits</div></div>
+                    <div class="stat-card"><div class="stat-value">${st}</div><div class="stat-label">Started</div></div>
+                    <div class="stat-card"><div class="stat-value">${fi}</div><div class="stat-label">Finished</div></div>
+                    <div class="stat-card"><div class="stat-value">${sh}</div><div class="stat-label">Shared</div></div>
+                    <div class="stat-card">
+                        <div class="stat-value">${sr}% <span style="white-space:nowrap;">→&nbsp;${fr}%</span> <span style="white-space:nowrap;">→&nbsp;${shr}%</span></div>
+                        <div class="stat-label">Start / Finish / Share</div>
+                    </div>
+                </div>`;
+        }
+
+        // Stacked horizontal bars per day, last 30 days. Same color
+        // palette + ordering as Tantro's admin page so the visual reads
+        // the same when you switch between projects.
+        function renderDailyChart() {
+            const days = (cachedStats && cachedStats.daily_visits) || [];
+            if (days.length === 0) {
+                document.getElementById('visitChart').innerHTML = '';
+                return;
+            }
+            const maxVisits = Math.max(...days.map(d => d.visits));
+            const bw = maxVisits > 0 ? 100 / maxVisits : 0;
+            let html = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Daily Visits (30 days)</h3>';
+            html += '<div style="font-family: monospace; font-size: 12px;">';
+            days.forEach(d => {
+                const date = d.day.substring(5);
+                html += `<div style="margin: 2px 0; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 50px; color: var(--text-dim);">${date}</span>
+                    <div style="flex: 1; position: relative; height: 16px; background: rgba(255,255,255,0.05);">
+                        <div style="position: absolute; height: 100%; width: ${Math.round(d.visits   * bw)}%; background: rgba(0,150,255,0.4);"></div>
+                        <div style="position: absolute; height: 100%; width: ${Math.round(d.started  * bw)}%; background: rgba(255,200,0,0.5);"></div>
+                        <div style="position: absolute; height: 100%; width: ${Math.round(d.finished * bw)}%; background: rgba(255,80,80,0.6);"></div>
+                        <div style="position: absolute; height: 100%; width: ${Math.round((d.shared || 0) * bw)}%; background: rgba(180,80,255,0.6);"></div>
+                    </div>
+                    <span style="width: 140px; text-align: right; color: var(--text-dim);">${d.visits}/${d.started}/${d.finished}/${d.shared || 0}</span>
+                </div>`;
+            });
+            html += '</div>';
+            html += '<div style="margin-top: 5px; font-size: 11px; color: var(--text-dim);">';
+            html += '<span style="color: rgba(0,150,255,0.7);">■</span> Visits &nbsp; ';
+            html += '<span style="color: rgba(255,200,0,0.8);">■</span> Started &nbsp; ';
+            html += '<span style="color: rgba(255,80,80,0.8);">■</span> Finished &nbsp; ';
+            html += '<span style="color: rgba(180,80,255,0.8);">■</span> Shared';
+            html += '</div>';
+            document.getElementById('visitChart').innerHTML = html;
+        }
+
+        function renderTopList(elId, title, rows, valueKey, labelKey) {
+            if (!rows || rows.length === 0) {
+                document.getElementById(elId).innerHTML = '';
+                return;
+            }
+            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> ${title}</h3>`;
+            html += '<table style="width: 100%; border-collapse: collapse;">';
+            html += '<tr style="border-bottom: 1px solid var(--primary);">';
+            html += `<th style="text-align: left; padding: 5px;">${labelKey}</th>`;
+            html += '<th style="text-align: right; padding: 5px;">Visits</th>';
+            html += '<th style="text-align: right; padding: 5px;">Started</th>';
+            html += '<th style="text-align: right; padding: 5px;">Finished</th>';
+            html += '<th style="text-align: right; padding: 5px;">Conv%</th>';
+            html += '</tr>';
+            rows.forEach(r => {
+                const conv  = r.visits > 0 ? (r.finished / r.visits * 100).toFixed(1) : '0.0';
+                const value = r[valueKey] || r.value || '';
+                const short = value.length > 60 ? value.substring(0, 60) + '...' : value;
+                html += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <td style="padding: 5px; color: var(--text-dim); word-break: break-all;">${escapeHtml(short)}</td>
+                    <td style="text-align: right; padding: 5px;">${r.visits}</td>
+                    <td style="text-align: right; padding: 5px;">${r.started}</td>
+                    <td style="text-align: right; padding: 5px;">${r.finished}</td>
+                    <td style="text-align: right; padding: 5px;">${conv}%</td>
+                </tr>`;
+            });
+            html += '</table>';
+            document.getElementById(elId).innerHTML = html;
+        }
+        function renderTopReferrers() { renderTopList('visitReferrers',  'Top Referrers',  cachedStats.top_referrers, 'value', 'Referrer'); }
+        function renderTopLanguages() { renderTopList('visitLanguages',  'Top Languages',  cachedStats.top_languages, 'value', 'Language'); }
+
+        // Per-stage tabbed breakdown panel — same pattern Tantro uses.
+        // `data` shape: { visit: [...], start: [...], finish: [...], share: [...] }
+        // where each list item has { count, [labelKey] }.
+        function renderStagedBreakdown(elId, title, data, labelKey, colorMap, iconMap, group) {
+            if (!data) { document.getElementById(elId).innerHTML = ''; return; }
+            const stages = ['visit', 'start', 'finish', 'share'];
+            const stageLabels = { visit: 'Visit', start: 'Start', finish: 'Finish', share: 'Share' };
+            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> ${title}</h3>`;
+            html += `<div class="stage-tabs" data-group="${group}">`;
+            stages.forEach((s, i) => {
+                html += `<button class="stage-tab${i === 0 ? ' active' : ''}" data-stage="${s}" onclick="switchStage(this, '${group}')">${stageLabels[s]}</button>`;
+            });
+            html += '</div>';
+            stages.forEach((stage, i) => {
+                const items = data[stage] || [];
+                const total = items.reduce((s, x) => s + x.count, 0);
+                html += `<div class="stage-panel${i === 0 ? ' active' : ''}" data-group="${group}" data-stage="${stage}">`;
+                if (items.length === 0) {
+                    html += '<div style="color: #666; padding: 5px;">No data</div>';
+                } else {
+                    items.sort((a, b) => b.count - a.count);
+                    items.forEach(item => {
+                        const pct   = total > 0 ? (item.count / total * 100).toFixed(1) : '0.0';
+                        const label = item[labelKey] || '';
+                        const color = (colorMap && colorMap[label]) || '#888';
+                        const icon  = (iconMap  && iconMap[label])  || '';
+                        html += `<div class="chart-row">
+                            <span class="chart-label">${icon} ${escapeHtml(label)}</span>
+                            <div class="chart-bar-bg">
+                                <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
+                            </div>
+                            <span class="chart-count">${item.count} (${pct}%)</span>
+                        </div>`;
+                    });
+                }
+                html += '</div>';
+            });
+            document.getElementById(elId).innerHTML = html;
+        }
+        function switchStage(btn, group) {
+            document.querySelectorAll(`.stage-tab[data-group="${group}"]`).forEach(b => b.classList.remove('active'));
+            document.querySelectorAll(`.stage-panel[data-group="${group}"]`).forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            const stage = btn.getAttribute('data-stage');
+            document.querySelector(`.stage-panel[data-group="${group}"][data-stage="${stage}"]`).classList.add('active');
+        }
+        function renderDeviceBreakdown() {
+            renderStagedBreakdown('visitDevices', 'Devices', cachedStats.device_breakdown, 'type',
+                { desktop: '#0096ff', tablet: '#00ff64', phone: '#ffc800' },
+                { desktop: '🖥️', tablet: '📱', phone: '📲' },
+                'devices');
+        }
+        function renderOsBreakdown() {
+            renderStagedBreakdown('visitOS', 'Operating Systems', cachedStats.os_breakdown, 'os',
+                { Windows: '#0078d4', iOS: '#a2aaad', Android: '#3ddc84', macOS: '#555', Linux: '#f5a623', Other: '#888' },
+                null,
+                'os');
+        }
+
+        // Single-list horizontal bar chart — no per-stage tabs needed.
+        function renderFlatBars(elId, title, list, labelKey, colorMap, iconMap) {
+            if (!list || list.length === 0) {
+                document.getElementById(elId).innerHTML =
+                    `<h3 style="margin-bottom: 10px; color: var(--primary);">> ${title}</h3><div style="color: #666; padding: 5px;">No data</div>`;
+                return;
+            }
+            const total = list.reduce((s, x) => s + x.count, 0);
+            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> ${title}</h3>`;
+            list.forEach(item => {
+                const pct   = total > 0 ? (item.count / total * 100).toFixed(1) : '0.0';
+                const label = item[labelKey] || '';
+                const color = (colorMap && colorMap[label]) || '#888';
+                const icon  = (iconMap  && iconMap[label])  || '';
+                html += `<div class="chart-row">
+                    <span class="chart-label">${icon} ${escapeHtml(label)}</span>
+                    <div class="chart-bar-bg">
+                        <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
+                    </div>
+                    <span class="chart-count">${item.count} (${pct}%)</span>
+                </div>`;
+            });
+            document.getElementById(elId).innerHTML = html;
+        }
+        function renderShareBreakdown() {
+            renderFlatBars('visitShares', 'Share Platforms', cachedStats.share_breakdown, 'platform',
+                { twitter: '#1DA1F2', facebook: '#4267B2', reddit: '#FF4500', whatsapp: '#25D366', telegram: '#0088cc', copylink: '#888' },
+                { twitter: '𝕏', facebook: 'f', reddit: '⬆', whatsapp: '💬', telegram: '✈', copylink: '🔗' });
+        }
+        function renderCreditsBreakdown() {
+            renderFlatBars('visitCredits', 'Credits Link Clicks', cachedStats.credits_breakdown, 'link', null, null);
+        }
+        function renderModeBreakdown() {
+            renderFlatBars('visitModes', 'Modes Played', cachedStats.mode_breakdown, 'mode',
+                { marathon: '#ffaa00', potd: '#00aaff' },
+                { marathon: '🏃', potd: '📅' });
+        }
+        function renderGameTypeBreakdown() {
+            renderFlatBars('visitGameTypes', 'Game Types Played', cachedStats.game_type_breakdown, 'gameType',
+                // s1..s4 cool blues, q1..q4 warm oranges so singular vs
+                // quad reads at a glance.
+                { s1: '#3a7bd5', s2: '#3d8bdc', s3: '#4099e4', s4: '#43a8eb',
+                  q1: '#f5852a', q2: '#f7913a', q3: '#f99e4a', q4: '#fbaa5a' },
+                null);
+        }
+
+        checkAdmin();
+    </script>
+</body>
+</html>
