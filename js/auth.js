@@ -47,11 +47,13 @@ async function checkAuth() {
 function updateUserMenu() {
     const menu = document.getElementById('userMenu');
     if (menu && authCurrentUser) {
-        const adminLinks = authCurrentUser.is_admin ? `
-            <a href="/admin/blog" style="margin-right: 10px; color: var(--primary);">BLOG</a>
-            <a href="/admin/tantro" style="margin-right: 10px; color: var(--primary);">GAME</a>
-            <a href="/admin/songs/" style="margin-right: 10px; color: var(--primary);">SONGS</a>
-        ` : '';
+        // Single ADMIN link to the hub at /admin/ (the hub itself has the
+        // sub-pages: Blog, Songs, TANTЯO stats, Circuitousness stats).
+        // Was three separate links (BLOG / GAME / SONGS); collapsed to one
+        // so the nav stays clean as more per-game admin pages get added.
+        const adminLinks = authCurrentUser.is_admin
+            ? '<a href="/admin/" style="margin-right: 10px; color: var(--primary);">ADMIN</a>'
+            : '';
         
         menu.innerHTML = `
             <div class="user-info">
