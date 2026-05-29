@@ -200,6 +200,7 @@
                     document.getElementById('adminContent').style.display = 'block';
                     document.getElementById('adminRefresh').style.display = '';
                     loadVisitStats();
+                    startAutoRefresh();
                 } else {
                     document.getElementById('notAdmin').style.display = 'block';
                 }
@@ -377,7 +378,7 @@
             document.getElementById(elId).innerHTML = html;
         }
         function switchStage(btn, group) {
-            document.querySelectorAll(`.stage-tab[data-group="${group}"]`).forEach(b => b.classList.remove('active'));
+            document.querySelectorAll(`.stage-tabs[data-group="${group}"] .stage-tab`).forEach(b => b.classList.remove('active'));
             document.querySelectorAll(`.stage-panel[data-group="${group}"]`).forEach(p => p.classList.remove('active'));
             btn.classList.add('active');
             const stage = btn.getAttribute('data-stage');
@@ -441,6 +442,58 @@
                   q1: '#f5852a', q2: '#f7913a', q3: '#f99e4a', q4: '#fbaa5a' },
                 null);
         }
+
+        // ── Live auto-refresh ──
+        // Re-pull visit stats every 10s so the dashboard stays current
+        // without a manual click. Started only once the admin gate has
+        // passed (see checkAdmin). Pauses while the tab is backgrounded or
+        // the user is mid-interaction, and restores the open funnel-stage
+        // sub-tabs so the view doesn't snap back to "Visit" on each refresh.
+        const AUTO_REFRESH_MS = 10000;
+        let autoRefreshTimer = null;
+
+        function startAutoRefresh() {
+            if (autoRefreshTimer) return;
+            autoRefreshTimer = setInterval(autoRefreshTick, AUTO_REFRESH_MS);
+        }
+
+        function userIsInteracting() {
+            const el = document.activeElement;
+            return !!el && ['INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName);
+        }
+
+        // Capture/restore the open funnel stage per staged panel, keyed off
+        // the currently-shown panel (reliable regardless of tab highlighting).
+        function captureStageState() {
+            const state = {};
+            document.querySelectorAll('.stage-panel.active[data-group]').forEach(p => {
+                state[p.getAttribute('data-group')] = p.getAttribute('data-stage');
+            });
+            return state;
+        }
+        function restoreStageState(state) {
+            Object.keys(state).forEach(group => {
+                const stage = state[group];
+                const tabs = document.querySelector(`.stage-tabs[data-group="${group}"]`);
+                if (tabs) tabs.querySelectorAll('.stage-tab').forEach(t =>
+                    t.classList.toggle('active', t.getAttribute('data-stage') === stage));
+                document.querySelectorAll(`.stage-panel[data-group="${group}"]`).forEach(p =>
+                    p.classList.toggle('active', p.getAttribute('data-stage') === stage));
+            });
+        }
+
+        async function autoRefreshTick() {
+            if (document.hidden || userIsInteracting()) return;
+            const stageState = captureStageState();
+            await loadVisitStats();
+            restoreStageState(stageState);
+        }
+
+        // Returning to a backgrounded tab refreshes right away rather than
+        // waiting out the rest of the interval.
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && autoRefreshTimer) autoRefreshTick();
+        });
 
         checkAdmin();
     </script>
