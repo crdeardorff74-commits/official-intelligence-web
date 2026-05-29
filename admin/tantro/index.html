@@ -52,6 +52,25 @@
         .tab-content.active {
             display: block;
         }
+        .window-tabs {
+            display: flex;
+            gap: 8px;
+            margin: 15px 0;
+        }
+        .window-tab {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 6px 14px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px;
+            cursor: pointer;
+            opacity: 0.5;
+        }
+        .window-tab.active {
+            opacity: 1;
+            background: rgba(0, 255, 0, 0.15);
+        }
         .bug-status {
             padding: 3px 8px;
             font-size: 9px;
@@ -269,6 +288,16 @@
             </div>
         <!-- Visits Tab -->
             <div id="visitsTab" class="tab-content active">
+
+                <!-- Window picker — re-renders the summary stat cards for the
+                     chosen range. Charts/breakdowns stay lifetime (the API
+                     scopes those itself). Mirrors the Circuitousness admin. -->
+                <div class="window-tabs">
+                    <button class="window-tab active" data-window="lifetime" onclick="setWindow(this, 'lifetime')">LIFETIME</button>
+                    <button class="window-tab"        data-window="24h"      onclick="setWindow(this, '24h')">LAST 24H</button>
+                    <button class="window-tab"        data-window="7d"       onclick="setWindow(this, '7d')">LAST 7D</button>
+                    <button class="window-tab"        data-window="30d"      onclick="setWindow(this, '30d')">LAST 30D</button>
+                </div>
                 
                 <div class="visits-two-col">
                     <div class="visits-left">
@@ -311,6 +340,8 @@
         let token = localStorage.getItem('oi_token');
         let currentRecordingsPage = 1;
         let currentBugsPage = 1;
+        let cachedStats = null;
+        let currentWindow = 'lifetime';
         
         // Tab switching
         const tabLabels = { recordings: 'RECORDINGS', bugs: 'BUG REPORTS', visits: 'VISITS' };
@@ -370,6 +401,7 @@
                     document.getElementById('adminTabs').style.display = 'flex';
                     document.getElementById('adminRefresh').style.display = '';
                     loadVisitStats();
+                    startAutoRefresh();
                 } else {
                     document.getElementById('notAdmin').style.display = 'block';
                 }
@@ -788,6 +820,41 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
         // VISIT TRACKING FUNCTIONS
         // ============================================
         
+        // Summary stat cards scoped to the selected time window. Lifetime
+        // fields have no suffix; rolling windows are *_24h / *_7d / *_30d
+        // (the back-end already returns all four sets). Mirrors Circuitousness.
+        function renderSummary() {
+            if (!cachedStats) return;
+            const d = cachedStats;
+            const isLifetime = currentWindow === 'lifetime';
+            const suffix = '_' + currentWindow;
+            const v   = isLifetime ? d.total_visits   : d['visits'      + suffix];
+            const st  = isLifetime ? d.total_started  : d['started'     + suffix];
+            const fi  = isLifetime ? d.total_finished : d['finished'    + suffix];
+            const sh  = isLifetime ? d.total_shared   : d['shared'      + suffix];
+            const sr  = isLifetime ? d.start_rate     : d['start_rate'  + suffix];
+            const fr  = isLifetime ? d.finish_rate    : d['finish_rate' + suffix];
+            const shr = isLifetime ? d.share_rate     : d['share_rate'  + suffix];
+            document.getElementById('visitStats').innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px;">
+                    <div class="stat-card"><div class="stat-value">${v}</div><div class="stat-label">Total Visits</div></div>
+                    <div class="stat-card"><div class="stat-value">${st}</div><div class="stat-label">Started Game</div></div>
+                    <div class="stat-card"><div class="stat-value">${fi}</div><div class="stat-label">Finished Game</div></div>
+                    <div class="stat-card"><div class="stat-value">${sh}</div><div class="stat-label">Shared Game</div></div>
+                    <div class="stat-card">
+                        <div class="stat-value">${sr}% <span style="white-space:nowrap;">→&nbsp;${fr}%</span> <span style="white-space:nowrap;">→&nbsp;${shr}%</span></div>
+                        <div class="stat-label">Start / Finish / Share Rate</div>
+                    </div>
+                </div>`;
+        }
+
+        function setWindow(btn, win) {
+            document.querySelectorAll('.window-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentWindow = win;
+            if (cachedStats) renderSummary();
+        }
+
         async function loadVisitStats() {
             try {
                 const res = await fetch(`${GAME_API_URL}/admin/visits/stats?_=${Date.now()}`, {
@@ -796,31 +863,9 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                 const data = await res.json();
                 
                 if (res.ok) {
-                    // Summary stats
-                    document.getElementById('visitStats').innerHTML = `
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px;">
-                            <div class="stat-card">
-                                <div class="stat-value">${data.total_visits}</div>
-                                <div class="stat-label">Total Visits</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value">${data.total_started}</div>
-                                <div class="stat-label">Started Game</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value">${data.total_finished}</div>
-                                <div class="stat-label">Finished Game</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value">${data.total_shared}</div>
-                                <div class="stat-label">Shared Game</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value">${data.start_rate}% <span style="white-space:nowrap;">→&nbsp;${data.finish_rate}%</span> <span style="white-space:nowrap;">→&nbsp;${data.share_rate}%</span></div>
-                                <div class="stat-label">Start / Finish / Share Rate</div>
-                            </div>
-                        </div>
-                    `;
+                    // Summary stats — windowed via renderSummary (reads currentWindow).
+                    cachedStats = data;
+                    renderSummary();
                     
                     // Daily chart (text-based bar chart)
                     if (data.daily_visits && data.daily_visits.length > 0) {
@@ -1090,6 +1135,65 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
             }
         }
         
+        // ── Live auto-refresh ──
+        // Re-pull the active tab's data every 10s so the admin view stays
+        // current without manual clicks. Started only once the admin gate
+        // has passed (see checkAdmin). Pauses while the tab is backgrounded
+        // or the user is mid-interaction; preserves the current page and the
+        // open funnel-stage sub-tabs so the view doesn't jump on each refresh.
+        const AUTO_REFRESH_MS = 10000;
+        let autoRefreshTimer = null;
+
+        function startAutoRefresh() {
+            if (autoRefreshTimer) return;
+            autoRefreshTimer = setInterval(autoRefreshTick, AUTO_REFRESH_MS);
+        }
+
+        function userIsInteracting() {
+            const el = document.activeElement;
+            return !!el && ['INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName);
+        }
+
+        // Capture/restore the open funnel stage per staged panel, keyed off
+        // the currently-shown panel (reliable regardless of tab highlighting).
+        function captureStageState() {
+            const state = {};
+            document.querySelectorAll('.stage-panel.active[data-group]').forEach(p => {
+                state[p.getAttribute('data-group')] = p.getAttribute('data-stage');
+            });
+            return state;
+        }
+        function restoreStageState(state) {
+            Object.keys(state).forEach(group => {
+                const stage = state[group];
+                const tabs = document.querySelector(`.stage-tabs[data-group="${group}"]`);
+                if (tabs) tabs.querySelectorAll('.stage-tab').forEach(t =>
+                    t.classList.toggle('active', t.getAttribute('data-stage') === stage));
+                document.querySelectorAll(`.stage-panel[data-group="${group}"]`).forEach(p =>
+                    p.classList.toggle('active', p.getAttribute('data-stage') === stage));
+            });
+        }
+
+        async function autoRefreshTick() {
+            if (document.hidden || userIsInteracting()) return;
+            if (currentActiveTab === 'visits') {
+                const stageState = captureStageState();
+                await loadVisitStats();
+                restoreStageState(stageState);
+            } else if (currentActiveTab === 'recordings') {
+                loadRecordingsStats();
+                loadRecordings(currentRecordingsPage);
+            } else if (currentActiveTab === 'bugs') {
+                loadBugReports(currentBugsPage);
+            }
+        }
+
+        // Returning to a backgrounded tab refreshes right away rather than
+        // waiting out the rest of the interval.
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && autoRefreshTimer) autoRefreshTick();
+        });
+
         // Init
         checkAdmin();
     </script>
