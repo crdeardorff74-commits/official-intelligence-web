@@ -1136,12 +1136,12 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
         }
         
         // ── Live auto-refresh ──
-        // Re-pull the active tab's data every 10s so the admin view stays
+        // Re-pull the active tab's data every 60s so the admin view stays
         // current without manual clicks. Started only once the admin gate
         // has passed (see checkAdmin). Pauses while the tab is backgrounded
         // or the user is mid-interaction; preserves the current page and the
         // open funnel-stage sub-tabs so the view doesn't jump on each refresh.
-        const AUTO_REFRESH_MS = 10000;
+        const AUTO_REFRESH_MS = 60000;
         let autoRefreshTimer = null;
 
         function startAutoRefresh() {
