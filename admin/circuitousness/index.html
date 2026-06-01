@@ -444,12 +444,12 @@
         }
 
         // ── Live auto-refresh ──
-        // Re-pull visit stats every 10s so the dashboard stays current
+        // Re-pull visit stats every 60s so the dashboard stays current
         // without a manual click. Started only once the admin gate has
         // passed (see checkAdmin). Pauses while the tab is backgrounded or
         // the user is mid-interaction, and restores the open funnel-stage
         // sub-tabs so the view doesn't snap back to "Visit" on each refresh.
-        const AUTO_REFRESH_MS = 10000;
+        const AUTO_REFRESH_MS = 60000;
         let autoRefreshTimer = null;
 
         function startAutoRefresh() {
