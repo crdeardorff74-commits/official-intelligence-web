@@ -161,6 +161,7 @@
                     <div id="visitOS"></div>
                     <div id="visitShares"></div>
                     <div id="visitCredits"></div>
+                    <div id="visitDonate"></div>
                     <div id="visitModes"></div>
                     <div id="visitGameTypes"></div>
                 </div>
@@ -229,6 +230,7 @@
                 renderOsBreakdown();
                 renderShareBreakdown();
                 renderCreditsBreakdown();
+                renderDonate();
                 renderModeBreakdown();
                 renderGameTypeBreakdown();
             } catch (e) {
@@ -254,9 +256,6 @@
             const st = isLifetime ? d.total_started  : d['started'  + suffix];
             const fi = isLifetime ? d.total_finished : d['finished' + suffix];
             const sh = isLifetime ? d.total_shared   : d['shared'   + suffix];
-            // `|| 0` covers the window between this page deploying and the
-            // game back-end redeploying with the donate fields present.
-            const do_= (isLifetime ? d.total_donated : d['donated'  + suffix]) || 0;
             const sr = isLifetime ? d.start_rate     : d['start_rate'  + suffix];
             const fr = isLifetime ? d.finish_rate    : d['finish_rate' + suffix];
             const shr= isLifetime ? d.share_rate     : d['share_rate'  + suffix];
@@ -266,7 +265,6 @@
                     <div class="stat-card"><div class="stat-value">${st}</div><div class="stat-label">Started</div></div>
                     <div class="stat-card"><div class="stat-value">${fi}</div><div class="stat-label">Finished</div></div>
                     <div class="stat-card"><div class="stat-value">${sh}</div><div class="stat-label">Shared</div></div>
-                    <div class="stat-card"><div class="stat-value">${do_}</div><div class="stat-label">Donated</div></div>
                     <div class="stat-card">
                         <div class="stat-value">${sr}% <span style="white-space:nowrap;">→&nbsp;${fr}%</span> <span style="white-space:nowrap;">→&nbsp;${shr}%</span></div>
                         <div class="stat-label">Start / Finish / Share</div>
@@ -432,6 +430,21 @@
         }
         function renderCreditsBreakdown() {
             renderFlatBars('visitCredits', 'Credits Link Clicks', cachedStats.credits_breakdown, 'link', null, null);
+        }
+        // ASPCA donation-link clicks. One link, so a headline count (not a
+        // multi-row breakdown), shown even at 0 — mirrors the Tantro admin
+        // page's panel so the two read identically. `|| 0` means the panel
+        // appears as soon as THIS page deploys, even before the game
+        // back-end redeploys with the total_donated field.
+        function renderDonate() {
+            const n = (cachedStats && cachedStats.total_donated) || 0;
+            document.getElementById('visitDonate').innerHTML = `
+                <h3 style="margin-bottom: 10px; color: var(--primary);">> ASPCA Donations</h3>
+                <div class="chart-row">
+                    <span class="chart-label" style="width: 150px; min-width: 150px;">🐾 Donate link clicks</span>
+                    <div style="flex: 1;"></div>
+                    <span class="chart-count">${n}</span>
+                </div>`;
         }
         function renderModeBreakdown() {
             renderFlatBars('visitModes', 'Modes Played', cachedStats.mode_breakdown, 'mode',
