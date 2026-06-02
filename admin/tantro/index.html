@@ -313,6 +313,7 @@
                         <div id="visitOS"></div>
                         <div id="visitShares"></div>
                         <div id="visitSunoClicks"></div>
+                        <div id="visitDonate"></div>
                         <div id="visitDifficulty"></div>
                         <div id="visitSkillLevel"></div>
                         <div id="visitModes"></div>
@@ -1039,6 +1040,17 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                             </div>`;
                         });
                         document.getElementById('visitSunoClicks').innerHTML = sunoHtml;
+                    }
+
+                    // ASPCA donation link clicks (single link, so just a headline count)
+                    if (data.total_aspca_clicks !== undefined && data.total_aspca_clicks !== null) {
+                        document.getElementById('visitDonate').innerHTML = `
+                            <h3 style="margin-bottom: 10px; color: var(--primary);">> ASPCA Donations</h3>
+                            <div class="chart-row">
+                                <span class="chart-label" style="width: 150px; min-width: 150px;">🐾 Donate link clicks</span>
+                                <div style="flex: 1;"></div>
+                                <span class="chart-count">${data.total_aspca_clicks}</span>
+                            </div>`;
                     }
 
                     // Difficulty breakdown
