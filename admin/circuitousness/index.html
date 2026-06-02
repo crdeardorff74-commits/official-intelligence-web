@@ -254,6 +254,9 @@
             const st = isLifetime ? d.total_started  : d['started'  + suffix];
             const fi = isLifetime ? d.total_finished : d['finished' + suffix];
             const sh = isLifetime ? d.total_shared   : d['shared'   + suffix];
+            // `|| 0` covers the window between this page deploying and the
+            // game back-end redeploying with the donate fields present.
+            const do_= (isLifetime ? d.total_donated : d['donated'  + suffix]) || 0;
             const sr = isLifetime ? d.start_rate     : d['start_rate'  + suffix];
             const fr = isLifetime ? d.finish_rate    : d['finish_rate' + suffix];
             const shr= isLifetime ? d.share_rate     : d['share_rate'  + suffix];
@@ -263,6 +266,7 @@
                     <div class="stat-card"><div class="stat-value">${st}</div><div class="stat-label">Started</div></div>
                     <div class="stat-card"><div class="stat-value">${fi}</div><div class="stat-label">Finished</div></div>
                     <div class="stat-card"><div class="stat-value">${sh}</div><div class="stat-label">Shared</div></div>
+                    <div class="stat-card"><div class="stat-value">${do_}</div><div class="stat-label">Donated</div></div>
                     <div class="stat-card">
                         <div class="stat-value">${sr}% <span style="white-space:nowrap;">→&nbsp;${fr}%</span> <span style="white-space:nowrap;">→&nbsp;${shr}%</span></div>
                         <div class="stat-label">Start / Finish / Share</div>
