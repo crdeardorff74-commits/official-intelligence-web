@@ -304,6 +304,7 @@
                         <div id="visitStats">
                             <div class="loading">Loading visit stats...</div>
                         </div>
+                        <div id="visitPlays" style="margin-top: 20px;"></div>
                         <div id="visitChart" style="margin-top: 20px;"></div>
                         <div id="visitReferrers" style="margin-top: 20px;"></div>
                         <div id="visitLanguages" style="margin-top: 20px;"></div>
@@ -868,6 +869,32 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                     cachedStats = data;
                     renderSummary();
                     
+                    // Plays-per-session distribution (1/2/3/4/5+). Each
+                    // bucket's bar width + trailing (x%) is its share of all
+                    // sessions that started >=1 game, so the column sums to
+                    // 100%. One page-load session = one "player" (the visit
+                    // id isn't persisted across reloads) so this reads as
+                    // games-per-sitting.
+                    if (data.plays_per_session && data.plays_per_session.length > 0) {
+                        const totalPlays  = data.plays_per_session.reduce((s, d) => s + d.count, 0);
+                        const playsColors = { '1': '#777', '2': '#45B7D1', '3': '#52B788', '4': '#FFD93D', '5+': '#FF6B6B' };
+                        let playsHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Games per Session</h3>';
+                        playsHtml += '<div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">Share of sessions (one page-load = one player) by games played. Columns sum to 100%.</div>';
+                        data.plays_per_session.forEach(d => {
+                            const pct   = totalPlays > 0 ? (d.count / totalPlays * 100).toFixed(1) : '0.0';
+                            const label = d.plays === '5+' ? '5+ games' : (d.plays + (d.plays === '1' ? ' game' : ' games'));
+                            const color = playsColors[d.plays] || '#888';
+                            playsHtml += `<div class="chart-row">
+                                <span class="chart-label">${label}</span>
+                                <div class="chart-bar-bg">
+                                    <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
+                                </div>
+                                <span class="chart-count">${d.count} (${pct}%)</span>
+                            </div>`;
+                        });
+                        document.getElementById('visitPlays').innerHTML = playsHtml;
+                    }
+
                     // Daily chart (text-based bar chart)
                     if (data.daily_visits && data.daily_visits.length > 0) {
                         const maxVisits = Math.max(...data.daily_visits.map(d => d.visits));
