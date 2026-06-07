@@ -152,6 +152,7 @@
             <div class="visits-two-col">
                 <div class="visits-left">
                     <div id="visitStats"><div class="loading">Loading visit stats...</div></div>
+                    <div id="visitPlays"      style="margin-top: 20px;"></div>
                     <div id="visitChart"      style="margin-top: 20px;"></div>
                     <div id="visitReferrers"  style="margin-top: 20px;"></div>
                     <div id="visitLanguages"  style="margin-top: 20px;"></div>
@@ -223,6 +224,7 @@
                 }
                 cachedStats = data;
                 renderSummary();
+                renderPlaysPerSession('visitPlays', 'Puzzles per Session', cachedStats.plays_per_session, 'puzzle');
                 renderDailyChart();
                 renderTopReferrers();
                 renderTopLanguages();
@@ -270,6 +272,37 @@
                         <div class="stat-label">Start / Finish / Share</div>
                     </div>
                 </div>`;
+        }
+
+        // Plays-per-session distribution (1/2/3/4/5+). Each bucket's bar
+        // width and trailing (x%) are its share of all sessions that
+        // started >=1 puzzle, so the column sums to 100%. One page-load
+        // session = one "player" (the visit id isn't persisted across
+        // reloads), so this reads as puzzles-per-sitting.
+        function renderPlaysPerSession(elId, title, list, noun) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            if (!list || list.length === 0) {
+                el.innerHTML = `<h3 style="margin-bottom: 10px; color: var(--primary);">> ${title}</h3><div style="color: #666; padding: 5px;">No data</div>`;
+                return;
+            }
+            const total  = list.reduce((s, x) => s + x.count, 0);
+            const colors = { '1': '#777', '2': '#3a7bd5', '3': '#40c4d4', '4': '#00ff64', '5+': '#ffaa00' };
+            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> ${title}</h3>`;
+            html += `<div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">Share of sessions (one page-load = one player) by ${noun}s played. Columns sum to 100%.</div>`;
+            list.forEach(item => {
+                const pct   = total > 0 ? (item.count / total * 100).toFixed(1) : '0.0';
+                const label = item.plays === '5+' ? `5+ ${noun}s` : `${item.plays} ${item.plays === '1' ? noun : noun + 's'}`;
+                const color = colors[item.plays] || '#888';
+                html += `<div class="chart-row">
+                    <span class="chart-label">${label}</span>
+                    <div class="chart-bar-bg">
+                        <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
+                    </div>
+                    <span class="chart-count">${item.count} (${pct}%)</span>
+                </div>`;
+            });
+            el.innerHTML = html;
         }
 
         // Stacked horizontal bars per day, last 30 days. Same color
