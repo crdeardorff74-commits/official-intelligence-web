@@ -1,24 +1,8 @@
 name: Daily summary emails
-
-# Pings each game's back-end once a day; the endpoint builds + emails the
-# prior calendar day's summary (America/Chicago). GitHub cron is UTC and
-# does NOT observe DST: 11:30 UTC is ~6:30am CDT / ~5:30am CST — always
-# comfortably after CT midnight, so the prior CT day is complete.
-#
-# Setup (one-time):
-#   1. This repo → Settings → Secrets and variables → Actions → New secret:
-#        DAILY_SUMMARY_KEY = <the same value you set on BOTH Render services>
-#   2. Set that same DAILY_SUMMARY_KEY env var on each game's Render service.
-#   3. (Optional) Run it now from the Actions tab → "Daily summary emails"
-#      → Run workflow, to confirm the wiring before the first scheduled run.
-#
-# The key is passed as a header (not the URL) so it never lands in logs.
-
-on:
-  schedule:
-    - cron: '30 11 * * *'
-  workflow_dispatch: {}        # manual "Run workflow" button
-
+# `on:` is written on one line (flow style) on purpose — it removes the
+# indented block that GitHub was failing to parse. UTC cron, no DST:
+# 11:30 UTC is ~6:30am CDT / ~5:30am CST. workflow_dispatch = manual button.
+"on": { workflow_dispatch: {}, schedule: [ { cron: "30 11 * * *" } ] }
 jobs:
   send:
     runs-on: ubuntu-latest
@@ -27,17 +11,14 @@ jobs:
         env:
           KEY: ${{ secrets.DAILY_SUMMARY_KEY }}
         run: |
-          curl --fail --silent --show-error \
-            --retry 4 --retry-delay 20 --retry-all-errors --max-time 150 \
-            -X POST -H "X-Summary-Key: $KEY" \
+          curl --fail --silent --show-error --retry 5 --retry-delay 15 -X POST \
+            -H "X-Summary-Key: $KEY" \
             "https://blockchainstorm.onrender.com/api/admin/daily-summary"
-
       - name: Circuitousness daily summary
-        if: always()            # still send Circuitousness if TANTRO's call failed
+        if: always()
         env:
           KEY: ${{ secrets.DAILY_SUMMARY_KEY }}
         run: |
-          curl --fail --silent --show-error \
-            --retry 4 --retry-delay 20 --retry-all-errors --max-time 150 \
-            -X POST -H "X-Summary-Key: $KEY" \
+          curl --fail --silent --show-error --retry 5 --retry-delay 15 -X POST \
+            -H "X-Summary-Key: $KEY" \
             "https://circuitousness-api.onrender.com/api/admin/daily-summary"
