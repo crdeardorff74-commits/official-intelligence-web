@@ -1,0 +1,26 @@
+# Render Blueprint — replaces the flaky GitHub Actions `daily-summary.yml`.
+# GitHub's scheduled `cron` is best-effort: it ran ~2.5h late on Jun 9 and was
+# dropped entirely on Jun 10. Render fires its cron jobs on time, so the summary
+# emails actually go out.
+#
+# One cron job runs daily-summary-cron.py, which pings BOTH backends (TANTRO +
+# Circuitousness). Python stdlib only — no shell, no Docker entrypoint (an
+# earlier curl-image version failed with exit 127 because curlimages/curl's
+# entrypoint IS `curl`, so our `sh -c` never ran).
+#
+# Schedule is UTC (Render, like GitHub, has no DST): 11:30 UTC = 6:30am CDT /
+# 5:30am CST — matching the original intent.
+#
+# Setup: Render Dashboard -> New -> Blueprint -> connect this repo -> it reads
+# this file -> set DAILY_SUMMARY_KEY when prompted (same value as the old GitHub
+# secret). Then hit "Trigger Run" once to confirm both emails arrive.
+services:
+  - type: cron
+    name: daily-summary-emails
+    runtime: python
+    schedule: "30 11 * * *"
+    buildCommand: "echo 'no dependencies — stdlib only'"
+    startCommand: "python daily-summary-cron.py"
+    envVars:
+      - key: DAILY_SUMMARY_KEY
+        sync: false   # set in the dashboard; never committed
