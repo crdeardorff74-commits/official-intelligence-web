@@ -1047,22 +1047,18 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                         document.getElementById('visitShares').innerHTML = shareHtml;
                     }
 
-                    // Suno link click breakdown
+                    // Suno link click breakdown — list the raw credit-link ID
+                    // itself (matches Circuitousness's Credits Link Clicks panel;
+                    // no per-ID label/color/icon map to keep in sync).
                     if (data.suno_breakdown && data.suno_breakdown.length > 0) {
                         const totalSuno = data.suno_breakdown.reduce((s, d) => s + d.count, 0);
-                        const sunoColors = { artist: '#FFD700', song1: '#FF6B6B', song2: '#A78BFA', song3: '#34D399', song4: '#F472B6', song5: '#FB923C', spotify: '#1DB954', apple: '#FA243C' };
-                        const sunoIcons = { artist: '🎵', song1: '🥚', song2: '🥚', song3: '🥚', song4: '🥚', song5: '🥚', spotify: '🟢', apple: '🍎' };
-                        const sunoLabels = { artist: 'Artist Profile', song1: 'Final Destination', song2: 'Final Score', song3: 'Consumption', song4: 'Malcolm', song5: 'Dog', spotify: 'Spotify', apple: 'Apple Music' };
                         let sunoHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Soundtrack Link Clicks</h3>';
                         data.suno_breakdown.forEach(d => {
                             const pct = (d.count / totalSuno * 100).toFixed(1);
-                            const color = sunoColors[d.link] || '#888';
-                            const icon = sunoIcons[d.link] || '♫';
-                            const label = sunoLabels[d.link] || d.link;
                             sunoHtml += `<div class="chart-row">
-                                <span class="chart-label" style="width: 150px; min-width: 150px;">${icon} ${label}</span>
+                                <span class="chart-label" style="width: 150px; min-width: 150px;">${escapeHtml(d.link)}</span>
                                 <div class="chart-bar-bg">
-                                    <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
+                                    <div style="height: 100%; width: ${pct}%; background: #888; opacity: 0.6;"></div>
                                 </div>
                                 <span class="chart-count">${d.count} (${pct}%)</span>
                             </div>`;
