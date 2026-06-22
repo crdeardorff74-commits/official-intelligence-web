@@ -161,6 +161,7 @@
                     <div id="visitDevices"></div>
                     <div id="visitOS"></div>
                     <div id="visitShares"></div>
+                    <div id="visitShareSource"></div>
                     <div id="visitCredits"></div>
                     <div id="visitDonate"></div>
                     <div id="visitModes"></div>
@@ -231,6 +232,7 @@
                 renderDeviceBreakdown();
                 renderOsBreakdown();
                 renderShareBreakdown();
+                renderShareSource();
                 renderCreditsBreakdown();
                 renderDonate();
                 renderModeBreakdown();
@@ -245,7 +247,7 @@
             document.querySelectorAll('.window-tab').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentWindow = win;
-            if (cachedStats) renderSummary();
+            if (cachedStats) { renderSummary(); renderShareSource(); }
         }
 
         function renderSummary() {
@@ -461,6 +463,43 @@
             renderFlatBars('visitShares', 'Share Platforms', cachedStats.share_breakdown, 'platform',
                 { twitter: '#1DA1F2', facebook: '#4267B2', reddit: '#FF4500', whatsapp: '#25D366', telegram: '#0088cc', copylink: '#888' },
                 { twitter: '𝕏', facebook: 'f', reddit: '⬆', whatsapp: '💬', telegram: '✈', copylink: '🔗' });
+        }
+        // Share source / intent — the anti-inflation breakdown. Window-aware
+        // (re-rendered by setWindow). `|| 0` so the panel appears even before
+        // the game back-end redeploys with these fields. The three category
+        // counts are independent visit-counts and CAN overlap (a visit that
+        // shared from the popup AND a score row counts in two), so they're
+        // shown as raw counts against the window's total_shared rather than
+        // as a 100%-summing pie. Legacy shares (from before this tracking)
+        // sit in `Shared` but none of these three.
+        function renderShareSource() {
+            const el = document.getElementById('visitShareSource');
+            if (!el || !cachedStats) return;
+            const d = cachedStats;
+            const isLifetime = currentWindow === 'lifetime';
+            const suffix = '_' + currentWindow;
+            const pick = (base) => isLifetime ? (d[base] || 0) : (d[base + suffix] || 0);
+            const popup      = pick('shared_popup');
+            const deliberate = pick('shared_score_deliberate');
+            const quick      = pick('shared_score_quick');
+            const total      = isLifetime ? (d.total_shared || 0) : (d['shared' + suffix] || 0);
+            const rows = [
+                { label: '✅ Popup ("Enjoying it?")',  count: popup,      color: '#00ff64' },
+                { label: '👍 Score · likely intentional', count: deliberate, color: '#3a7bd5' },
+                { label: '⚠️ Score · likely accidental',  count: quick,      color: '#ffaa00' },
+            ];
+            const max = Math.max(1, popup, deliberate, quick);
+            let html = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Share Source / Intent</h3>';
+            html += `<div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">Of <strong>${total}</strong> visits that shared (${currentWindow}). "Popup" = the "Enjoying it?" prompt. Score-popup shares are recorded only on the next interaction, binned by delay (≥15s = likely intentional, &lt;15s = likely accidental). Counts can overlap; legacy shares (pre-tracking) are in Shared but none of these.</div>`;
+            rows.forEach(r => {
+                const w = (r.count / max * 100).toFixed(1);
+                html += `<div class="chart-row">
+                    <span class="chart-label" style="min-width: 175px;">${r.label}</span>
+                    <div class="chart-bar-bg"><div style="height: 100%; width: ${w}%; background: ${r.color}; opacity: 0.6;"></div></div>
+                    <span class="chart-count">${r.count}</span>
+                </div>`;
+            });
+            el.innerHTML = html;
         }
         function renderCreditsBreakdown() {
             renderFlatBars('visitCredits', 'Credits Link Clicks', cachedStats.credits_breakdown, 'link', null, null);
