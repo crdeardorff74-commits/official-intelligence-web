@@ -257,18 +257,29 @@
             const isLifetime = currentWindow === 'lifetime';
             const suffix = '_' + currentWindow;
             const v  = isLifetime ? d.total_visits   : d['visits'   + suffix];
+            const ag = isLifetime ? d.total_agreed   : d['agreed'   + suffix];
             const st = isLifetime ? d.total_started  : d['started'  + suffix];
             const fi = isLifetime ? d.total_finished : d['finished' + suffix];
             const sh = isLifetime ? d.total_shared   : d['shared'   + suffix];
             const sr = isLifetime ? d.start_rate     : d['start_rate'  + suffix];
             const fr = isLifetime ? d.finish_rate    : d['finish_rate' + suffix];
             const shr= isLifetime ? d.share_rate     : d['share_rate'  + suffix];
+            // The two diagnostic rates: visit→menu (got past the warning) and
+            // menu→start (menu converted to a puzzle). A low agree_rate blames
+            // the warning gate; a low menu_start_rate blames card selection.
+            const agr = isLifetime ? d.agree_rate      : d['agree_rate'      + suffix];
+            const msr = isLifetime ? d.menu_start_rate : d['menu_start_rate' + suffix];
             document.getElementById('visitStats').innerHTML = `
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px;">
                     <div class="stat-card"><div class="stat-value">${v}</div><div class="stat-label">Visits</div></div>
+                    <div class="stat-card"><div class="stat-value">${ag}</div><div class="stat-label">Reached menu</div></div>
                     <div class="stat-card"><div class="stat-value">${st}</div><div class="stat-label">Started</div></div>
                     <div class="stat-card"><div class="stat-value">${fi}</div><div class="stat-label">Finished</div></div>
                     <div class="stat-card"><div class="stat-value">${sh}</div><div class="stat-label">Shared</div></div>
+                    <div class="stat-card">
+                        <div class="stat-value">${agr}% <span style="white-space:nowrap;">→&nbsp;${msr}%</span></div>
+                        <div class="stat-label">Warning→Menu / Menu→Start</div>
+                    </div>
                     <div class="stat-card">
                         <div class="stat-value">${sr}% <span style="white-space:nowrap;">→&nbsp;${fr}%</span> <span style="white-space:nowrap;">→&nbsp;${shr}%</span></div>
                         <div class="stat-label">Start / Finish / Share</div>
