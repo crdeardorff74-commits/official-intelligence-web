@@ -156,6 +156,7 @@
                     <div id="visitChart"      style="margin-top: 20px;"></div>
                     <div id="visitReferrers"  style="margin-top: 20px;"></div>
                     <div id="visitLanguages"  style="margin-top: 20px;"></div>
+                    <div id="visitRecent"     style="margin-top: 20px;"></div>
                 </div>
                 <div class="visits-right">
                     <div id="visitDevices"></div>
@@ -229,6 +230,7 @@
                 renderDailyChart();
                 renderTopReferrers();
                 renderTopLanguages();
+                renderRecentVisits();
                 renderDeviceBreakdown();
                 renderOsBreakdown();
                 renderShareBreakdown();
@@ -257,6 +259,7 @@
             const isLifetime = currentWindow === 'lifetime';
             const suffix = '_' + currentWindow;
             const v  = isLifetime ? d.total_visits   : d['visits'   + suffix];
+            const se = isLifetime ? d.total_sessions : d['sessions' + suffix];
             const ag = isLifetime ? d.total_agreed   : d['agreed'   + suffix];
             const st = isLifetime ? d.total_started  : d['started'  + suffix];
             const fi = isLifetime ? d.total_finished : d['finished' + suffix];
@@ -275,7 +278,7 @@
             // here — it's the product of agr×msr and redundant in the chain.
             document.getElementById('visitStats').innerHTML = `
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px;">
-                    <div class="stat-card"><div class="stat-value">${v}</div><div class="stat-label">Visits</div></div>
+                    <div class="stat-card"><div class="stat-value">${v}</div><div class="stat-label">Visits</div><div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${se} session${se===1?'':'s'}</div></div>
                     <div class="stat-card"><div class="stat-value">${ag}</div><div class="stat-label">Reached menu</div></div>
                     <div class="stat-card"><div class="stat-value">${st}</div><div class="stat-label">Started</div></div>
                     <div class="stat-card"><div class="stat-value">${fi}</div><div class="stat-label">Finished</div></div>
@@ -386,6 +389,53 @@
         }
         function renderTopReferrers() { renderTopList('visitReferrers',  'Top Referrers',  cachedStats.top_referrers, 'value', 'Referrer'); }
         function renderTopLanguages() { renderTopList('visitLanguages',  'Top Languages',  cachedStats.top_languages, 'value', 'Language'); }
+
+        // Recent individual visits — spot-check for double-counts (same
+        // Session prefix on two rows = one browser reloaded/relaunched) and
+        // bots (the User-Agent column). M/S/F = reached Menu / Started /
+        // Finished. Not window-filtered — always the newest rows overall.
+        function renderRecentVisits() {
+            const rows = (cachedStats && cachedStats.recent_visits) || [];
+            const el = document.getElementById('visitRecent');
+            if (!el) return;
+            if (rows.length === 0) { el.innerHTML = ''; return; }
+            // Count session prefixes so repeats (double-loads) can be flagged.
+            const counts = {};
+            rows.forEach(r => { counts[r.session] = (counts[r.session] || 0) + 1; });
+            const flag = b => b ? '<span style="color:#00ff64;">●</span>' : '<span style="color:#444;">○</span>';
+            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> Recent Visits <span style="font-size:11px;color:var(--text-dim);">(newest ${rows.length} — repeated Session = same browser)</span></h3>`;
+            html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+            html += '<tr style="border-bottom:1px solid var(--primary);">'
+                 +  '<th style="text-align:left;padding:4px;">Time</th>'
+                 +  '<th style="text-align:left;padding:4px;">Referrer</th>'
+                 +  '<th style="text-align:left;padding:4px;">Session</th>'
+                 +  '<th style="text-align:left;padding:4px;">Device</th>'
+                 +  '<th style="text-align:left;padding:4px;">Lang</th>'
+                 +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished">M/S/F</th>'
+                 +  '<th style="text-align:left;padding:4px;">User-Agent</th>'
+                 +  '</tr>';
+            rows.forEach(r => {
+                let t = '?';
+                if (r.time) { const d = new Date(r.time); t = d.toLocaleString([], {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}); }
+                const ref = (r.referrer || '').replace(/^https?:\/\//, '');
+                const refShort = ref.length > 34 ? ref.slice(0, 34) + '…' : ref;
+                const dupe = counts[r.session] > 1;
+                const sessStyle = dupe ? 'color:#ffaa00;font-weight:bold;' : '';
+                const ua = r.ua || '';
+                const uaShort = ua.length > 52 ? ua.slice(0, 52) + '…' : ua;
+                html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(t)}</td>
+                    <td style="padding:4px;word-break:break-all;" title="${escapeHtml(r.referrer || '')}">${escapeHtml(refShort)}</td>
+                    <td style="padding:4px;${sessStyle}">${escapeHtml(r.session)}</td>
+                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.device)}/${escapeHtml(r.os)}</td>
+                    <td style="padding:4px;color:var(--text-dim);">${escapeHtml(r.lang)}</td>
+                    <td style="padding:4px;text-align:center;white-space:nowrap;">${flag(r.agreed)}${flag(r.started)}${flag(r.finished)}</td>
+                    <td style="padding:4px;color:var(--text-dim);" title="${escapeHtml(ua)}">${escapeHtml(uaShort)}</td>
+                </tr>`;
+            });
+            html += '</table>';
+            el.innerHTML = html;
+        }
 
         // Per-stage tabbed breakdown panel — same pattern Tantro uses.
         // `data` shape: { visit: [...], start: [...], finish: [...], share: [...] }
