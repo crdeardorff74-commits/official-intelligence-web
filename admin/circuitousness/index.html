@@ -152,20 +152,6 @@
             <div class="visits-two-col">
                 <div class="visits-left">
                     <div id="visitStats"><div class="loading">Loading visit stats...</div></div>
-                    <div id="visitReturning" style="margin-top: 20px;">
-                        <h3 style="margin-bottom: 6px; color: var(--primary);">> Return Players Audit</h3>
-                        <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">
-                            Distinct browsers on one CT day that also played on an earlier day — the same count the daily email shows.
-                            Pick a day (defaults to yesterday CT). Read-only.
-                        </div>
-                        <div style="margin-bottom:10px;">
-                            <input type="date" id="returningDate"
-                                style="background:#000;color:var(--primary);border:1px solid var(--primary);font-family:'VT323',monospace;font-size:14px;padding:2px 6px;"
-                                onchange="loadReturning()">
-                            <button class="btn btn-primary" style="font-size:9px;padding:4px 10px;" onclick="loadReturning()">LOAD</button>
-                        </div>
-                        <div id="returningResults"><div class="loading">Loading return-player audit...</div></div>
-                    </div>
                     <div id="visitPlays"      style="margin-top: 20px;"></div>
                     <div id="visitChart"      style="margin-top: 20px;"></div>
                     <div id="visitReferrers"  style="margin-top: 20px;"></div>
@@ -181,6 +167,20 @@
                     <div id="visitDonate"></div>
                     <div id="visitModes"></div>
                     <div id="visitGameTypes"></div>
+                    <div id="visitReturning" style="grid-column: 1 / -1; margin-top: 20px;">
+                        <h3 style="margin-bottom: 6px; color: var(--primary);">> Return Players Audit</h3>
+                        <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">
+                            Distinct browsers on one CT day that also played on an earlier day — the same count the daily email shows.
+                            Pick a day (defaults to yesterday CT). Read-only.
+                        </div>
+                        <div style="margin-bottom:10px;">
+                            <input type="date" id="returningDate"
+                                style="background:#000;color:var(--primary);border:1px solid var(--primary);font-family:'VT323',monospace;font-size:14px;padding:2px 6px;"
+                                onchange="loadReturning()">
+                            <button class="btn btn-primary" style="font-size:9px;padding:4px 10px;" onclick="loadReturning()">LOAD</button>
+                        </div>
+                        <div id="returningResults"><div class="loading">Loading return-player audit...</div></div>
+                    </div>
                 </div>
             </div>
         </div>
