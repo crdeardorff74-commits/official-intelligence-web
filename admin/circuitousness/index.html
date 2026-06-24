@@ -152,6 +152,20 @@
             <div class="visits-two-col">
                 <div class="visits-left">
                     <div id="visitStats"><div class="loading">Loading visit stats...</div></div>
+                    <div id="visitReturning" style="margin-top: 20px;">
+                        <h3 style="margin-bottom: 6px; color: var(--primary);">> Return Players Audit</h3>
+                        <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">
+                            Distinct browsers on one CT day that also played on an earlier day — the same count the daily email shows.
+                            Pick a day (defaults to yesterday CT). Read-only.
+                        </div>
+                        <div style="margin-bottom:10px;">
+                            <input type="date" id="returningDate"
+                                style="background:#000;color:var(--primary);border:1px solid var(--primary);font-family:'VT323',monospace;font-size:14px;padding:2px 6px;"
+                                onchange="loadReturning()">
+                            <button class="btn btn-primary" style="font-size:9px;padding:4px 10px;" onclick="loadReturning()">LOAD</button>
+                        </div>
+                        <div id="returningResults"><div class="loading">Loading return-player audit...</div></div>
+                    </div>
                     <div id="visitPlays"      style="margin-top: 20px;"></div>
                     <div id="visitChart"      style="margin-top: 20px;"></div>
                     <div id="visitReferrers"  style="margin-top: 20px;"></div>
@@ -242,6 +256,11 @@
             } catch (e) {
                 document.getElementById('visitStats').innerHTML =
                     '<div style="color: #f55;">Network error: ' + escapeHtml(e.message || e) + '</div>';
+            } finally {
+                // Return-players audit is a separate, date-scoped fetch; run it
+                // on every stats load (initial + auto-refresh) so it stays
+                // current. Independent of the window tabs above.
+                loadReturning();
             }
         }
 
@@ -435,6 +454,87 @@
             });
             html += '</table>';
             el.innerHTML = html;
+        }
+
+        // ── Return-players audit ──
+        // Drill-down for the daily email's "Return players" number: lists each
+        // returning browser for one CT day, which prior-day table it matched,
+        // and when it was first seen. Date-scoped (one CT day), independent of
+        // the window tabs above. Mirrors build_daily_summary's detection, so
+        // the count here equals the email's for the same date. Read-only.
+        function defaultReturningDate() {
+            // Yesterday's date in CT (the digest's day), as YYYY-MM-DD. en-CA
+            // formats as ISO; America/Chicago matches the back-end's day bounds.
+            return new Date(Date.now() - 86400000)
+                .toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+        }
+        async function loadReturning() {
+            const out = document.getElementById('returningResults');
+            if (!out) return;
+            const input = document.getElementById('returningDate');
+            if (input && !input.value) input.value = defaultReturningDate();
+            const dateStr = (input && input.value) || defaultReturningDate();
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/returning?date=${dateStr}&_=${Date.now()}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    // 404 = back-end not yet redeployed with this endpoint.
+                    out.innerHTML = `<div style="color:#888;padding:5px;">${escapeHtml(
+                        res.status === 404
+                            ? 'Endpoint not live yet — redeploy the back-end (GET /api/admin/returning).'
+                            : (data.error || ('HTTP ' + res.status)))}</div>`;
+                    return;
+                }
+                renderReturning(data);
+            } catch (e) {
+                out.innerHTML = `<div style="color:#888;padding:5px;">Network error: ${escapeHtml(e.message || e)}</div>`;
+            }
+        }
+        function renderReturning(data) {
+            const out = document.getElementById('returningResults');
+            if (!out) return;
+            const players = (data && data.players) || [];
+            const summary = `<div style="margin-bottom:8px;">
+                <span style="color:var(--primary);font-size:14px;">${data.returning}</span>
+                <span style="color:var(--text-dim);"> returning of ${data.unique_visitors} unique browsers (${data.pct_returning}%)</span></div>`;
+            if (players.length === 0) {
+                out.innerHTML = summary + '<div style="color:#666;padding:5px;">No returning players that day.</div>';
+                return;
+            }
+            // Badge per prior-day source. game/potd = an actual prior game-start
+            // (strongest "they came back to play" signal); visit = a prior
+            // page-visit that started a game.
+            const srcColor = { game_sessions: '#00ff64', potd_sessions: '#00aaff', page_visits: '#ffaa00' };
+            const srcLabel = { game_sessions: 'marathon', potd_sessions: 'potd', page_visits: 'visit' };
+            let html = summary;
+            html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+            html += '<tr style="border-bottom:1px solid var(--primary);">'
+                 +  '<th style="text-align:left;padding:4px;">First seen</th>'
+                 +  '<th style="text-align:left;padding:4px;" title="which prior-day record proves they played before">Played before via</th>'
+                 +  '<th style="text-align:left;padding:4px;">Session</th>'
+                 +  '<th style="text-align:left;padding:4px;">Device</th>'
+                 +  '<th style="text-align:left;padding:4px;">Lang</th>'
+                 +  '<th style="text-align:left;padding:4px;">Returned (CT)</th>'
+                 +  '</tr>';
+            players.forEach(p => {
+                const sid = p.session_id || '';
+                const sidShort = sid.length > 12 ? sid.slice(0, 12) + '…' : sid;
+                const badges = (p.sources || []).map(s =>
+                    `<span style="display:inline-block;border:1px solid ${srcColor[s] || '#888'};color:${srcColor[s] || '#888'};border-radius:3px;padding:0 5px;margin-right:4px;font-size:10px;">${escapeHtml(srcLabel[s] || s)}</span>`
+                ).join('');
+                html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;" title="${escapeHtml(p.first_seen_ct || '')}">${escapeHtml(p.first_seen_date || '?')}</td>
+                    <td style="padding:4px;">${badges}</td>
+                    <td style="padding:4px;color:var(--text-dim);" title="${escapeHtml(sid)}">${escapeHtml(sidShort)}</td>
+                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(p.device || '?')}/${escapeHtml(p.os || '?')}</td>
+                    <td style="padding:4px;color:var(--text-dim);">${escapeHtml(p.language || '?')}</td>
+                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(p.today_first_visit_ct || '?')}</td>
+                </tr>`;
+            });
+            html += '</table>';
+            out.innerHTML = html;
         }
 
         // Per-stage tabbed breakdown panel — same pattern Tantro uses.
