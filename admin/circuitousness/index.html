@@ -152,6 +152,7 @@
             <div class="visits-two-col">
                 <div class="visits-left">
                     <div id="visitStats"><div class="loading">Loading visit stats...</div></div>
+                    <div id="visitOnsite"     style="margin-top: 20px;"></div>
                     <div id="visitPlays"      style="margin-top: 20px;"></div>
                     <div id="visitChart"      style="margin-top: 20px;"></div>
                     <div id="visitReferrers"  style="margin-top: 20px;"></div>
@@ -240,6 +241,7 @@
                 }
                 cachedStats = data;
                 renderSummary();
+                renderOnsiteFunnel();
                 renderPlaysPerSession('visitPlays', 'Puzzles per Session', cachedStats.plays_per_session, 'puzzle');
                 renderDailyChart();
                 renderTopReferrers();
@@ -306,6 +308,36 @@
                         <div class="stat-value">${agr}% <span style="white-space:nowrap;">→&nbsp;${msr}%</span> <span style="white-space:nowrap;">→&nbsp;${fr}%</span> <span style="white-space:nowrap;">→&nbsp;${shr}%</span></div>
                         <div class="stat-label">Menu / Start / Finish / Share</div>
                     </div>
+                </div>`;
+        }
+
+        // On-site intro funnel — the trustworthy version. The summary cards
+        // above count ALL visits, including itch-embed mobile loads that
+        // platform-redirect.js diverts BEFORE the intro (a handoff, not a
+        // rejection). This panel isolates own-origin traffic so the
+        // intro-bounce read is real, and shows how much volume is embed
+        // handoff noise. Lifetime (back-end sends these lifetime-only).
+        // Hidden entirely until the back-end redeploys with the fields.
+        function renderOnsiteFunnel() {
+            const el = document.getElementById('visitOnsite');
+            if (!el || !cachedStats) return;
+            const d = cachedStats;
+            if (d.onsite_visits === undefined) { el.innerHTML = ''; return; }  // pre-deploy
+            const onsite = d.onsite_visits || 0;
+            const agreed = d.onsite_agreed || 0;
+            const bounce = d.onsite_intro_bounce || 0;
+            const rate   = d.onsite_agree_rate || 0;
+            const emb    = d.total_embedded || 0;
+            const red    = d.total_redirected || 0;
+            el.innerHTML = `
+                <h3 style="margin-bottom: 6px; color: var(--primary);">> On-site Intro Funnel</h3>
+                <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">
+                    Own-origin traffic only (lifetime). itch-embed loads (<strong>${emb}</strong>, of which <strong>${red}</strong> were mobile redirect handoffs) are excluded — those players see the "play the full version" overlay, not the intro, so they aren't real bounces.
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:15px;">
+                    <div class="stat-card"><div class="stat-value">${onsite}</div><div class="stat-label">On-site visits</div></div>
+                    <div class="stat-card"><div class="stat-value">${agreed}</div><div class="stat-label">Reached menu</div><div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${rate}%</div></div>
+                    <div class="stat-card"><div class="stat-value">${bounce}</div><div class="stat-label">Left at intro</div></div>
                 </div>`;
         }
 
@@ -430,6 +462,7 @@
                  +  '<th style="text-align:left;padding:4px;">Session</th>'
                  +  '<th style="text-align:left;padding:4px;">Device</th>'
                  +  '<th style="text-align:left;padding:4px;">Lang</th>'
+                 +  '<th style="text-align:left;padding:4px;" title="where the load ran: site = own origin; itch = itch embed; ↻itch = itch mobile redirect handoff (saw the redirect overlay, not the intro)">Src</th>'
                  +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished">M/S/F</th>'
                  +  '<th style="text-align:left;padding:4px;">User-Agent</th>'
                  +  '</tr>';
@@ -442,12 +475,22 @@
                 const sessStyle = dupe ? 'color:#ffaa00;font-weight:bold;' : '';
                 const ua = r.ua || '';
                 const uaShort = ua.length > 52 ? ua.slice(0, 52) + '…' : ua;
+                // Where the load ran. ↻itch (amber) = mobile redirect handoff:
+                // the player saw platform-redirect's overlay, not the intro, so
+                // a ○○○ here is NOT an intro rejection. itch (dim) = itch embed,
+                // no redirect (desktop plays in place). site (blue) = own origin.
+                const srcTag = r.redirected
+                    ? '<span style="color:#ffaa00;" title="itch mobile redirect handoff — saw the redirect overlay, not the intro">↻itch</span>'
+                    : (r.embedded
+                        ? '<span style="color:#888;" title="itch embed (plays in place)">itch</span>'
+                        : '<span style="color:#3a7bd5;" title="own origin">site</span>');
                 html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(t)}</td>
                     <td style="padding:4px;word-break:break-all;" title="${escapeHtml(r.referrer || '')}">${escapeHtml(refShort)}</td>
                     <td style="padding:4px;${sessStyle}">${escapeHtml(r.session)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.device)}/${escapeHtml(r.os)}</td>
                     <td style="padding:4px;color:var(--text-dim);">${escapeHtml(r.lang)}</td>
+                    <td style="padding:4px;white-space:nowrap;">${srcTag}</td>
                     <td style="padding:4px;text-align:center;white-space:nowrap;">${flag(r.agreed)}${flag(r.started)}${flag(r.finished)}</td>
                     <td style="padding:4px;color:var(--text-dim);" title="${escapeHtml(ua)}">${escapeHtml(uaShort)}</td>
                 </tr>`;
