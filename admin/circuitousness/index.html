@@ -329,16 +329,48 @@
             const rate   = d.onsite_agree_rate || 0;
             const emb    = d.total_embedded || 0;
             const red    = d.total_redirected || 0;
-            el.innerHTML = `
+
+            // Deduped per-browser figures (the trustworthy ones). Undefined
+            // until the back-end redeploys with onsite_uniq_* — fall back to
+            // the per-load-only layout in that window.
+            const hasUniq = d.onsite_uniq_visitors !== undefined;
+            const uVis    = d.onsite_uniq_visitors || 0;
+            const uAgr    = d.onsite_uniq_agreed || 0;
+            const uBnc    = d.onsite_uniq_bounce || 0;
+            const uRate   = d.onsite_uniq_agree_rate || 0;
+
+            const intro = `
                 <h3 style="margin-bottom: 6px; color: var(--primary);">> On-site Intro Funnel</h3>
                 <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">
                     Own-origin traffic only (lifetime). itch-embed loads (<strong>${emb}</strong>, of which <strong>${red}</strong> were mobile redirect handoffs) are excluded — those players see the "play the full version" overlay, not the intro, so they aren't real bounces.
-                </div>
+                </div>`;
+
+            // Per-browser (deduped) — the headline. A browser counts as
+            // "reached menu" if it dismissed the intro on ANY load, so an
+            // engaged player's relaunches no longer read as fresh bounces.
+            const uniqBlock = hasUniq ? `
+                <div style="font-size:11px;color:var(--primary);margin:4px 0 6px;">Per browser (deduped — the real intro-rejection rate)</div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:15px;margin-bottom:14px;">
+                    <div class="stat-card"><div class="stat-value">${uVis}</div><div class="stat-label">Browsers</div></div>
+                    <div class="stat-card"><div class="stat-value">${uAgr}</div><div class="stat-label">Reached menu</div><div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${uRate}%</div></div>
+                    <div class="stat-card"><div class="stat-value">${uBnc}</div><div class="stat-label">Left at intro</div></div>
+                </div>` : '';
+
+            // Per page-load (raw rows) — kept for comparison. Counts every
+            // reload/PWA-relaunch, each of which re-shows the intro, so this
+            // over-counts bounces vs the per-browser block above.
+            const loadHeader = hasUniq
+                ? `<div style="font-size:11px;color:var(--text-dim);margin:4px 0 6px;">Per page-load (counts every reload / relaunch)</div>`
+                : '';
+            const loadBlock = `
+                ${loadHeader}
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:15px;">
-                    <div class="stat-card"><div class="stat-value">${onsite}</div><div class="stat-label">On-site visits</div></div>
+                    <div class="stat-card"><div class="stat-value">${onsite}</div><div class="stat-label">On-site loads</div></div>
                     <div class="stat-card"><div class="stat-value">${agreed}</div><div class="stat-label">Reached menu</div><div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${rate}%</div></div>
                     <div class="stat-card"><div class="stat-value">${bounce}</div><div class="stat-label">Left at intro</div></div>
                 </div>`;
+
+            el.innerHTML = intro + uniqBlock + loadBlock;
         }
 
         // Plays-per-session distribution (1/2/3/4/5+). Each bucket's bar
@@ -521,13 +553,18 @@
                 const res = await fetch(`${GAME_API_URL}/admin/returning?date=${dateStr}&_=${Date.now()}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                const data = await res.json();
-                if (!res.ok) {
-                    // 404 = back-end not yet redeployed with this endpoint.
-                    out.innerHTML = `<div style="color:#888;padding:5px;">${escapeHtml(
-                        res.status === 404
+                // Read as text first and parse defensively: a server 500 returns
+                // an HTML error page, and res.json() on that throws an opaque
+                // "Unexpected token '<'". This way we surface the real status.
+                const body = await res.text();
+                let data = null;
+                try { data = JSON.parse(body); } catch (_) { /* non-JSON (HTML error page) */ }
+                if (!res.ok || !data) {
+                    const msg = (data && data.error) ? data.error
+                        : res.status === 404
                             ? 'Endpoint not live yet — redeploy the back-end (GET /api/admin/returning).'
-                            : (data.error || ('HTTP ' + res.status)))}</div>`;
+                            : `HTTP ${res.status} ${res.statusText} — server error (check Render logs).`;
+                    out.innerHTML = `<div style="color:#888;padding:5px;">${escapeHtml(msg)}</div>`;
                     return;
                 }
                 renderReturning(data);
