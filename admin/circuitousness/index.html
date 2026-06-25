@@ -285,6 +285,13 @@
             const st = isLifetime ? d.total_started  : d['started'  + suffix];
             const fi = isLifetime ? d.total_finished : d['finished' + suffix];
             const sh = isLifetime ? d.total_shared   : d['shared'   + suffix];
+            // Unique-browser (deduped) started/finished — the per-person count,
+            // shown as a sub-line under the per-visit Started/Finished numbers.
+            // undefined until the back-end redeploys with the *_uniq fields.
+            const stu = isLifetime ? d.total_started_uniq  : d['started_uniq'  + suffix];
+            const fiu = isLifetime ? d.total_finished_uniq : d['finished_uniq' + suffix];
+            const subBrowsers = (n) => n === undefined ? '' :
+                `<div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${n} browser${n===1?'':'s'}</div>`;
             const fr = isLifetime ? d.finish_rate    : d['finish_rate' + suffix];
             const shr= isLifetime ? d.share_rate     : d['share_rate'  + suffix];
             // The two diagnostic rates: visit→menu (got past the warning) and
@@ -301,8 +308,8 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px;">
                     <div class="stat-card"><div class="stat-value">${v}</div><div class="stat-label">Visits</div><div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${se} session${se===1?'':'s'}</div></div>
                     <div class="stat-card"><div class="stat-value">${ag}</div><div class="stat-label">Reached menu</div></div>
-                    <div class="stat-card"><div class="stat-value">${st}</div><div class="stat-label">Started</div></div>
-                    <div class="stat-card"><div class="stat-value">${fi}</div><div class="stat-label">Finished</div></div>
+                    <div class="stat-card"><div class="stat-value">${st}</div><div class="stat-label">Started</div>${subBrowsers(stu)}</div>
+                    <div class="stat-card"><div class="stat-value">${fi}</div><div class="stat-label">Finished</div>${subBrowsers(fiu)}</div>
                     <div class="stat-card"><div class="stat-value">${sh}</div><div class="stat-label">Shared</div></div>
                     <div class="stat-card">
                         <div class="stat-value">${agr}% <span style="white-space:nowrap;">→&nbsp;${msr}%</span> <span style="white-space:nowrap;">→&nbsp;${fr}%</span> <span style="white-space:nowrap;">→&nbsp;${shr}%</span></div>
