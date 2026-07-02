@@ -714,12 +714,14 @@
         }
         // Share source — which surface a share came from. Window-aware
         // (re-rendered by setWindow). `|| 0` so the panel appears even before
-        // the game back-end redeploys with these fields. The two counts are
+        // the game back-end redeploys with these fields. The three counts are
         // independent visit-counts and CAN overlap (a visit that shared from
         // the popup AND a score card counts in both), so they're shown as raw
         // counts against the window's total_shared rather than a 100% pie.
         // Legacy shares (from before this tracking) sit in `Shared` but
-        // neither of these.
+        // none of these. The credits row needs BOTH the game back-end
+        // (share_from_credits column) and front-end v0.66+ (kind='credits')
+        // deployed; until then it just reads 0.
         function renderShareSource() {
             const el = document.getElementById('visitShareSource');
             if (!el || !cachedStats) return;
@@ -727,16 +729,18 @@
             const isLifetime = currentWindow === 'lifetime';
             const suffix = '_' + currentWindow;
             const pick = (base) => isLifetime ? (d[base] || 0) : (d[base + suffix] || 0);
-            const popup = pick('shared_popup');
-            const score = pick('shared_score');
+            const popup   = pick('shared_popup');
+            const score   = pick('shared_score');
+            const credits = pick('shared_credits');
             const total = isLifetime ? (d.total_shared || 0) : (d['shared' + suffix] || 0);
             const rows = [
-                { label: '🎉 "Enjoying it?" popup', count: popup, color: '#00ff64' },
-                { label: '🏁 Score / Solved card',  count: score, color: '#3a7bd5' },
+                { label: '🎉 "Enjoying it?" popup',  count: popup,   color: '#00ff64' },
+                { label: '🏁 Score / Solved card',   count: score,   color: '#3a7bd5' },
+                { label: '🎬 Menu credits popup',    count: credits, color: '#b678ff' },
             ];
-            const max = Math.max(1, popup, score);
+            const max = Math.max(1, popup, score, credits);
             let html = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Share Source</h3>';
-            html += `<div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">Of <strong>${total}</strong> visits that shared (${currentWindow}), which surface the share came from. Counts can overlap; legacy shares (pre-tracking) are in Shared but neither.</div>`;
+            html += `<div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">Of <strong>${total}</strong> visits that shared (${currentWindow}), which surface the share came from. Counts can overlap; legacy shares (pre-tracking) are in Shared but uncategorized.</div>`;
             rows.forEach(r => {
                 const w = (r.count / max * 100).toFixed(1);
                 html += `<div class="chart-row">
