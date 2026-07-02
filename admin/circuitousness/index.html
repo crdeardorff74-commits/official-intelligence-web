@@ -172,13 +172,14 @@
                         <h3 style="margin-bottom: 6px; color: var(--primary);">> Return Players Audit</h3>
                         <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">
                             Distinct browsers on one CT day that also played on an earlier day — the same count the daily email shows.
-                            Pick a day (defaults to yesterday CT). Read-only.
+                            Defaults to today (CT); step days with the arrows. Read-only.
                         </div>
                         <div style="margin-bottom:10px;">
+                            <button class="btn btn-primary" style="font-size:9px;padding:4px 10px;" onclick="stepReturning(-1)" title="Previous day" aria-label="Previous day">◀</button>
                             <input type="date" id="returningDate"
                                 style="background:#000;color:var(--primary);border:1px solid var(--primary);font-family:'VT323',monospace;font-size:14px;padding:2px 6px;"
                                 onchange="loadReturning()">
-                            <button class="btn btn-primary" style="font-size:9px;padding:4px 10px;" onclick="loadReturning()">LOAD</button>
+                            <button class="btn btn-primary" style="font-size:9px;padding:4px 10px;" onclick="stepReturning(1)" title="Next day" aria-label="Next day">▶</button>
                         </div>
                         <div id="returningResults"><div class="loading">Loading return-player audit...</div></div>
                     </div>
@@ -545,10 +546,27 @@
         // the window tabs above. Mirrors build_daily_summary's detection, so
         // the count here equals the email's for the same date. Read-only.
         function defaultReturningDate() {
-            // Yesterday's date in CT (the digest's day), as YYYY-MM-DD. en-CA
-            // formats as ISO; America/Chicago matches the back-end's day bounds.
-            return new Date(Date.now() - 86400000)
+            // Today's date in CT, as YYYY-MM-DD. en-CA formats as ISO;
+            // America/Chicago matches the back-end's day bounds. (Was
+            // yesterday — the digest's day — but the panel's live use is
+            // "who came back today", so it defaults to the current CT day
+            // and the ◀ arrow reaches yesterday in one click.)
+            return new Date()
                 .toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+        }
+        // ◀ / ▶ arrows: step the audit date by ±1 day and reload. Parses the
+        // YYYY-MM-DD string at UTC noon so the ±86400s hop can't land on the
+        // wrong calendar day (midnight UTC ±1h DST shifts would); the result
+        // is read back out of the ISO string, no local-timezone round trip.
+        function stepReturning(delta) {
+            const input = document.getElementById('returningDate');
+            if (!input) return;
+            const cur = input.value || defaultReturningDate();
+            const d = new Date(cur + 'T12:00:00Z');
+            if (isNaN(d)) { input.value = defaultReturningDate(); loadReturning(); return; }
+            d.setUTCDate(d.getUTCDate() + delta);
+            input.value = d.toISOString().slice(0, 10);
+            loadReturning();
         }
         async function loadReturning() {
             const out = document.getElementById('returningResults');
