@@ -168,6 +168,7 @@
                     <div id="visitDonate"></div>
                     <div id="visitModes"></div>
                     <div id="visitGameTypes"></div>
+                    <div id="visitSolveAudio"></div>
                     <div id="visitReturning" style="grid-column: 1 / -1; margin-top: 20px;">
                         <h3 style="margin-bottom: 6px; color: var(--primary);">> Return Players Audit</h3>
                         <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">
@@ -256,6 +257,7 @@
                 renderDonate();
                 renderModeBreakdown();
                 renderGameTypeBreakdown();
+                renderSolveAudio();
             } catch (e) {
                 document.getElementById('visitStats').innerHTML =
                     '<div style="color: #f55;">Network error: ' + escapeHtml(e.message || e) + '</div>';
@@ -271,7 +273,7 @@
             document.querySelectorAll('.window-tab').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentWindow = win;
-            if (cachedStats) { renderSummary(); renderShareSource(); }
+            if (cachedStats) { renderSummary(); renderShareSource(); renderSolveAudio(); }
         }
 
         function renderSummary() {
@@ -771,6 +773,40 @@
         }
         function renderCreditsBreakdown() {
             renderFlatBars('visitCredits', 'Credits Link Clicks', cachedStats.credits_breakdown, 'link', null, null);
+        }
+        // Solve audio context — % of puzzle solves with music / SFX audible.
+        // Window-aware (re-rendered by setWindow). Two independent pairs
+        // (music on/off, sfx on/off); each pair sums to 100% because every
+        // solve increments exactly one counter per channel. `|| 0` so the
+        // panel appears (all zeros) before the game back-end redeploys with
+        // these fields; solves also need front-end v0.67+ to be reported.
+        function renderSolveAudio() {
+            const el = document.getElementById('visitSolveAudio');
+            if (!el || !cachedStats) return;
+            const d = cachedStats;
+            const isLifetime = currentWindow === 'lifetime';
+            const suffix = '_' + currentWindow;
+            const pick = (base) => isLifetime ? (d[base] || 0) : (d[base + suffix] || 0);
+            const mOn  = pick('solves_music_on'),  mOff = pick('solves_music_off');
+            const sOn  = pick('solves_sfx_on'),    sOff = pick('solves_sfx_off');
+            const mTot = mOn + mOff, sTot = sOn + sOff;
+            const pc = (n, tot) => tot > 0 ? (n / tot * 100).toFixed(1) : '0.0';
+            const rows = [
+                { label: '🎵 Music on',  count: mOn,  pct: pc(mOn,  mTot), color: '#00ff64' },
+                { label: '🔇 Music off', count: mOff, pct: pc(mOff, mTot), color: '#666'    },
+                { label: '🔊 SFX on',    count: sOn,  pct: pc(sOn,  sTot), color: '#3a7bd5' },
+                { label: '🔕 SFX off',   count: sOff, pct: pc(sOff, sTot), color: '#666'    },
+            ];
+            let html = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Solve Audio</h3>';
+            html += `<div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">Of <strong>${mTot}</strong> puzzle solves (${currentWindow}), whether music / SFX were audible at the moment of the solve. Counts only solves since this tracking deployed; replays excluded.</div>`;
+            rows.forEach(r => {
+                html += `<div class="chart-row">
+                    <span class="chart-label" style="min-width: 175px;">${r.label}</span>
+                    <div class="chart-bar-bg"><div style="height: 100%; width: ${r.pct}%; background: ${r.color}; opacity: 0.6;"></div></div>
+                    <span class="chart-count">${r.count} (${r.pct}%)</span>
+                </div>`;
+            });
+            el.innerHTML = html;
         }
         // ASPCA donation-link clicks. One link, so a headline count (not a
         // multi-row breakdown), shown even at 0 — mirrors the Tantro admin
