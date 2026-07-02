@@ -171,16 +171,12 @@
                     <div id="visitSolveAudio"></div>
                     <div id="visitReturning" style="grid-column: 1 / -1; margin-top: 20px;">
                         <h3 style="margin-bottom: 6px; color: var(--primary);">> Return Players Audit</h3>
-                        <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">
-                            Distinct browsers on one CT day that also played on an earlier day — the same count the daily email shows.
-                            Defaults to today (CT); step days with the arrows. Read-only.
-                        </div>
                         <div style="margin-bottom:10px;">
-                            <button class="btn btn-primary" style="font-size:9px;padding:4px 10px;" onclick="stepReturning(-1)" title="Previous day" aria-label="Previous day">◀</button>
+                            <button class="btn btn-primary" style="font-size:9px;padding:2px 12px;" onclick="stepReturning(-1)" title="Previous day" aria-label="Previous day">◀</button>
                             <input type="date" id="returningDate"
                                 style="background:#000;color:var(--primary);border:1px solid var(--primary);font-family:'VT323',monospace;font-size:14px;padding:2px 6px;"
                                 onchange="loadReturning()">
-                            <button class="btn btn-primary" style="font-size:9px;padding:4px 10px;" onclick="stepReturning(1)" title="Next day" aria-label="Next day">▶</button>
+                            <button class="btn btn-primary" style="font-size:9px;padding:2px 12px;" onclick="stepReturning(1)" title="Next day" aria-label="Next day">▶</button>
                         </div>
                         <div id="returningResults"><div class="loading">Loading return-player audit...</div></div>
                     </div>
@@ -352,7 +348,7 @@
             const intro = `
                 <h3 style="margin-bottom: 6px; color: var(--primary);">> On-site Intro Funnel</h3>
                 <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">
-                    Own-origin traffic only (lifetime). itch-embed loads (<strong>${emb}</strong>, of which <strong>${red}</strong> were mobile redirect handoffs) are excluded — those players see the "play the full version" overlay, not the intro, so they aren't real bounces.
+                    Own-origin traffic only (lifetime). itch-embed loads (<strong>${emb}</strong>, of which <strong>${red}</strong> were mobile redirect handoffs) are excluded.
                 </div>`;
 
             // Per-browser (deduped) — the headline. A browser counts as
@@ -398,7 +394,6 @@
             const total  = list.reduce((s, x) => s + x.count, 0);
             const colors = { '1': '#777', '2': '#3a7bd5', '3': '#40c4d4', '4': '#00ff64', '5+': '#ffaa00' };
             let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> ${title}</h3>`;
-            html += `<div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">Share of sessions (one page-load = one player) by ${noun}s played. Columns sum to 100%.</div>`;
             list.forEach(item => {
                 const pct   = total > 0 ? (item.count / total * 100).toFixed(1) : '0.0';
                 const label = item.plays === '5+' ? `5+ ${noun}s` : `${item.plays} ${item.plays === '1' ? noun : noun + 's'}`;
@@ -760,7 +755,6 @@
             ];
             const max = Math.max(1, popup, score, credits);
             let html = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Share Source</h3>';
-            html += `<div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">Of <strong>${total}</strong> visits that shared (${currentWindow}), which surface the share came from. Counts can overlap; legacy shares (pre-tracking) are in Shared but uncategorized.</div>`;
             rows.forEach(r => {
                 const w = (r.count / max * 100).toFixed(1);
                 html += `<div class="chart-row">
@@ -798,7 +792,7 @@
                 { label: '🔕 SFX off',   count: sOff, pct: pc(sOff, sTot), color: '#666'    },
             ];
             let html = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Solve Audio</h3>';
-            html += `<div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">Of <strong>${mTot}</strong> puzzle solves (${currentWindow}), whether music / SFX were audible at the moment of the solve. Counts only solves since this tracking deployed; replays excluded.</div>`;
+            html += `<div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">Of <strong>${mTot}</strong> puzzle solves (${currentWindow}), whether music / SFX were audible at the moment of the solve.</div>`;
             rows.forEach(r => {
                 html += `<div class="chart-row">
                     <span class="chart-label" style="min-width: 175px;">${r.label}</span>
