@@ -125,6 +125,13 @@
                 </div>
 
                 <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" id="songExplicit" style="width: auto;">
+                        EXPLICIT (strong language / adult themes — family-strict platforms like CrazyGames skip these)
+                    </label>
+                </div>
+
+                <div class="form-group">
                     <label>LIST MEMBERSHIPS</label>
                     <div id="membershipGrid" class="membership-grid"></div>
                 </div>
@@ -284,7 +291,7 @@
                 return `
                     <div class="song-row">
                         <div>
-                            <div class="song-label">${escapeHtml(s.label)}</div>
+                            <div class="song-label">${escapeHtml(s.label)}${s.explicit ? ' <span title="Explicit — skipped on family-strict platforms">🔞</span>' : ''}</div>
                             <div class="song-meta">${escapeHtml(s.key)} · <code>${escapeHtml(s.filename)}</code></div>
                             <div class="chips" style="margin-top: 0.3rem;">${chips || '<span class="song-meta">unassigned</span>'}</div>
                         </div>
@@ -311,6 +318,7 @@
             document.getElementById('songLabel').value = song?.label || '';
             document.getElementById('songKey').value = song?.key || '';
             document.getElementById('songFilename').value = song?.filename || '';
+            document.getElementById('songExplicit').checked = !!song?.explicit;
 
             // Reset checkboxes, then check the ones the song has memberships for
             document.querySelectorAll('#membershipGrid input[type="checkbox"]').forEach(cb => cb.checked = false);
@@ -346,6 +354,7 @@
             const body = {
                 label,
                 filename,
+                explicit: document.getElementById('songExplicit').checked,
                 memberships
             };
             if (keyOverride) body.key = keyOverride;
