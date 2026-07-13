@@ -348,7 +348,7 @@
             const intro = `
                 <h3 style="margin-bottom: 6px; color: var(--primary);">> On-site Intro Funnel</h3>
                 <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">
-                    Own-origin traffic only (lifetime). itch-embed loads (<strong>${emb}</strong>, of which <strong>${red}</strong> were mobile redirect handoffs) are excluded.
+                    Own-origin traffic only (lifetime). Embed loads — itch, CrazyGames, etc. (<strong>${emb}</strong>, of which <strong>${red}</strong> were itch mobile redirect handoffs) — are excluded.
                 </div>`;
 
             // Per-browser (deduped) — the headline. A browser counts as
@@ -499,7 +499,7 @@
                  +  '<th style="text-align:left;padding:4px;">Session</th>'
                  +  '<th style="text-align:left;padding:4px;">Device</th>'
                  +  '<th style="text-align:left;padding:4px;">Lang</th>'
-                 +  '<th style="text-align:left;padding:4px;" title="where the load ran: site = own origin; itch = itch embed; ↻itch = itch mobile redirect handoff (saw the redirect overlay, not the intro)">Src</th>'
+                 +  '<th style="text-align:left;padding:4px;" title="where the load ran: site = own origin; cg = CrazyGames embed; itch = itch embed; embed = framed on an unknown host; ↻itch = itch mobile redirect handoff (saw the redirect overlay, not the intro). Embed platform is inferred from the referrer.">Src</th>'
                  +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished">M/S/F</th>'
                  +  '<th style="text-align:left;padding:4px;">User-Agent</th>'
                  +  '</tr>';
@@ -514,13 +514,23 @@
                 const uaShort = ua.length > 52 ? ua.slice(0, 52) + '…' : ua;
                 // Where the load ran. ↻itch (amber) = mobile redirect handoff:
                 // the player saw platform-redirect's overlay, not the intro, so
-                // a ○○○ here is NOT an intro rejection. itch (dim) = itch embed,
-                // no redirect (desktop plays in place). site (blue) = own origin.
-                const srcTag = r.redirected
-                    ? '<span style="color:#ffaa00;" title="itch mobile redirect handoff — saw the redirect overlay, not the intro">↻itch</span>'
-                    : (r.embedded
-                        ? '<span style="color:#888;" title="itch embed (plays in place)">itch</span>'
-                        : '<span style="color:#3a7bd5;" title="own origin">site</span>');
+                // a ○○○ here is NOT an intro rejection. site (blue) = own origin.
+                // Embeds: the tracking payload only carries an `embedded`
+                // boolean, so the PLATFORM is inferred from the referrer —
+                // cg (purple) = CrazyGames, itch (dim) = itch, embed (dim) =
+                // framed on an unknown/blank-referrer host.
+                let srcTag;
+                if (r.redirected) {
+                    srcTag = '<span style="color:#ffaa00;" title="itch mobile redirect handoff — saw the redirect overlay, not the intro">↻itch</span>';
+                } else if (!r.embedded) {
+                    srcTag = '<span style="color:#3a7bd5;" title="own origin">site</span>';
+                } else if (/crazygames\.com/i.test(ref)) {
+                    srcTag = '<span style="color:#9b6bd6;" title="CrazyGames embed">cg</span>';
+                } else if (/itch\.(io|zone)/i.test(ref)) {
+                    srcTag = '<span style="color:#888;" title="itch embed (plays in place)">itch</span>';
+                } else {
+                    srcTag = '<span style="color:#888;" title="embedded on an unknown or blank-referrer host">embed</span>';
+                }
                 html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(t)}</td>
                     <td style="padding:4px;word-break:break-all;" title="${escapeHtml(r.referrer || '')}">${escapeHtml(refShort)}</td>
