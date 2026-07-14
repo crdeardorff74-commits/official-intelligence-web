@@ -152,12 +152,13 @@
             <div class="visits-two-col">
                 <div class="visits-left">
                     <div id="visitStats"><div class="loading">Loading visit stats...</div></div>
-                    <div id="visitOnsite"     style="margin-top: 20px;"></div>
-                    <div id="visitPlays"      style="margin-top: 20px;"></div>
+                    <!-- Suppressed for now (still rendered, just hidden) — flip
+                         display back on to restore the panel. -->
+                    <div id="visitOnsite"     style="margin-top: 20px; display: none;"></div>
                     <div id="visitChart"      style="margin-top: 20px;"></div>
+                    <div id="visitRecent"     style="margin-top: 20px;"></div>
                     <div id="visitReferrers"  style="margin-top: 20px;"></div>
                     <div id="visitLanguages"  style="margin-top: 20px;"></div>
-                    <div id="visitRecent"     style="margin-top: 20px;"></div>
                 </div>
                 <div class="visits-right">
                     <div id="visitDevices"></div>
@@ -169,6 +170,7 @@
                     <div id="visitModes"></div>
                     <div id="visitGameTypes"></div>
                     <div id="visitSolveAudio"></div>
+                    <div id="visitPlays"></div>
                     <div id="visitReturning" style="grid-column: 1 / -1; margin-top: 20px;">
                         <h3 style="margin-bottom: 6px; color: var(--primary);">> Return Players Audit</h3>
                         <div style="margin-bottom:10px;">
