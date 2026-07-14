@@ -161,17 +161,7 @@
                     <div id="visitLanguages"  style="margin-top: 20px;"></div>
                 </div>
                 <div class="visits-right">
-                    <div id="visitDevices"></div>
-                    <div id="visitOS"></div>
-                    <div id="visitShares"></div>
-                    <div id="visitShareSource"></div>
-                    <div id="visitCredits"></div>
-                    <div id="visitDonate"></div>
-                    <div id="visitModes"></div>
-                    <div id="visitGameTypes"></div>
-                    <div id="visitSolveAudio"></div>
-                    <div id="visitPlays"></div>
-                    <div id="visitReturning" style="grid-column: 1 / -1; margin-top: 20px;">
+                    <div id="visitReturning" style="grid-column: 1 / -1;">
                         <h3 style="margin-bottom: 6px; color: var(--primary);">> Return Players Audit</h3>
                         <div style="margin-bottom:10px;">
                             <button class="btn btn-primary" style="font-size:9px;padding:2px 12px;" onclick="stepReturning(-1)" title="Previous day" aria-label="Previous day">◀</button>
@@ -182,6 +172,16 @@
                         </div>
                         <div id="returningResults"><div class="loading">Loading return-player audit...</div></div>
                     </div>
+                    <div id="visitDevices"></div>
+                    <div id="visitOS"></div>
+                    <div id="visitShares"></div>
+                    <div id="visitShareSource"></div>
+                    <div id="visitCredits"></div>
+                    <div id="visitDonate"></div>
+                    <div id="visitModes"></div>
+                    <div id="visitGameTypes"></div>
+                    <div id="visitSolveAudio"></div>
+                    <div id="visitPlays"></div>
                 </div>
             </div>
         </div>
@@ -415,14 +415,15 @@
         // palette + ordering as Tantro's admin page so the visual reads
         // the same when you switch between projects.
         function renderDailyChart() {
-            const days = (cachedStats && cachedStats.daily_visits) || [];
+            // API returns up to 30 days ascending; show only the newest 14.
+            const days = ((cachedStats && cachedStats.daily_visits) || []).slice(-14);
             if (days.length === 0) {
                 document.getElementById('visitChart').innerHTML = '';
                 return;
             }
             const maxVisits = Math.max(...days.map(d => d.visits));
             const bw = maxVisits > 0 ? 100 / maxVisits : 0;
-            let html = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Daily Visits (30 days)</h3>';
+            let html = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Daily Visits (14 days)</h3>';
             html += '<div style="font-family: monospace; font-size: 12px;">';
             // Most-recent day on top (the API returns ascending by date).
             [...days].reverse().forEach(d => {
