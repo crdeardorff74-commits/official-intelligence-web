@@ -3,900 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Circuitousness Admin - Official Intelligence</title>
+    <title>Official Intelligence</title>
+    <meta name="description" content="AI-powered games and experiments from Official Intelligence">
+
+	<meta name="keywords" content="AI games, Tetris, block puzzle, Claude AI, artificial intelligence games, indie games, browser games, falling blocks">
+	<meta name="author" content="Official Intelligence">
+	<meta name="robots" content="index, follow">
+	<link rel="canonical" href="https://official-intelligence.art/">
+	
+	<!-- Open Graph / Facebook -->
+	<meta property="og:type" content="website">
+	<meta property="og:url" content="https://official-intelligence.art/">
+	<meta property="og:title" content="Official Intelligence - AI-Powered Games & Experiments">
+	<meta property="og:description" content="Play BLOCKCHaiNSTOЯM and other AI-powered games. Where artificial intelligence meets entertainment.">
+	<meta property="og:image" content="https://res.cloudinary.com/dzlhmwvlx/image/upload/v1764977477/BLOCKCHaiNSTO%D0%AFM_thumb_pceyvy.png">
+	
+	<!-- Twitter -->
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:title" content="Official Intelligence - AI-Powered Games & Experiments">
+	<meta name="twitter:description" content="Play BLOCKCHaiNSTOЯM and other AI-powered games. Where artificial intelligence meets entertainment.">
+	<meta name="twitter:image" content="https://res.cloudinary.com/dzlhmwvlx/image/upload/v1764977477/BLOCKCHaiNSTO%D0%AFM_thumb_pceyvy.png">
+    
+    <!-- Retro Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
-    <style>
-        .stat-card {
-            background: rgba(0, 255, 0, 0.1);
-            border: 1px solid var(--primary);
-            padding: 15px;
-            text-align: center;
-        }
-        .stat-value {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 16px;
-            color: var(--primary);
-            margin-bottom: 5px;
-            line-height: 1.8;
-        }
-        .stat-label {
-            font-size: 10px;
-            color: var(--text-dim);
-            text-transform: uppercase;
-        }
-        .chart-row {
-            margin: 6px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .chart-label {
-            min-width: 130px;
-            white-space: nowrap;
-            color: var(--text-dim);
-        }
-        .chart-bar-bg {
-            flex: 1;
-            height: 16px;
-            background: rgba(255, 255, 255, 0.05);
-        }
-        .chart-count {
-            min-width: 110px;
-            text-align: right;
-            color: var(--text-dim);
-            white-space: nowrap;
-        }
-        /* Full-width override — mirrors Tantro admin page so the funnel
-           charts have room to breathe. */
-        main { max-width: 100% !important; width: 100% !important; padding: 1vw 2vw !important; box-sizing: border-box; }
-        .visits-two-col {
-            display: flex;
-            gap: 2vw;
-            margin-top: 20px;
-        }
-        .visits-left {
-            flex: 1;
-            min-width: 0;
-        }
-        .visits-right {
-            flex: 1;
-            min-width: 0;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            align-content: start;
-        }
-        .visits-right > div { min-width: 0; }
-        @media (max-width: 1200px) {
-            .visits-two-col { flex-direction: column; }
-        }
-        @media (max-width: 768px) {
-            .visits-right { grid-template-columns: 1fr; }
-        }
-        /* Per-stage tab switcher inside the device / OS panels. Same
-           styling as Tantro's so the two admin pages feel related. */
-        .stage-tabs {
-            display: flex;
-            gap: 4px;
-            margin-bottom: 10px;
-            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
-        }
-        .stage-tab {
-            background: transparent;
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            padding: 4px 10px;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 8px;
-            cursor: pointer;
-            opacity: 0.5;
-        }
-        .stage-tab.active {
-            opacity: 1;
-            background: rgba(0, 255, 0, 0.15);
-        }
-        .stage-panel { display: none; }
-        .stage-panel.active { display: block; }
-        .window-tabs {
-            display: flex;
-            gap: 8px;
-            margin: 15px 0;
-        }
-        .window-tab {
-            background: transparent;
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            padding: 6px 14px;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 9px;
-            cursor: pointer;
-            opacity: 0.5;
-        }
-        .window-tab.active {
-            opacity: 1;
-            background: rgba(0, 255, 0, 0.15);
-        }
-    </style>
 </head>
 <body>
+    <header>
+        <div class="logo">Official Intelligence</div>
+        <div class="tagline">AI-POWERED GAMES & EXPERIMENTS</div>
+        
+        <nav>
+            <a href="/" class="active">HOME</a>
+            <a href="/blog">BLOG</a>
+        </nav>
+        
+        <div class="user-menu" id="userMenu">
+            <button onclick="showLoginModal()">LOGIN</button>
+        </div>
+    </header>
+    
     <main>
-        <div class="admin-header" style="display: flex; align-items: center; gap: 20px;">
-            <h1 style="margin: 0;">> CIRCUITOUSNESS ADMIN</h1>
-            <div style="display: flex; gap: 10px; margin-left: auto;">
-                <button id="adminRefresh" class="btn btn-primary" style="display: none;" onclick="loadVisitStats()">🔄 REFRESH</button>
-                <a href="/admin/" class="btn btn-primary">← ADMIN HUB</a>
-                <a href="/" class="btn btn-primary">← BACK TO SITE</a>
-            </div>
-        </div>
-
-        <div id="message"></div>
-
-        <div id="notAdmin" class="not-admin" style="display: none;">
-            <h2 class="section-header">ACCESS DENIED</h2>
-            <p style="margin-top: 20px;">Admin privileges required.</p>
-            <a href="/" class="btn btn-primary" style="margin-top: 20px; display: inline-block;">RETURN HOME</a>
-        </div>
-
-        <div id="adminContent" style="display: none;">
-            <!-- Window picker — lifetime / 24h / 7d / 30d. Re-renders the
-                 summary stats cards (the daily chart + breakdowns stay
-                 lifetime since they're inherently time-scoped anyway). -->
-            <div class="window-tabs">
-                <button class="window-tab active" data-window="lifetime" onclick="setWindow(this, 'lifetime')">LIFETIME</button>
-                <button class="window-tab"        data-window="24h"      onclick="setWindow(this, '24h')">LAST 24H</button>
-                <button class="window-tab"        data-window="7d"       onclick="setWindow(this, '7d')">LAST 7D</button>
-                <button class="window-tab"        data-window="30d"      onclick="setWindow(this, '30d')">LAST 30D</button>
-            </div>
-
-            <div class="visits-two-col">
-                <div class="visits-left">
-                    <div id="visitStats"><div class="loading">Loading visit stats...</div></div>
-                    <!-- Suppressed for now (still rendered, just hidden) — flip
-                         display back on to restore the panel. -->
-                    <div id="visitOnsite"     style="margin-top: 20px; display: none;"></div>
-                    <div id="visitChart"      style="margin-top: 20px;"></div>
-                    <div id="visitRecent"     style="margin-top: 20px;"></div>
-                    <div id="visitReferrers"  style="margin-top: 20px;"></div>
-                    <div id="visitLanguages"  style="margin-top: 20px;"></div>
-                </div>
-                <div class="visits-right">
-                    <div id="visitReturning" style="grid-column: 1 / -1;">
-                        <h3 style="margin-bottom: 6px; color: var(--primary);">> Return Players Audit</h3>
-                        <div style="margin-bottom:10px;">
-                            <button class="btn btn-primary" style="font-size:9px;padding:2px 12px;" onclick="stepReturning(-1)" title="Previous day" aria-label="Previous day">◀</button>
-                            <input type="date" id="returningDate"
-                                style="background:#000;color:var(--primary);border:1px solid var(--primary);font-family:'VT323',monospace;font-size:14px;padding:2px 6px;"
-                                onchange="loadReturning()">
-                            <button class="btn btn-primary" style="font-size:9px;padding:2px 12px;" onclick="stepReturning(1)" title="Next day" aria-label="Next day">▶</button>
+        <div style="display: flex; flex-direction: row; gap: 3em; flex-wrap: wrap;">
+        
+            <!-- Games Section -->
+            <div style="flex: 1; min-width: 280px;">
+                <h2 class="section-header">PLAY NOW</h2>
+                
+                <div class="games-grid">
+                    <a href="https://tantro.official-intelligence.art" class="game-card" target="_blank">
+                        <div class="game-card-image">
+							<img src="https://github.com/crdeardorff74-commits/official-intelligence-web/releases/download/Images/Tornado.png" />
+                            <!-- div class="placeholder">⬛</div -->
                         </div>
-                        <div id="returningResults"><div class="loading">Loading return-player audit...</div></div>
-                    </div>
-                    <div id="visitDevices"></div>
-                    <div id="visitOS"></div>
-                    <div id="visitShares"></div>
-                    <div id="visitShareSource"></div>
-                    <div id="visitCredits"></div>
-                    <div id="visitDonate"></div>
-                    <div id="visitModes"></div>
-                    <div id="visitGameTypes"></div>
-                    <div id="visitSolveAudio"></div>
-                    <div id="visitPlays"></div>
+                        <div class="game-card-content">
+                            <h3>TANTЯO</h3>
+                            <p>A revolutionary twist on the classic falling blocks game. Journey through the solar system, survive cosmic disasters, and climb the leaderboards!
+							It's like Tetris on peyote while sneezing slowly for six hours...</p>
+                            <span class="status live">● LIVE</span>
+                        </div>
+                    </a>
+                    
+					<a href="https://circuitousness.official-intelligence.art" class="game-card" target="_blank">
+                        <div class="game-card-image">
+							<img src="https://github.com/crdeardorff74-commits/official-intelligence-web/releases/download/Images/Three.Paths.png" style="width: 100%;"/>
+                        </div>
+                        <div class="game-card-content">
+                            <h3>CIRCUITOUSNESS</h3>
+                            <p>Twist tiles to get the paths to connect and complete the circuits.</p>
+                            <span class="status live">● LIVE</span>
+                        </div>
+                    </a>
+					
+                    <!-- div class="game-card">
+                        <div class="game-card-image">
+                            <div class="placeholder">?</div>
+                        </div>
+                        <div class="game-card-content">
+                            <h3>PROJECT ???</h3>
+                            <p>Something new is brewing in the lab. Stay tuned for our next AI-enhanced gaming experience...</p>
+                            <span class="status coming-soon">COMING SOON</span>
+                        </div>
+                    </div -->
                 </div>
             </div>
+            
+            <!-- Blog Section -->
+            <div style="flex: 1; min-width: 280px;">
+                <h2 class="section-header">LATEST TRANSMISSIONS</h2>
+                
+                <div class="blog-posts" id="blogPosts">
+                    <!-- Blog posts will be loaded here -->
+                    <div class="blog-post">
+                        <h3>LOADING TRANSMISSIONS...</h3>
+                        <p class="excerpt">Establishing connection to the mainframe...</p>
+                    </div>
+                </div>
+                
+                <a href="/blog" class="view-all">VIEW ALL POSTS →</a>
+            </div>
+        
+        </div>
+        
+        <div class="ascii-decoration">▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+ █ OFFICIAL INTELLIGENCE - WHERE AI MEETS ENTERTAINMENT █ 
+ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ 
         </div>
     </main>
-
+    
+    <footer>
+        <p>© 2026 Official Intelligence • <a href="/privacy">Privacy</a> • <a href="/terms">Terms</a> • <a href="/about">About</a> • Created with 🤖 by humans & AI</p>
+    </footer>
+    
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal" style="position: relative;">
+            <button class="modal-close" onclick="hideLoginModal()">&times;</button>
+            
+            <h2 id="modalTitle">LOGIN</h2>
+            
+            <div class="error-message" id="loginError"></div>
+            
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group" id="usernameGroup" style="display: none;">
+                    <label>USERNAME</label>
+                    <input type="text" id="username" name="username" autocomplete="username">
+                </div>
+                
+                <div class="form-group">
+                    <label>EMAIL</label>
+                    <input type="email" id="email" name="email" required autocomplete="email">
+                </div>
+                
+                <div class="form-group">
+                    <label>PASSWORD</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                </div>
+                
+                <div style="text-align: right; margin-bottom: 15px;">
+                    <a href="/reset-password" style="font-size: 12px; color: var(--text-dim);">Forgot password?</a>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="submitBtn" style="width: 100%;">ENTER</button>
+            </form>
+            
+            <div class="divider">OR</div>
+            
+            <div class="oauth-buttons">
+                <a href="https://official-intelligence-api.onrender.com/auth/google/login" class="btn btn-oauth">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                    Continue with Google
+                </a>
+            </div>
+            
+            <div class="modal-footer">
+                <span id="authToggleText">No account?</span>
+                <a href="#" id="authToggle" onclick="toggleAuthMode(event)">Sign up</a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/js/auth.js"></script>
     <script>
-        // Two API bases:
-        //   API_URL      → central OI auth (issues + validates JWTs)
-        //   GAME_API_URL → Circuitousness's own back-end (this page's data)
-        const API_URL      = 'https://official-intelligence-api.onrender.com';
-        const GAME_API_URL = 'https://circuitousness-api.onrender.com/api';
-        const token        = localStorage.getItem('oi_token');
-        let cachedStats    = null;
-        let currentWindow  = 'lifetime';
-
-        function escapeHtml(s) {
-            return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-        }
-
-        // ── Auth gate ──
-        // OI's central auth API authoritatively says whether this token's
-        // user is an admin. The game back-end ALSO verifies the same token
-        // on /admin/visits/stats with the same SECRET_KEY (it has its own
-        // User row with is_admin=true that the token's user_id resolves to),
-        // so the actual stats fetch double-checks.
-        async function checkAdmin() {
-            if (!token) {
-                document.getElementById('notAdmin').style.display = 'block';
-                return;
-            }
+        // Load blog posts for homepage
+        async function loadBlogPosts() {
             try {
-                const res  = await fetch(`${API_URL}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch(`${API_URL}/blog/posts/latest?limit=3`);
                 const data = await res.json();
-                if (data.user && data.user.is_admin) {
-                    document.getElementById('adminContent').style.display = 'block';
-                    document.getElementById('adminRefresh').style.display = '';
-                    loadVisitStats();
-                    startAutoRefresh();
+                
+                const container = document.getElementById('blogPosts');
+                
+                if (data.posts && data.posts.length > 0) {
+                    container.innerHTML = data.posts.map(post => `
+                        <a href="/blog/${post.slug}" class="blog-post">
+                            <h3>${escapeHtml(post.title)}</h3>
+                            <div class="date">${formatDate(post.published_at)}</div>
+                            <p class="excerpt">${post.excerpt || ''}</p>
+                        </a>
+                    `).join('');
                 } else {
-                    document.getElementById('notAdmin').style.display = 'block';
+                    container.innerHTML = `
+                        <div class="blog-post">
+                            <h3>NO TRANSMISSIONS YET</h3>
+                            <p class="excerpt">Check back soon for updates!</p>
+                        </div>
+                    `;
                 }
             } catch (err) {
-                document.getElementById('notAdmin').style.display = 'block';
+                console.error('Failed to load blog posts:', err);
             }
         }
-
-        async function loadVisitStats() {
-            try {
-                const res = await fetch(`${GAME_API_URL}/admin/visits/stats?_=${Date.now()}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                if (!res.ok) {
-                    document.getElementById('visitStats').innerHTML =
-                        '<div style="color: #f55;">Failed to load: ' + escapeHtml(data.error || res.status) + '</div>';
-                    return;
-                }
-                cachedStats = data;
-                renderSummary();
-                renderOnsiteFunnel();
-                renderPlaysPerSession('visitPlays', 'Puzzles per Session', cachedStats.plays_per_session, 'puzzle');
-                renderDailyChart();
-                renderTopReferrers();
-                renderTopLanguages();
-                renderRecentVisits();
-                renderDeviceBreakdown();
-                renderOsBreakdown();
-                renderShareBreakdown();
-                renderShareSource();
-                renderCreditsBreakdown();
-                renderDonate();
-                renderModeBreakdown();
-                renderGameTypeBreakdown();
-                renderSolveAudio();
-            } catch (e) {
-                document.getElementById('visitStats').innerHTML =
-                    '<div style="color: #f55;">Network error: ' + escapeHtml(e.message || e) + '</div>';
-            } finally {
-                // Return-players audit is a separate, date-scoped fetch; run it
-                // on every stats load (initial + auto-refresh) so it stays
-                // current. Independent of the window tabs above.
-                loadReturning();
-            }
-        }
-
-        function setWindow(btn, win) {
-            document.querySelectorAll('.window-tab').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentWindow = win;
-            if (cachedStats) { renderSummary(); renderShareSource(); renderSolveAudio(); }
-        }
-
-        function renderSummary() {
-            if (!cachedStats) return;
-            // Lifetime fields have no suffix; rolling windows are *_24h / *_7d / *_30d.
-            const d = cachedStats;
-            const isLifetime = currentWindow === 'lifetime';
-            const suffix = '_' + currentWindow;
-            const v  = isLifetime ? d.total_visits   : d['visits'   + suffix];
-            const se = isLifetime ? d.total_sessions : d['sessions' + suffix];
-            const ag = isLifetime ? d.total_agreed   : d['agreed'   + suffix];
-            const st = isLifetime ? d.total_started  : d['started'  + suffix];
-            const fi = isLifetime ? d.total_finished : d['finished' + suffix];
-            const sh = isLifetime ? d.total_shared   : d['shared'   + suffix];
-            // Unique-browser (deduped) started/finished — the per-person count,
-            // shown as a sub-line under the per-visit Started/Finished numbers.
-            // undefined until the back-end redeploys with the *_uniq fields.
-            const stu = isLifetime ? d.total_started_uniq  : d['started_uniq'  + suffix];
-            const fiu = isLifetime ? d.total_finished_uniq : d['finished_uniq' + suffix];
-            const subBrowsers = (n) => n === undefined ? '' :
-                `<div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${n} browser${n===1?'':'s'}</div>`;
-            const fr = isLifetime ? d.finish_rate    : d['finish_rate' + suffix];
-            const shr= isLifetime ? d.share_rate     : d['share_rate'  + suffix];
-            // The two diagnostic rates: visit→menu (got past the warning) and
-            // menu→start (menu converted to a puzzle). A low agree_rate blames
-            // the warning gate; a low menu_start_rate blames card selection.
-            const agr = isLifetime ? d.agree_rate      : d['agree_rate'      + suffix];
-            const msr = isLifetime ? d.menu_start_rate : d['menu_start_rate' + suffix];
-            // One combined funnel-chain rate card (instead of two) keeps the
-            // row to 6 cards so it doesn't wrap. Each % is the conversion from
-            // the previous stage: visits →(agr)→ menu →(msr)→ start →(fr)→
-            // finish →(shr)→ share. `sr` (started/visits) is no longer shown
-            // here — it's the product of agr×msr and redundant in the chain.
-            document.getElementById('visitStats').innerHTML = `
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px;">
-                    <div class="stat-card"><div class="stat-value">${v}</div><div class="stat-label">Visits</div><div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${se} session${se===1?'':'s'}</div></div>
-                    <div class="stat-card"><div class="stat-value">${ag}</div><div class="stat-label">Reached menu</div></div>
-                    <div class="stat-card"><div class="stat-value">${st}</div><div class="stat-label">Started</div>${subBrowsers(stu)}</div>
-                    <div class="stat-card"><div class="stat-value">${fi}</div><div class="stat-label">Finished</div>${subBrowsers(fiu)}</div>
-                    <div class="stat-card"><div class="stat-value">${sh}</div><div class="stat-label">Shared</div></div>
-                    <div class="stat-card">
-                        <div class="stat-value">${agr}% <span style="white-space:nowrap;">→&nbsp;${msr}%</span> <span style="white-space:nowrap;">→&nbsp;${fr}%</span> <span style="white-space:nowrap;">→&nbsp;${shr}%</span></div>
-                        <div class="stat-label">Menu / Start / Finish / Share</div>
-                    </div>
-                </div>`;
-        }
-
-        // On-site intro funnel — the trustworthy version. The summary cards
-        // above count ALL visits, including itch-embed mobile loads that
-        // platform-redirect.js diverts BEFORE the intro (a handoff, not a
-        // rejection). This panel isolates own-origin traffic so the
-        // intro-bounce read is real, and shows how much volume is embed
-        // handoff noise. Lifetime (back-end sends these lifetime-only).
-        // Hidden entirely until the back-end redeploys with the fields.
-        function renderOnsiteFunnel() {
-            const el = document.getElementById('visitOnsite');
-            if (!el || !cachedStats) return;
-            const d = cachedStats;
-            if (d.onsite_visits === undefined) { el.innerHTML = ''; return; }  // pre-deploy
-            const onsite = d.onsite_visits || 0;
-            const agreed = d.onsite_agreed || 0;
-            const bounce = d.onsite_intro_bounce || 0;
-            const rate   = d.onsite_agree_rate || 0;
-            const emb    = d.total_embedded || 0;
-            const red    = d.total_redirected || 0;
-
-            // Deduped per-browser figures (the trustworthy ones). Undefined
-            // until the back-end redeploys with onsite_uniq_* — fall back to
-            // the per-load-only layout in that window.
-            const hasUniq = d.onsite_uniq_visitors !== undefined;
-            const uVis    = d.onsite_uniq_visitors || 0;
-            const uAgr    = d.onsite_uniq_agreed || 0;
-            const uBnc    = d.onsite_uniq_bounce || 0;
-            const uRate   = d.onsite_uniq_agree_rate || 0;
-
-            const intro = `
-                <h3 style="margin-bottom: 6px; color: var(--primary);">> On-site Intro Funnel</h3>
-                <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">
-                    Own-origin traffic only (lifetime). Embed loads — itch, CrazyGames, etc. (<strong>${emb}</strong>, of which <strong>${red}</strong> were itch mobile redirect handoffs) — are excluded.
-                </div>`;
-
-            // Per-browser (deduped) — the headline. A browser counts as
-            // "reached menu" if it dismissed the intro on ANY load, so an
-            // engaged player's relaunches no longer read as fresh bounces.
-            const uniqBlock = hasUniq ? `
-                <div style="font-size:11px;color:var(--primary);margin:4px 0 6px;">Per browser (deduped — the real intro-rejection rate)</div>
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:15px;margin-bottom:14px;">
-                    <div class="stat-card"><div class="stat-value">${uVis}</div><div class="stat-label">Browsers</div></div>
-                    <div class="stat-card"><div class="stat-value">${uAgr}</div><div class="stat-label">Reached menu</div><div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${uRate}%</div></div>
-                    <div class="stat-card"><div class="stat-value">${uBnc}</div><div class="stat-label">Left at intro</div></div>
-                </div>` : '';
-
-            // Per page-load (raw rows) — kept for comparison. Counts every
-            // reload/PWA-relaunch, each of which re-shows the intro, so this
-            // over-counts bounces vs the per-browser block above.
-            const loadHeader = hasUniq
-                ? `<div style="font-size:11px;color:var(--text-dim);margin:4px 0 6px;">Per page-load (counts every reload / relaunch)</div>`
-                : '';
-            const loadBlock = `
-                ${loadHeader}
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:15px;">
-                    <div class="stat-card"><div class="stat-value">${onsite}</div><div class="stat-label">On-site loads</div></div>
-                    <div class="stat-card"><div class="stat-value">${agreed}</div><div class="stat-label">Reached menu</div><div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${rate}%</div></div>
-                    <div class="stat-card"><div class="stat-value">${bounce}</div><div class="stat-label">Left at intro</div></div>
-                </div>`;
-
-            el.innerHTML = intro + uniqBlock + loadBlock;
-        }
-
-        // Plays-per-session distribution (1/2/3/4/5+). Each bucket's bar
-        // width and trailing (x%) are its share of all sessions that
-        // started >=1 puzzle, so the column sums to 100%. One page-load
-        // session = one "player" (the visit id isn't persisted across
-        // reloads), so this reads as puzzles-per-sitting.
-        function renderPlaysPerSession(elId, title, list, noun) {
-            const el = document.getElementById(elId);
-            if (!el) return;
-            if (!list || list.length === 0) {
-                el.innerHTML = `<h3 style="margin-bottom: 10px; color: var(--primary);">> ${title}</h3><div style="color: #666; padding: 5px;">No data</div>`;
-                return;
-            }
-            const total  = list.reduce((s, x) => s + x.count, 0);
-            const colors = { '1': '#777', '2': '#3a7bd5', '3': '#40c4d4', '4': '#00ff64', '5+': '#ffaa00' };
-            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> ${title}</h3>`;
-            list.forEach(item => {
-                const pct   = total > 0 ? (item.count / total * 100).toFixed(1) : '0.0';
-                const label = item.plays === '5+' ? `5+ ${noun}s` : `${item.plays} ${item.plays === '1' ? noun : noun + 's'}`;
-                const color = colors[item.plays] || '#888';
-                html += `<div class="chart-row">
-                    <span class="chart-label">${label}</span>
-                    <div class="chart-bar-bg">
-                        <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
-                    </div>
-                    <span class="chart-count">${item.count} (${pct}%)</span>
-                </div>`;
-            });
-            el.innerHTML = html;
-        }
-
-        // Stacked horizontal bars per day, last 30 days. Same color
-        // palette + ordering as Tantro's admin page so the visual reads
-        // the same when you switch between projects.
-        function renderDailyChart() {
-            // API returns up to 30 days ascending; show only the newest 14.
-            const days = ((cachedStats && cachedStats.daily_visits) || []).slice(-14);
-            if (days.length === 0) {
-                document.getElementById('visitChart').innerHTML = '';
-                return;
-            }
-            const maxVisits = Math.max(...days.map(d => d.visits));
-            const bw = maxVisits > 0 ? 100 / maxVisits : 0;
-            let html = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Daily Visits (14 days)</h3>';
-            html += '<div style="font-family: monospace; font-size: 12px;">';
-            // Most-recent day on top (the API returns ascending by date).
-            [...days].reverse().forEach(d => {
-                const date = d.day.substring(5);
-                html += `<div style="margin: 2px 0; display: flex; align-items: center; gap: 8px;">
-                    <span style="width: 50px; color: var(--text-dim);">${date}</span>
-                    <div style="flex: 1; position: relative; height: 16px; background: rgba(255,255,255,0.05);">
-                        <div style="position: absolute; height: 100%; width: ${Math.round(d.visits   * bw)}%; background: rgba(0,150,255,0.4);"></div>
-                        <div style="position: absolute; height: 100%; width: ${Math.round(d.started  * bw)}%; background: rgba(255,200,0,0.5);"></div>
-                        <div style="position: absolute; height: 100%; width: ${Math.round(d.finished * bw)}%; background: rgba(255,80,80,0.6);"></div>
-                        <div style="position: absolute; height: 100%; width: ${Math.round((d.shared || 0) * bw)}%; background: rgba(180,80,255,0.6);"></div>
-                    </div>
-                    <span style="width: 140px; text-align: right; color: var(--text-dim);">${d.visits}/${d.started}/${d.finished}/${d.shared || 0}</span>
-                </div>`;
-            });
-            html += '</div>';
-            html += '<div style="margin-top: 5px; font-size: 11px; color: var(--text-dim);">';
-            html += '<span style="color: rgba(0,150,255,0.7);">■</span> Visits &nbsp; ';
-            html += '<span style="color: rgba(255,200,0,0.8);">■</span> Started &nbsp; ';
-            html += '<span style="color: rgba(255,80,80,0.8);">■</span> Finished &nbsp; ';
-            html += '<span style="color: rgba(180,80,255,0.8);">■</span> Shared';
-            html += '</div>';
-            document.getElementById('visitChart').innerHTML = html;
-        }
-
-        function renderTopList(elId, title, rows, valueKey, labelKey) {
-            if (!rows || rows.length === 0) {
-                document.getElementById(elId).innerHTML = '';
-                return;
-            }
-            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> ${title}</h3>`;
-            html += '<table style="width: 100%; border-collapse: collapse;">';
-            html += '<tr style="border-bottom: 1px solid var(--primary);">';
-            html += `<th style="text-align: left; padding: 5px;">${labelKey}</th>`;
-            html += '<th style="text-align: right; padding: 5px;">Visits</th>';
-            html += '<th style="text-align: right; padding: 5px;">Started</th>';
-            html += '<th style="text-align: right; padding: 5px;">Finished</th>';
-            html += '<th style="text-align: right; padding: 5px;">Conv%</th>';
-            html += '</tr>';
-            rows.forEach(r => {
-                const conv  = r.visits > 0 ? (r.finished / r.visits * 100).toFixed(1) : '0.0';
-                const value = r[valueKey] || r.value || '';
-                const short = value.length > 60 ? value.substring(0, 60) + '...' : value;
-                html += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-                    <td style="padding: 5px; color: var(--text-dim); word-break: break-all;">${escapeHtml(short)}</td>
-                    <td style="text-align: right; padding: 5px;">${r.visits}</td>
-                    <td style="text-align: right; padding: 5px;">${r.started}</td>
-                    <td style="text-align: right; padding: 5px;">${r.finished}</td>
-                    <td style="text-align: right; padding: 5px;">${conv}%</td>
-                </tr>`;
-            });
-            html += '</table>';
-            document.getElementById(elId).innerHTML = html;
-        }
-        function renderTopReferrers() { renderTopList('visitReferrers',  'Top Referrers',  cachedStats.top_referrers, 'value', 'Referrer'); }
-        function renderTopLanguages() { renderTopList('visitLanguages',  'Top Languages',  cachedStats.top_languages, 'value', 'Language'); }
-
-        // Recent individual visits — spot-check for double-counts (same
-        // Session prefix on two rows = one browser reloaded/relaunched) and
-        // bots (the User-Agent column). M/S/F = reached Menu / Started /
-        // Finished. Not window-filtered — always the newest rows overall.
-        function renderRecentVisits() {
-            const rows = (cachedStats && cachedStats.recent_visits) || [];
-            const el = document.getElementById('visitRecent');
-            if (!el) return;
-            if (rows.length === 0) { el.innerHTML = ''; return; }
-            // Count session prefixes so repeats (double-loads) can be flagged.
-            const counts = {};
-            rows.forEach(r => { counts[r.session] = (counts[r.session] || 0) + 1; });
-            const flag = b => b ? '<span style="color:#00ff64;">●</span>' : '<span style="color:#444;">○</span>';
-            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> Recent Visits <span style="font-size:11px;color:var(--text-dim);">(newest ${rows.length} — repeated Session = same browser)</span></h3>`;
-            html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
-            html += '<tr style="border-bottom:1px solid var(--primary);">'
-                 +  '<th style="text-align:left;padding:4px;">Time</th>'
-                 +  '<th style="text-align:left;padding:4px;">Referrer</th>'
-                 +  '<th style="text-align:left;padding:4px;">Session</th>'
-                 +  '<th style="text-align:left;padding:4px;">Device</th>'
-                 +  '<th style="text-align:left;padding:4px;">Lang</th>'
-                 +  '<th style="text-align:left;padding:4px;" title="where the load ran: site = own origin; cg = CrazyGames embed; itch = itch embed; embed = framed on an unknown host; ↻itch = itch mobile redirect handoff (saw the redirect overlay, not the intro). Embed platform is inferred from the referrer.">Src</th>'
-                 +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished">M/S/F</th>'
-                 +  '<th style="text-align:left;padding:4px;">User-Agent</th>'
-                 +  '</tr>';
-            rows.forEach(r => {
-                let t = '?';
-                if (r.time) { const d = new Date(r.time); t = d.toLocaleString([], {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}); }
-                const ref = (r.referrer || '').replace(/^https?:\/\//, '');
-                const refShort = ref.length > 34 ? ref.slice(0, 34) + '…' : ref;
-                const dupe = counts[r.session] > 1;
-                const sessStyle = dupe ? 'color:#ffaa00;font-weight:bold;' : '';
-                const ua = r.ua || '';
-                const uaShort = ua.length > 52 ? ua.slice(0, 52) + '…' : ua;
-                // Where the load ran. ↻itch (amber) = mobile redirect handoff:
-                // the player saw platform-redirect's overlay, not the intro, so
-                // a ○○○ here is NOT an intro rejection. site (blue) = own origin.
-                // Embeds: the tracking payload only carries an `embedded`
-                // boolean, so the PLATFORM is inferred from the referrer —
-                // cg (purple) = CrazyGames, itch (dim) = itch, embed (dim) =
-                // framed on an unknown/blank-referrer host.
-                let srcTag;
-                if (r.redirected) {
-                    srcTag = '<span style="color:#ffaa00;" title="itch mobile redirect handoff — saw the redirect overlay, not the intro">↻itch</span>';
-                } else if (!r.embedded) {
-                    srcTag = '<span style="color:#3a7bd5;" title="own origin">site</span>';
-                } else if (/crazygames\.com/i.test(ref)) {
-                    srcTag = '<span style="color:#9b6bd6;" title="CrazyGames embed">cg</span>';
-                } else if (/itch\.(io|zone)/i.test(ref)) {
-                    srcTag = '<span style="color:#888;" title="itch embed (plays in place)">itch</span>';
-                } else {
-                    srcTag = '<span style="color:#888;" title="embedded on an unknown or blank-referrer host">embed</span>';
-                }
-                html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
-                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(t)}</td>
-                    <td style="padding:4px;word-break:break-all;" title="${escapeHtml(r.referrer || '')}">${escapeHtml(refShort)}</td>
-                    <td style="padding:4px;${sessStyle}">${escapeHtml(r.session)}</td>
-                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.device)}/${escapeHtml(r.os)}</td>
-                    <td style="padding:4px;color:var(--text-dim);">${escapeHtml(r.lang)}</td>
-                    <td style="padding:4px;white-space:nowrap;">${srcTag}</td>
-                    <td style="padding:4px;text-align:center;white-space:nowrap;">${flag(r.agreed)}${flag(r.started)}${flag(r.finished)}</td>
-                    <td style="padding:4px;color:var(--text-dim);" title="${escapeHtml(ua)}">${escapeHtml(uaShort)}</td>
-                </tr>`;
-            });
-            html += '</table>';
-            el.innerHTML = html;
-        }
-
-        // ── Return-players audit ──
-        // Drill-down for the daily email's "Return players" number: lists each
-        // returning browser for one CT day, which prior-day table it matched,
-        // and when it was first seen. Date-scoped (one CT day), independent of
-        // the window tabs above. Mirrors build_daily_summary's detection, so
-        // the count here equals the email's for the same date. Read-only.
-        function defaultReturningDate() {
-            // Today's date in CT, as YYYY-MM-DD. en-CA formats as ISO;
-            // America/Chicago matches the back-end's day bounds. (Was
-            // yesterday — the digest's day — but the panel's live use is
-            // "who came back today", so it defaults to the current CT day
-            // and the ◀ arrow reaches yesterday in one click.)
-            return new Date()
-                .toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
-        }
-        // ◀ / ▶ arrows: step the audit date by ±1 day and reload. Parses the
-        // YYYY-MM-DD string at UTC noon so the ±86400s hop can't land on the
-        // wrong calendar day (midnight UTC ±1h DST shifts would); the result
-        // is read back out of the ISO string, no local-timezone round trip.
-        function stepReturning(delta) {
-            const input = document.getElementById('returningDate');
-            if (!input) return;
-            const cur = input.value || defaultReturningDate();
-            const d = new Date(cur + 'T12:00:00Z');
-            if (isNaN(d)) { input.value = defaultReturningDate(); loadReturning(); return; }
-            d.setUTCDate(d.getUTCDate() + delta);
-            input.value = d.toISOString().slice(0, 10);
-            loadReturning();
-        }
-        async function loadReturning() {
-            const out = document.getElementById('returningResults');
-            if (!out) return;
-            const input = document.getElementById('returningDate');
-            if (input && !input.value) input.value = defaultReturningDate();
-            const dateStr = (input && input.value) || defaultReturningDate();
-            try {
-                const res = await fetch(`${GAME_API_URL}/admin/returning?date=${dateStr}&_=${Date.now()}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                // Read as text first and parse defensively: a server 500 returns
-                // an HTML error page, and res.json() on that throws an opaque
-                // "Unexpected token '<'". This way we surface the real status.
-                const body = await res.text();
-                let data = null;
-                try { data = JSON.parse(body); } catch (_) { /* non-JSON (HTML error page) */ }
-                if (!res.ok || !data) {
-                    const msg = (data && data.error) ? data.error
-                        : res.status === 404
-                            ? 'Endpoint not live yet — redeploy the back-end (GET /api/admin/returning).'
-                            : `HTTP ${res.status} ${res.statusText} — server error (check Render logs).`;
-                    out.innerHTML = `<div style="color:#888;padding:5px;">${escapeHtml(msg)}</div>`;
-                    return;
-                }
-                renderReturning(data);
-            } catch (e) {
-                out.innerHTML = `<div style="color:#888;padding:5px;">Network error: ${escapeHtml(e.message || e)}</div>`;
-            }
-        }
-        function renderReturning(data) {
-            const out = document.getElementById('returningResults');
-            if (!out) return;
-            const players = (data && data.players) || [];
-            const summary = `<div style="margin-bottom:8px;">
-                <span style="color:var(--primary);font-size:14px;">${data.returning}</span>
-                <span style="color:var(--text-dim);"> returning of ${data.unique_visitors} unique browsers (${data.pct_returning}%)</span></div>`;
-            if (players.length === 0) {
-                out.innerHTML = summary + '<div style="color:#666;padding:5px;">No returning players that day.</div>';
-                return;
-            }
-            // Badge per prior-day source. game/potd = an actual prior game-start
-            // (strongest "they came back to play" signal); visit = a prior
-            // page-visit that started a game.
-            const srcColor = { game_sessions: '#00ff64', potd_sessions: '#00aaff', page_visits: '#ffaa00' };
-            const srcLabel = { game_sessions: 'marathon', potd_sessions: 'potd', page_visits: 'visit' };
-            let html = summary;
-            html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
-            html += '<tr style="border-bottom:1px solid var(--primary);">'
-                 +  '<th style="text-align:left;padding:4px;">First seen</th>'
-                 +  '<th style="text-align:left;padding:4px;" title="which prior-day record proves they played before">Played before via</th>'
-                 +  '<th style="text-align:left;padding:4px;">Session</th>'
-                 +  '<th style="text-align:left;padding:4px;">Device</th>'
-                 +  '<th style="text-align:left;padding:4px;">Lang</th>'
-                 +  '<th style="text-align:left;padding:4px;">Returned (CT)</th>'
-                 +  '</tr>';
-            players.forEach(p => {
-                const sid = p.session_id || '';
-                const sidShort = sid.length > 12 ? sid.slice(0, 12) + '…' : sid;
-                const badges = (p.sources || []).map(s =>
-                    `<span style="display:inline-block;border:1px solid ${srcColor[s] || '#888'};color:${srcColor[s] || '#888'};border-radius:3px;padding:0 5px;margin-right:4px;font-size:10px;">${escapeHtml(srcLabel[s] || s)}</span>`
-                ).join('');
-                html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
-                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;" title="${escapeHtml(p.first_seen_ct || '')}">${escapeHtml(p.first_seen_date || '?')}</td>
-                    <td style="padding:4px;">${badges}</td>
-                    <td style="padding:4px;color:var(--text-dim);" title="${escapeHtml(sid)}">${escapeHtml(sidShort)}</td>
-                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(p.device || '?')}/${escapeHtml(p.os || '?')}</td>
-                    <td style="padding:4px;color:var(--text-dim);">${escapeHtml(p.language || '?')}</td>
-                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(p.today_first_visit_ct || '?')}</td>
-                </tr>`;
-            });
-            html += '</table>';
-            out.innerHTML = html;
-        }
-
-        // Per-stage tabbed breakdown panel — same pattern Tantro uses.
-        // `data` shape: { visit: [...], start: [...], finish: [...], share: [...] }
-        // where each list item has { count, [labelKey] }.
-        function renderStagedBreakdown(elId, title, data, labelKey, colorMap, iconMap, group) {
-            if (!data) { document.getElementById(elId).innerHTML = ''; return; }
-            const stages = ['visit', 'start', 'finish', 'share'];
-            const stageLabels = { visit: 'Visit', start: 'Start', finish: 'Finish', share: 'Share' };
-            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> ${title}</h3>`;
-            html += `<div class="stage-tabs" data-group="${group}">`;
-            stages.forEach((s, i) => {
-                html += `<button class="stage-tab${i === 0 ? ' active' : ''}" data-stage="${s}" onclick="switchStage(this, '${group}')">${stageLabels[s]}</button>`;
-            });
-            html += '</div>';
-            stages.forEach((stage, i) => {
-                const items = data[stage] || [];
-                const total = items.reduce((s, x) => s + x.count, 0);
-                html += `<div class="stage-panel${i === 0 ? ' active' : ''}" data-group="${group}" data-stage="${stage}">`;
-                if (items.length === 0) {
-                    html += '<div style="color: #666; padding: 5px;">No data</div>';
-                } else {
-                    items.sort((a, b) => b.count - a.count);
-                    items.forEach(item => {
-                        const pct   = total > 0 ? (item.count / total * 100).toFixed(1) : '0.0';
-                        const label = item[labelKey] || '';
-                        const color = (colorMap && colorMap[label]) || '#888';
-                        const icon  = (iconMap  && iconMap[label])  || '';
-                        html += `<div class="chart-row">
-                            <span class="chart-label">${icon} ${escapeHtml(label)}</span>
-                            <div class="chart-bar-bg">
-                                <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
-                            </div>
-                            <span class="chart-count">${item.count} (${pct}%)</span>
-                        </div>`;
-                    });
-                }
-                html += '</div>';
-            });
-            document.getElementById(elId).innerHTML = html;
-        }
-        function switchStage(btn, group) {
-            document.querySelectorAll(`.stage-tabs[data-group="${group}"] .stage-tab`).forEach(b => b.classList.remove('active'));
-            document.querySelectorAll(`.stage-panel[data-group="${group}"]`).forEach(p => p.classList.remove('active'));
-            btn.classList.add('active');
-            const stage = btn.getAttribute('data-stage');
-            document.querySelector(`.stage-panel[data-group="${group}"][data-stage="${stage}"]`).classList.add('active');
-        }
-        function renderDeviceBreakdown() {
-            renderStagedBreakdown('visitDevices', 'Devices', cachedStats.device_breakdown, 'type',
-                { desktop: '#0096ff', tablet: '#00ff64', phone: '#ffc800' },
-                { desktop: '🖥️', tablet: '📱', phone: '📲' },
-                'devices');
-        }
-        function renderOsBreakdown() {
-            renderStagedBreakdown('visitOS', 'Operating Systems', cachedStats.os_breakdown, 'os',
-                { Windows: '#0078d4', iOS: '#a2aaad', Android: '#3ddc84', macOS: '#555', Linux: '#f5a623', Other: '#888' },
-                null,
-                'os');
-        }
-
-        // Single-list horizontal bar chart — no per-stage tabs needed.
-        function renderFlatBars(elId, title, list, labelKey, colorMap, iconMap) {
-            if (!list || list.length === 0) {
-                document.getElementById(elId).innerHTML =
-                    `<h3 style="margin-bottom: 10px; color: var(--primary);">> ${title}</h3><div style="color: #666; padding: 5px;">No data</div>`;
-                return;
-            }
-            const total = list.reduce((s, x) => s + x.count, 0);
-            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> ${title}</h3>`;
-            list.forEach(item => {
-                const pct   = total > 0 ? (item.count / total * 100).toFixed(1) : '0.0';
-                const label = item[labelKey] || '';
-                const color = (colorMap && colorMap[label]) || '#888';
-                const icon  = (iconMap  && iconMap[label])  || '';
-                html += `<div class="chart-row">
-                    <span class="chart-label">${icon} ${escapeHtml(label)}</span>
-                    <div class="chart-bar-bg">
-                        <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
-                    </div>
-                    <span class="chart-count">${item.count} (${pct}%)</span>
-                </div>`;
-            });
-            document.getElementById(elId).innerHTML = html;
-        }
-        function renderShareBreakdown() {
-            renderFlatBars('visitShares', 'Share Platforms', cachedStats.share_breakdown, 'platform',
-                { twitter: '#1DA1F2', facebook: '#4267B2', reddit: '#FF4500', whatsapp: '#25D366', telegram: '#0088cc', copylink: '#888' },
-                { twitter: '𝕏', facebook: 'f', reddit: '⬆', whatsapp: '💬', telegram: '✈', copylink: '🔗' });
-        }
-        // Share source — which surface a share came from. Window-aware
-        // (re-rendered by setWindow). `|| 0` so the panel appears even before
-        // the game back-end redeploys with these fields. The three counts are
-        // independent visit-counts and CAN overlap (a visit that shared from
-        // the popup AND a score card counts in both), so they're shown as raw
-        // counts against the window's total_shared rather than a 100% pie.
-        // Legacy shares (from before this tracking) sit in `Shared` but
-        // none of these. The credits row needs BOTH the game back-end
-        // (share_from_credits column) and front-end v0.66+ (kind='credits')
-        // deployed; until then it just reads 0.
-        function renderShareSource() {
-            const el = document.getElementById('visitShareSource');
-            if (!el || !cachedStats) return;
-            const d = cachedStats;
-            const isLifetime = currentWindow === 'lifetime';
-            const suffix = '_' + currentWindow;
-            const pick = (base) => isLifetime ? (d[base] || 0) : (d[base + suffix] || 0);
-            const popup   = pick('shared_popup');
-            const score   = pick('shared_score');
-            const credits = pick('shared_credits');
-            const total = isLifetime ? (d.total_shared || 0) : (d['shared' + suffix] || 0);
-            const rows = [
-                { label: '🎉 "Enjoying it?" popup',  count: popup,   color: '#00ff64' },
-                { label: '🏁 Score / Solved card',   count: score,   color: '#3a7bd5' },
-                { label: '🎬 Menu credits popup',    count: credits, color: '#b678ff' },
-            ];
-            const max = Math.max(1, popup, score, credits);
-            let html = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Share Source</h3>';
-            rows.forEach(r => {
-                const w = (r.count / max * 100).toFixed(1);
-                html += `<div class="chart-row">
-                    <span class="chart-label" style="min-width: 175px;">${r.label}</span>
-                    <div class="chart-bar-bg"><div style="height: 100%; width: ${w}%; background: ${r.color}; opacity: 0.6;"></div></div>
-                    <span class="chart-count">${r.count}</span>
-                </div>`;
-            });
-            el.innerHTML = html;
-        }
-        function renderCreditsBreakdown() {
-            renderFlatBars('visitCredits', 'Credits Link Clicks', cachedStats.credits_breakdown, 'link', null, null);
-        }
-        // Solve audio context — % of puzzle solves with music / SFX audible.
-        // Window-aware (re-rendered by setWindow). Two independent pairs
-        // (music on/off, sfx on/off); each pair sums to 100% because every
-        // solve increments exactly one counter per channel. `|| 0` so the
-        // panel appears (all zeros) before the game back-end redeploys with
-        // these fields; solves also need front-end v0.67+ to be reported.
-        function renderSolveAudio() {
-            const el = document.getElementById('visitSolveAudio');
-            if (!el || !cachedStats) return;
-            const d = cachedStats;
-            const isLifetime = currentWindow === 'lifetime';
-            const suffix = '_' + currentWindow;
-            const pick = (base) => isLifetime ? (d[base] || 0) : (d[base + suffix] || 0);
-            const mOn  = pick('solves_music_on'),  mOff = pick('solves_music_off');
-            const sOn  = pick('solves_sfx_on'),    sOff = pick('solves_sfx_off');
-            const mTot = mOn + mOff, sTot = sOn + sOff;
-            const pc = (n, tot) => tot > 0 ? (n / tot * 100).toFixed(1) : '0.0';
-            const rows = [
-                { label: '🎵 Music on',  count: mOn,  pct: pc(mOn,  mTot), color: '#00ff64' },
-                { label: '🔇 Music off', count: mOff, pct: pc(mOff, mTot), color: '#666'    },
-                { label: '🔊 SFX on',    count: sOn,  pct: pc(sOn,  sTot), color: '#3a7bd5' },
-                { label: '🔕 SFX off',   count: sOff, pct: pc(sOff, sTot), color: '#666'    },
-            ];
-            let html = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Solve Audio</h3>';
-            html += `<div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">Of <strong>${mTot}</strong> puzzle solves (${currentWindow}), whether music / SFX were audible at the moment of the solve.</div>`;
-            rows.forEach(r => {
-                html += `<div class="chart-row">
-                    <span class="chart-label" style="min-width: 175px;">${r.label}</span>
-                    <div class="chart-bar-bg"><div style="height: 100%; width: ${r.pct}%; background: ${r.color}; opacity: 0.6;"></div></div>
-                    <span class="chart-count">${r.count} (${r.pct}%)</span>
-                </div>`;
-            });
-            el.innerHTML = html;
-        }
-        // ASPCA donation-link clicks. One link, so a headline count (not a
-        // multi-row breakdown), shown even at 0 — mirrors the Tantro admin
-        // page's panel so the two read identically. `|| 0` means the panel
-        // appears as soon as THIS page deploys, even before the game
-        // back-end redeploys with the total_donated field.
-        function renderDonate() {
-            const n = (cachedStats && cachedStats.total_donated) || 0;
-            document.getElementById('visitDonate').innerHTML = `
-                <h3 style="margin-bottom: 10px; color: var(--primary);">> ASPCA Donations</h3>
-                <div class="chart-row">
-                    <span class="chart-label" style="width: 150px; min-width: 150px;">🐾 Donate link clicks</span>
-                    <div style="flex: 1;"></div>
-                    <span class="chart-count">${n}</span>
-                </div>`;
-        }
-        function renderModeBreakdown() {
-            renderFlatBars('visitModes', 'Modes Played', cachedStats.mode_breakdown, 'mode',
-                { marathon: '#ffaa00', potd: '#00aaff' },
-                { marathon: '🏃', potd: '📅' });
-        }
-        function renderGameTypeBreakdown() {
-            renderFlatBars('visitGameTypes', 'Game Types Played', cachedStats.game_type_breakdown, 'gameType',
-                // s1..s4 cool blues, q1..q4 warm oranges so singular vs
-                // quad reads at a glance.
-                { s1: '#3a7bd5', s2: '#3d8bdc', s3: '#4099e4', s4: '#43a8eb',
-                  q1: '#f5852a', q2: '#f7913a', q3: '#f99e4a', q4: '#fbaa5a' },
-                null);
-        }
-
-        // ── Live auto-refresh ──
-        // Re-pull visit stats every 60s so the dashboard stays current
-        // without a manual click. Started only once the admin gate has
-        // passed (see checkAdmin). Pauses while the tab is backgrounded or
-        // the user is mid-interaction, and restores the open funnel-stage
-        // sub-tabs so the view doesn't snap back to "Visit" on each refresh.
-        const AUTO_REFRESH_MS = 60000;
-        let autoRefreshTimer = null;
-
-        function startAutoRefresh() {
-            if (autoRefreshTimer) return;
-            autoRefreshTimer = setInterval(autoRefreshTick, AUTO_REFRESH_MS);
-        }
-
-        function userIsInteracting() {
-            const el = document.activeElement;
-            return !!el && ['INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName);
-        }
-
-        // Capture/restore the open funnel stage per staged panel, keyed off
-        // the currently-shown panel (reliable regardless of tab highlighting).
-        function captureStageState() {
-            const state = {};
-            document.querySelectorAll('.stage-panel.active[data-group]').forEach(p => {
-                state[p.getAttribute('data-group')] = p.getAttribute('data-stage');
-            });
-            return state;
-        }
-        function restoreStageState(state) {
-            Object.keys(state).forEach(group => {
-                const stage = state[group];
-                const tabs = document.querySelector(`.stage-tabs[data-group="${group}"]`);
-                if (tabs) tabs.querySelectorAll('.stage-tab').forEach(t =>
-                    t.classList.toggle('active', t.getAttribute('data-stage') === stage));
-                document.querySelectorAll(`.stage-panel[data-group="${group}"]`).forEach(p =>
-                    p.classList.toggle('active', p.getAttribute('data-stage') === stage));
-            });
-        }
-
-        async function autoRefreshTick() {
-            if (document.hidden || userIsInteracting()) return;
-            const stageState = captureStageState();
-            await loadVisitStats();
-            restoreStageState(stageState);
-        }
-
-        // Returning to a backgrounded tab refreshes right away rather than
-        // waiting out the rest of the interval.
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && autoRefreshTimer) autoRefreshTick();
-        });
-
-        checkAdmin();
+        
+        document.addEventListener('DOMContentLoaded', loadBlogPosts);
     </script>
 </body>
 </html>
