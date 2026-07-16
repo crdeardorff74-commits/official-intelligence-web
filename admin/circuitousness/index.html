@@ -181,6 +181,7 @@
                     <div id="visitModes"></div>
                     <div id="visitGameTypes"></div>
                     <div id="visitSolveAudio"></div>
+                    <div id="visitSolves"></div>
                     <div id="visitPlays"></div>
                 </div>
             </div>
@@ -242,7 +243,14 @@
                 cachedStats = data;
                 renderSummary();
                 renderOnsiteFunnel();
-                renderPlaysPerSession('visitPlays', 'Puzzles per Session', cachedStats.plays_per_session, 'puzzle');
+                // "Puzzles Solved" counts real per-puzzle solves (from the
+                // per-solve audio counters, collected since the 2026-07-02
+                // API deploy). "Games Started" buckets game_type entries —
+                // one per RUN in Marathon/Zen (a 10-puzzle run = 1), one
+                // per daily puzzle in PotD; it was mislabeled "Puzzles per
+                // Session" until 2026-07-16.
+                renderPlaysPerSession('visitSolves', 'Puzzles Solved per Session', cachedStats.solves_per_session, 'puzzle');
+                renderPlaysPerSession('visitPlays', 'Games Started per Session', cachedStats.plays_per_session, 'game');
                 renderDailyChart();
                 renderTopReferrers();
                 renderTopLanguages();
@@ -381,11 +389,12 @@
             el.innerHTML = intro + uniqBlock + loadBlock;
         }
 
-        // Plays-per-session distribution (1/2/3/4/5+). Each bucket's bar
-        // width and trailing (x%) are its share of all sessions that
-        // started >=1 puzzle, so the column sums to 100%. One page-load
+        // Per-session distribution renderer (1/2/3/4/5+), shared by the
+        // "Puzzles Solved" and "Games Started" panels. Each bucket's bar
+        // width and trailing (x%) are its share of all sessions with >=1
+        // of the counted thing, so the column sums to 100%. One page-load
         // session = one "player" (the visit id isn't persisted across
-        // reloads), so this reads as puzzles-per-sitting.
+        // reloads), so both read as per-sitting distributions.
         function renderPlaysPerSession(elId, title, list, noun) {
             const el = document.getElementById(elId);
             if (!el) return;
