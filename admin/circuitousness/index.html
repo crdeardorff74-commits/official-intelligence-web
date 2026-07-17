@@ -840,13 +840,14 @@
                 </div>`;
         }
         function renderModeBreakdown() {
-            // DB stores the mode as 'practice'; the game calls it Zen (🧘)
-            // in the UI, so relabel for display only.
+            // DB stores lowercase mode keys ('practice', 'potd', 'marathon');
+            // relabel for display only — 'practice' is called Zen (🧘) in-game.
+            const labels = { practice: 'Zen', potd: 'PotD', marathon: 'Marathon' };
             const modes = ((cachedStats && cachedStats.mode_breakdown) || []).map(m =>
-                m.mode === 'practice' ? { ...m, mode: 'Zen' } : m);
+                ({ ...m, mode: labels[m.mode] || m.mode }));
             renderFlatBars('visitModes', 'Modes Played', modes, 'mode',
-                { marathon: '#ffaa00', potd: '#00aaff', Zen: '#888' },
-                { marathon: '🏃', potd: '📅', Zen: '🧘' });
+                { Marathon: '#ffaa00', PotD: '#00aaff', Zen: '#888' },
+                { Marathon: '🏃', PotD: '📅', Zen: '🧘' });
         }
         function renderGameTypeBreakdown() {
             renderFlatBars('visitGameTypes', 'Game Types Played', cachedStats.game_type_breakdown, 'gameType',
