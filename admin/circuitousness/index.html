@@ -840,9 +840,13 @@
                 </div>`;
         }
         function renderModeBreakdown() {
-            renderFlatBars('visitModes', 'Modes Played', cachedStats.mode_breakdown, 'mode',
-                { marathon: '#ffaa00', potd: '#00aaff' },
-                { marathon: '🏃', potd: '📅' });
+            // DB stores the mode as 'practice'; the game calls it Zen (🧘)
+            // in the UI, so relabel for display only.
+            const modes = ((cachedStats && cachedStats.mode_breakdown) || []).map(m =>
+                m.mode === 'practice' ? { ...m, mode: 'Zen' } : m);
+            renderFlatBars('visitModes', 'Modes Played', modes, 'mode',
+                { marathon: '#ffaa00', potd: '#00aaff', Zen: '#888' },
+                { marathon: '🏃', potd: '📅', Zen: '🧘' });
         }
         function renderGameTypeBreakdown() {
             renderFlatBars('visitGameTypes', 'Game Types Played', cachedStats.game_type_breakdown, 'gameType',
