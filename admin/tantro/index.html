@@ -304,7 +304,6 @@
                         <div id="visitStats">
                             <div class="loading">Loading visit stats...</div>
                         </div>
-                        <div id="visitPlays" style="margin-top: 20px;"></div>
                         <div id="visitChart" style="margin-top: 20px;"></div>
                         <div id="visitRecent" style="margin-top: 20px;"></div>
                         <div id="visitReferrers" style="margin-top: 20px;"></div>
@@ -330,6 +329,7 @@
                         <div id="visitDifficulty"></div>
                         <div id="visitSkillLevel"></div>
                         <div id="visitModes"></div>
+                        <div id="visitPlays"></div>
                         <div id="visitChallenges"></div>
                     </div>
                 </div>
@@ -1194,7 +1194,9 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
 
         // Recent individual visits — spot-check for double-counts (same
         // Session prefix on two rows = one browser reloaded/relaunched) and
-        // bots (the User-Agent column). S/F/Sh = Started / Finished / Shared.
+        // bots (the User-Agent column). M/S/F/Sh = reached Menu / Started /
+        // Finished / Shared; Tantro has no intro gate, so the Menu dot is
+        // always lit — one dot alone reads "visited but never started".
         // Not window-filtered — always the newest rows overall. Mirrors the
         // Circuitousness admin panel (minus its embed/redirect Src column —
         // Tantro doesn't track embedding).
@@ -1215,7 +1217,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                  +  '<th style="text-align:left;padding:4px;">Session</th>'
                  +  '<th style="text-align:left;padding:4px;">Device</th>'
                  +  '<th style="text-align:left;padding:4px;">Lang</th>'
-                 +  '<th style="text-align:center;padding:4px;" title="Started / Finished / Shared">S/F/Sh</th>'
+                 +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished / Shared — Tantro has no intro gate, so every visit reaches the menu and the first dot is always lit">M/S/F/Sh</th>'
                  +  '<th style="text-align:left;padding:4px;">User-Agent</th>'
                  +  '</tr>';
             rows.forEach(r => {
@@ -1233,7 +1235,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                     <td style="padding:4px;${sessStyle}">${escapeHtml(r.session)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.device)}/${escapeHtml(r.os)}</td>
                     <td style="padding:4px;color:var(--text-dim);">${escapeHtml(r.lang)}</td>
-                    <td style="padding:4px;text-align:center;white-space:nowrap;">${flag(r.started)}${flag(r.finished)}${flag(r.shared)}</td>
+                    <td style="padding:4px;text-align:center;white-space:nowrap;">${flag(true)}${flag(r.started)}${flag(r.finished)}${flag(r.shared)}</td>
                     <td style="padding:4px;color:var(--text-dim);" title="${escapeHtml(ua)}">${escapeHtml(uaShort)}</td>
                 </tr>`;
             });
