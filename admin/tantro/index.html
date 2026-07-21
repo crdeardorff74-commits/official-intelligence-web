@@ -306,10 +306,22 @@
                         </div>
                         <div id="visitPlays" style="margin-top: 20px;"></div>
                         <div id="visitChart" style="margin-top: 20px;"></div>
+                        <div id="visitRecent" style="margin-top: 20px;"></div>
                         <div id="visitReferrers" style="margin-top: 20px;"></div>
                         <div id="visitLanguages" style="margin-top: 20px;"></div>
                     </div>
                     <div class="visits-right">
+                        <div id="visitReturning" style="grid-column: 1 / -1;">
+                            <h3 style="margin-bottom: 6px; color: var(--primary);">> Return Players Audit</h3>
+                            <div style="margin-bottom:10px;">
+                                <button class="btn btn-primary" style="font-size:9px;padding:2px 12px;" onclick="stepReturning(-1)" title="Previous day" aria-label="Previous day">◀</button>
+                                <input type="date" id="returningDate"
+                                    style="background:#000;color:var(--primary);border:1px solid var(--primary);font-family:'VT323',monospace;font-size:14px;padding:2px 6px;"
+                                    onchange="loadReturning()">
+                                <button class="btn btn-primary" style="font-size:9px;padding:2px 12px;" onclick="stepReturning(1)" title="Next day" aria-label="Next day">▶</button>
+                            </div>
+                            <div id="returningResults"><div class="loading">Loading return-player audit...</div></div>
+                        </div>
                         <div id="visitDevices"></div>
                         <div id="visitOS"></div>
                         <div id="visitShares"></div>
@@ -895,15 +907,17 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                         document.getElementById('visitPlays').innerHTML = playsHtml;
                     }
 
-                    // Daily chart (text-based bar chart)
-                    if (data.daily_visits && data.daily_visits.length > 0) {
-                        const maxVisits = Math.max(...data.daily_visits.map(d => d.visits));
+                    // Daily chart (text-based bar chart). The API returns up
+                    // to 30 days ascending; show only the newest 14.
+                    const dailyDays = (data.daily_visits || []).slice(-14);
+                    if (dailyDays.length > 0) {
+                        const maxVisits = Math.max(...dailyDays.map(d => d.visits));
                         const barWidth = maxVisits > 0 ? 100 / maxVisits : 0;
-                        
-                        let chartHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Daily Visits (30 days)</h3>';
+
+                        let chartHtml = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Daily Visits (14 days)</h3>';
                         chartHtml += '<div style="font-family: monospace; font-size: 12px;">';
                         // Most-recent day on top (the API returns ascending by date).
-                        [...data.daily_visits].reverse().forEach(d => {
+                        [...dailyDays].reverse().forEach(d => {
                             const visitBar = Math.round(d.visits * barWidth);
                             const startedBar = Math.round(d.started * barWidth);
                             const finishedBar = Math.round(d.finished * barWidth);
@@ -1165,10 +1179,170 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                         });
                         document.getElementById('visitChallenges').innerHTML = chalHtml;
                     }
+
+                    renderRecentVisits();
                 }
             } catch (err) {
                 document.getElementById('visitStats').innerHTML = '<p style="color: var(--text-dim);">Failed to load visit stats</p>';
+            } finally {
+                // Return-players audit is a separate, date-scoped fetch; run it
+                // on every stats load (initial + auto-refresh) so it stays
+                // current. Independent of the window tabs above.
+                loadReturning();
             }
+        }
+
+        // Recent individual visits — spot-check for double-counts (same
+        // Session prefix on two rows = one browser reloaded/relaunched) and
+        // bots (the User-Agent column). S/F/Sh = Started / Finished / Shared.
+        // Not window-filtered — always the newest rows overall. Mirrors the
+        // Circuitousness admin panel (minus its embed/redirect Src column —
+        // Tantro doesn't track embedding).
+        function renderRecentVisits() {
+            const rows = (cachedStats && cachedStats.recent_visits) || [];
+            const el = document.getElementById('visitRecent');
+            if (!el) return;
+            if (rows.length === 0) { el.innerHTML = ''; return; }
+            // Count session prefixes so repeats (double-loads) can be flagged.
+            const counts = {};
+            rows.forEach(r => { counts[r.session] = (counts[r.session] || 0) + 1; });
+            const flag = b => b ? '<span style="color:#00ff64;">●</span>' : '<span style="color:#444;">○</span>';
+            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> Recent Visits <span style="font-size:11px;color:var(--text-dim);">(newest ${rows.length} — repeated Session = same browser)</span></h3>`;
+            html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+            html += '<tr style="border-bottom:1px solid var(--primary);">'
+                 +  '<th style="text-align:left;padding:4px;">Time</th>'
+                 +  '<th style="text-align:left;padding:4px;">Referrer</th>'
+                 +  '<th style="text-align:left;padding:4px;">Session</th>'
+                 +  '<th style="text-align:left;padding:4px;">Device</th>'
+                 +  '<th style="text-align:left;padding:4px;">Lang</th>'
+                 +  '<th style="text-align:center;padding:4px;" title="Started / Finished / Shared">S/F/Sh</th>'
+                 +  '<th style="text-align:left;padding:4px;">User-Agent</th>'
+                 +  '</tr>';
+            rows.forEach(r => {
+                let t = '?';
+                if (r.time) { const d = new Date(r.time); t = d.toLocaleString([], {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}); }
+                const ref = (r.referrer || '').replace(/^https?:\/\//, '');
+                const refShort = ref.length > 34 ? ref.slice(0, 34) + '…' : ref;
+                const dupe = counts[r.session] > 1;
+                const sessStyle = dupe ? 'color:#ffaa00;font-weight:bold;' : '';
+                const ua = r.ua || '';
+                const uaShort = ua.length > 52 ? ua.slice(0, 52) + '…' : ua;
+                html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(t)}</td>
+                    <td style="padding:4px;word-break:break-all;" title="${escapeHtml(r.referrer || '')}">${escapeHtml(refShort)}</td>
+                    <td style="padding:4px;${sessStyle}">${escapeHtml(r.session)}</td>
+                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.device)}/${escapeHtml(r.os)}</td>
+                    <td style="padding:4px;color:var(--text-dim);">${escapeHtml(r.lang)}</td>
+                    <td style="padding:4px;text-align:center;white-space:nowrap;">${flag(r.started)}${flag(r.finished)}${flag(r.shared)}</td>
+                    <td style="padding:4px;color:var(--text-dim);" title="${escapeHtml(ua)}">${escapeHtml(uaShort)}</td>
+                </tr>`;
+            });
+            html += '</table>';
+            el.innerHTML = html;
+        }
+
+        // ── Return-players audit ──
+        // Drill-down for the daily email's "Return players" number: lists each
+        // returning browser for one CT day, and when it was first seen playing.
+        // Date-scoped (one CT day), independent of the window tabs above.
+        // Mirrors build_daily_summary's detection (a prior-day page-visit that
+        // started a game), so the count here equals the email's for the same
+        // date. Read-only.
+        function defaultReturningDate() {
+            // Today's date in CT, as YYYY-MM-DD. en-CA formats as ISO;
+            // America/Chicago matches the back-end's day bounds. The panel's
+            // live use is "who came back today", so it defaults to the current
+            // CT day and the ◀ arrow reaches yesterday (the digest's day) in
+            // one click.
+            return new Date()
+                .toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+        }
+        // ◀ / ▶ arrows: step the audit date by ±1 day and reload. Parses the
+        // YYYY-MM-DD string at UTC noon so the ±86400s hop can't land on the
+        // wrong calendar day (midnight UTC ±1h DST shifts would); the result
+        // is read back out of the ISO string, no local-timezone round trip.
+        function stepReturning(delta) {
+            const input = document.getElementById('returningDate');
+            if (!input) return;
+            const cur = input.value || defaultReturningDate();
+            const d = new Date(cur + 'T12:00:00Z');
+            if (isNaN(d)) { input.value = defaultReturningDate(); loadReturning(); return; }
+            d.setUTCDate(d.getUTCDate() + delta);
+            input.value = d.toISOString().slice(0, 10);
+            loadReturning();
+        }
+        async function loadReturning() {
+            const out = document.getElementById('returningResults');
+            if (!out) return;
+            const input = document.getElementById('returningDate');
+            if (input && !input.value) input.value = defaultReturningDate();
+            const dateStr = (input && input.value) || defaultReturningDate();
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/returning?date=${dateStr}&_=${Date.now()}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                // Read as text first and parse defensively: a server 500 returns
+                // an HTML error page, and res.json() on that throws an opaque
+                // "Unexpected token '<'". This way we surface the real status.
+                const body = await res.text();
+                let data = null;
+                try { data = JSON.parse(body); } catch (_) { /* non-JSON (HTML error page) */ }
+                if (!res.ok || !data) {
+                    const msg = (data && data.error) ? data.error
+                        : res.status === 404
+                            ? 'Endpoint not live yet — redeploy the back-end (GET /api/admin/returning).'
+                            : `HTTP ${res.status} ${res.statusText} — server error (check Render logs).`;
+                    out.innerHTML = `<div style="color:#888;padding:5px;">${escapeHtml(msg)}</div>`;
+                    return;
+                }
+                renderReturning(data);
+            } catch (e) {
+                out.innerHTML = `<div style="color:#888;padding:5px;">Network error: ${escapeHtml(e.message || e)}</div>`;
+            }
+        }
+        function renderReturning(data) {
+            const out = document.getElementById('returningResults');
+            if (!out) return;
+            const players = (data && data.players) || [];
+            const summary = `<div style="margin-bottom:8px;">
+                <span style="color:var(--primary);font-size:14px;">${data.returning}</span>
+                <span style="color:var(--text-dim);"> returning of ${data.unique_visitors} unique browsers (${data.pct_returning}%)</span></div>`;
+            if (players.length === 0) {
+                out.innerHTML = summary + '<div style="color:#666;padding:5px;">No returning players that day.</div>';
+                return;
+            }
+            // Badge per prior-day source. Tantro only has one (a prior
+            // page-visit that started a game); kept as a badge column so the
+            // panel reads the same as Circuitousness's.
+            const srcColor = { page_visits: '#ffaa00' };
+            const srcLabel = { page_visits: 'visit' };
+            let html = summary;
+            html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+            html += '<tr style="border-bottom:1px solid var(--primary);">'
+                 +  '<th style="text-align:left;padding:4px;">First seen</th>'
+                 +  '<th style="text-align:left;padding:4px;" title="which prior-day record proves they played before">Played before via</th>'
+                 +  '<th style="text-align:left;padding:4px;">Session</th>'
+                 +  '<th style="text-align:left;padding:4px;">Device</th>'
+                 +  '<th style="text-align:left;padding:4px;">Lang</th>'
+                 +  '<th style="text-align:left;padding:4px;">Returned (CT)</th>'
+                 +  '</tr>';
+            players.forEach(p => {
+                const sid = p.session_id || '';
+                const sidShort = sid.length > 12 ? sid.slice(0, 12) + '…' : sid;
+                const badges = (p.sources || []).map(s =>
+                    `<span style="display:inline-block;border:1px solid ${srcColor[s] || '#888'};color:${srcColor[s] || '#888'};border-radius:3px;padding:0 5px;margin-right:4px;font-size:10px;">${escapeHtml(srcLabel[s] || s)}</span>`
+                ).join('');
+                html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;" title="${escapeHtml(p.first_seen_ct || '')}">${escapeHtml(p.first_seen_date || '?')}</td>
+                    <td style="padding:4px;">${badges}</td>
+                    <td style="padding:4px;color:var(--text-dim);" title="${escapeHtml(sid)}">${escapeHtml(sidShort)}</td>
+                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(p.device || '?')}/${escapeHtml(p.os || '?')}</td>
+                    <td style="padding:4px;color:var(--text-dim);">${escapeHtml(p.language || '?')}</td>
+                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(p.today_first_visit_ct || '?')}</td>
+                </tr>`;
+            });
+            html += '</table>';
+            out.innerHTML = html;
         }
         
         // ── Live auto-refresh ──
