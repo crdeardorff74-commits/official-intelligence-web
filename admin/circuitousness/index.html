@@ -279,7 +279,7 @@
             document.querySelectorAll('.window-tab').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentWindow = win;
-            if (cachedStats) { renderSummary(); renderShareSource(); renderSolveAudio(); }
+            if (cachedStats) { renderSummary(); renderOnsiteFunnel(); renderShareSource(); renderSolveAudio(); }
         }
 
         function renderSummary() {
@@ -332,8 +332,10 @@
         // platform-redirect.js diverts BEFORE the intro (a handoff, not a
         // rejection). This panel isolates own-origin traffic so the
         // intro-bounce read is real, and shows how much volume is embed
-        // handoff noise. Lifetime (back-end sends these lifetime-only).
-        // Hidden entirely until the back-end redeploys with the fields.
+        // handoff noise. Follows the LIFETIME/24H/7D/30D window tabs once
+        // the back-end sends the windowed onsite_* fields (falls back to
+        // lifetime figures pre-deploy — added so intro-screen changes are
+        // measurable instead of drowning in lifetime history).
         function renderOnsiteFunnel() {
             const el = document.getElementById('visitOnsite');
             if (!el || !cachedStats) return;
@@ -348,10 +350,20 @@
                 return;
             }
             el.style.display = '';
-            const onsite = d.onsite_visits || 0;
-            const agreed = d.onsite_agreed || 0;
-            const bounce = d.onsite_intro_bounce || 0;
-            const rate   = d.onsite_agree_rate || 0;
+            // Window-aware field picks. hasWin guards the pre-deploy window
+            // where only lifetime fields exist — the panel then shows
+            // lifetime numbers regardless of the selected tab, labeled so.
+            const isLifetime = currentWindow === 'lifetime';
+            const suffix     = '_' + currentWindow;
+            const hasWin     = d.onsite_visits_7d !== undefined;
+            const winLive    = !isLifetime && hasWin;
+            const pick       = (base) => winLive ? (d[base + suffix] || 0) : (d[base] || 0);
+            const winLabel   = winLive ? ('last ' + currentWindow) : 'lifetime';
+
+            const onsite = pick('onsite_visits');
+            const agreed = pick('onsite_agreed');
+            const bounce = onsite - agreed;
+            const rate   = pick('onsite_agree_rate');
             const emb    = d.total_embedded || 0;
             const red    = d.total_redirected || 0;
 
@@ -359,15 +371,15 @@
             // until the back-end redeploys with onsite_uniq_* — fall back to
             // the per-load-only layout in that window.
             const hasUniq = d.onsite_uniq_visitors !== undefined;
-            const uVis    = d.onsite_uniq_visitors || 0;
-            const uAgr    = d.onsite_uniq_agreed || 0;
-            const uBnc    = d.onsite_uniq_bounce || 0;
-            const uRate   = d.onsite_uniq_agree_rate || 0;
+            const uVis    = pick('onsite_uniq_visitors');
+            const uAgr    = pick('onsite_uniq_agreed');
+            const uBnc    = uVis - uAgr;
+            const uRate   = pick('onsite_uniq_agree_rate');
 
             const intro = `
                 <h3 style="margin-bottom: 6px; color: var(--primary);">> On-site Intro Funnel</h3>
                 <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">
-                    Own-origin traffic only (lifetime). Embed loads — itch, CrazyGames, etc. (<strong>${emb}</strong>, of which <strong>${red}</strong> were itch mobile redirect handoffs) — are excluded.
+                    Own-origin traffic only (<strong>${winLabel}</strong>). Embed loads — itch, CrazyGames, etc. (<strong>${emb}</strong>, of which <strong>${red}</strong> were itch mobile redirect handoffs; lifetime counts) — are excluded.
                 </div>`;
 
             // Per-browser (deduped) — the headline. A browser counts as
