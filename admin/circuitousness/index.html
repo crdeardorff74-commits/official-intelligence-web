@@ -338,7 +338,16 @@
             const el = document.getElementById('visitOnsite');
             if (!el || !cachedStats) return;
             const d = cachedStats;
-            if (d.onsite_visits === undefined) { el.innerHTML = ''; return; }  // pre-deploy
+            // The container ships display:none inline; un-hide only once the
+            // back-end actually sends the onsite_* fields. (This flip was
+            // missing for a while — the panel rendered its HTML into a
+            // hidden div, which read as "funnel stats suppressed".)
+            if (d.onsite_visits === undefined) {
+                el.innerHTML = '';
+                el.style.display = 'none';
+                return;
+            }
+            el.style.display = '';
             const onsite = d.onsite_visits || 0;
             const agreed = d.onsite_agreed || 0;
             const bounce = d.onsite_intro_bounce || 0;
