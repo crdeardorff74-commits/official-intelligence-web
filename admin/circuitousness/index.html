@@ -55,12 +55,16 @@
             gap: 2vw;
             margin-top: 20px;
         }
+        /* 45:55 split (user call 2026-07-29 — the right column carries the
+           denser panels). flex-grow ratios over a 0 basis divide the space
+           left after the 2vw gap exactly 45/55; the ≤1200px media query
+           still stacks them full-width. */
         .visits-left {
-            flex: 1;
+            flex: 45 1 0;
             min-width: 0;
         }
         .visits-right {
-            flex: 1;
+            flex: 55 1 0;
             min-width: 0;
             display: grid;
             grid-template-columns: 1fr 1fr;
