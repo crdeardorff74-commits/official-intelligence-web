@@ -147,6 +147,10 @@
                 <button class="window-tab"        data-window="24h"      onclick="setWindow(this, '24h')">LAST 24H</button>
                 <button class="window-tab"        data-window="7d"       onclick="setWindow(this, '7d')">LAST 7D</button>
                 <button class="window-tab"        data-window="30d"      onclick="setWindow(this, '30d')">LAST 30D</button>
+                <!-- Show/hide toggle for the On-site Intro Funnel panel.
+                     Sticky per-browser (localStorage); label/active state
+                     set by applyFunnelToggle() on load. -->
+                <button class="window-tab" id="funnelToggle" style="margin-left: auto;" onclick="toggleFunnel()">INTRO FUNNEL</button>
             </div>
 
             <div class="visits-two-col">
@@ -207,6 +211,36 @@
         let cachedStats    = null;
         let cachedFirstRun = null;
         let currentWindow  = 'lifetime';
+
+        // ── On-site Intro Funnel show/hide toggle ──
+        // Sticky per-browser. renderOnsiteFunnel consults funnelHidden, so
+        // the panel stays hidden across window-tab switches and the
+        // auto-refresh re-renders alike.
+        const FUNNEL_HIDE_KEY = 'circ_admin_hideIntroFunnel';
+        let funnelHidden = (function () {
+            try { return localStorage.getItem(FUNNEL_HIDE_KEY) === '1'; }
+            catch (e) { return false; }
+        })();
+        function applyFunnelToggle() {
+            const btn = document.getElementById('funnelToggle');
+            if (btn) {
+                btn.classList.toggle('active', !funnelHidden);
+                btn.textContent = funnelHidden ? 'INTRO FUNNEL: HIDDEN' : 'INTRO FUNNEL: SHOWN';
+            }
+            renderOnsiteFunnel();
+        }
+        function toggleFunnel() {
+            funnelHidden = !funnelHidden;
+            try {
+                if (funnelHidden) localStorage.setItem(FUNNEL_HIDE_KEY, '1');
+                else localStorage.removeItem(FUNNEL_HIDE_KEY);
+            } catch (e) {}
+            applyFunnelToggle();
+        }
+        // Initialize the toggle button's label/active state from the
+        // persisted preference (script runs at end of body, DOM is ready;
+        // renderOnsiteFunnel inside no-ops until stats arrive).
+        applyFunnelToggle();
 
         function escapeHtml(s) {
             return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -352,7 +386,14 @@
         // measurable instead of drowning in lifetime history).
         function renderOnsiteFunnel() {
             const el = document.getElementById('visitOnsite');
-            if (!el || !cachedStats) return;
+            if (!el) return;
+            // Admin toggle wins over everything: when hidden, the panel
+            // stays dark even though the API sends the onsite_* fields.
+            if (funnelHidden) {
+                el.style.display = 'none';
+                return;
+            }
+            if (!cachedStats) return;
             const d = cachedStats;
             // The container ships display:none inline; un-hide only once the
             // back-end actually sends the onsite_* fields. (This flip was
