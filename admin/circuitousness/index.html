@@ -791,7 +791,7 @@
                     One row per new browser, opened by the first-visit auto-start run (<strong>${escapeHtml(winLabel)}</strong>).
                     "Outside the run" = any later voluntary play — menu Zen/Marathon, resumes, PotD — same sitting or any later day.
                 </div>
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:15px;">
+                <div style="display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:10px;">
                     <div class="stat-card"><div class="stat-value">${w.players || 0}</div><div class="stat-label">New players</div></div>
                     <div class="stat-card"><div class="stat-value">${w.avg_initial_puzzles || 0}</div><div class="stat-label">Avg puzzles, first run</div></div>
                     <div class="stat-card"><div class="stat-value">${w.howto_rate || 0}%</div><div class="stat-label">Opened How-to-Solve</div>${sub((w.howto_clicked || 0) + ' of ' + (w.players || 0))}</div>
