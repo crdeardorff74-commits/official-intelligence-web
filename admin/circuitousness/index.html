@@ -1046,8 +1046,17 @@
                 { label: '🔊 SFX on',    count: sOn,  pct: pc(sOn,  sTot), color: '#3a7bd5' },
                 { label: '🔕 SFX off',   count: sOff, pct: pc(sOff, sTot), color: '#666'    },
             ];
-            let html = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Solve Audio</h3>';
-            html += `<div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">Of <strong>${mTot}</strong> puzzle solves (${currentWindow}), whether music / SFX were audible at the moment of the solve.</div>`;
+            // Alternate-route solves (winning route ≠ designed solution) —
+            // rides this panel because it shares the per-solve counter
+            // denominator (mTot = every solve). Hidden until the back-end
+            // redeploys with the field; counted since 2026-07-29, so
+            // lifetime % only reflects post-deploy solves.
+            if (d.solves_alternate !== undefined) {
+                const alt = pick('solves_alternate');
+                rows.push({ label: '🔀 Alternate route', count: alt, pct: pc(alt, mTot), color: '#ffaa00' });
+            }
+            let html = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Solve Audio + Routes</h3>';
+            html += `<div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">Of <strong>${mTot}</strong> puzzle solves (${currentWindow}): music / SFX audibility at the solve, and how many won via a route other than the designed solution.</div>`;
             rows.forEach(r => {
                 html += `<div class="chart-row">
                     <span class="chart-label" style="min-width: 175px;">${r.label}</span>
