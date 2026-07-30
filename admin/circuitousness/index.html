@@ -830,12 +830,12 @@
                 };
                 const order = ['fast', 'standard', 'extended', 'single', 'pre'];
                 html += `<div style="margin-top:14px;">
-                    <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">Ladder experiment — which first-run variant engages best (engaged-only stats, same window as the cards):</div>
+                    <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">Ladder experiment — which first-run variant engages best. Stats here count only runs with <strong>≥3 initial-run solves</strong>: the four ladders are identical through puzzle 3, so shallower runs can't distinguish them.</div>
                     <table style="width:100%;border-collapse:collapse;font-size:12px;">
                     <tr style="border-bottom:1px solid var(--primary);">
                         <th style="text-align:left;padding:4px;">Variant</th>
                         <th style="text-align:right;padding:4px;">Players</th>
-                        <th style="text-align:right;padding:4px;" title="engaged / bounced (0 puzzles)">Eng / Bnc</th>
+                        <th style="text-align:right;padding:4px;" title="reached the divergence point (3+ initial-run solves) / didn't">3+ / &lt;3</th>
                         <th style="text-align:right;padding:4px;">Avg puzzles</th>
                         <th style="text-align:right;padding:4px;">How-to</th>
                         <th style="text-align:right;padding:4px;" title="of How-to openers">Tutorial</th>
