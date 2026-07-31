@@ -795,6 +795,15 @@
             const newPlayersSub = (w.engaged !== undefined)
                 ? sub(eng + ' engaged · ' + (w.bounced || 0) + ' bounced (0 puzzles)')
                 : '';
+            // Avg-puzzles sub-line carries the ≥3 average beside the card's
+            // ≥1 one. The two bars aren't comparable, and the ladder table
+            // below uses ≥3 — without both figures on the card its 3.53
+            // reads as contradicting variant rows of 5-7 (user, 2026-07-31).
+            // Omitted (not shown as 0) until the back-end ships the field.
+            const avgSub = (w.avg_initial_puzzles_3plus !== undefined)
+                ? sub('≥1 solve · <strong>' + w.avg_initial_puzzles_3plus
+                      + '</strong> at ≥3 (' + (w.engaged_3plus || 0) + ' players)')
+                : sub('engaged only');
             el.style.display = '';
             let html = `
                 <h3 style="margin-bottom: 6px; color: var(--primary);">> First-Time Players</h3>
@@ -805,7 +814,7 @@
                 </div>
                 <div style="display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:10px;">
                     <div class="stat-card"><div class="stat-value">${w.players || 0}</div><div class="stat-label">New players</div>${newPlayersSub}</div>
-                    <div class="stat-card"><div class="stat-value">${w.avg_initial_puzzles || 0}</div><div class="stat-label">Avg puzzles, first run</div>${sub('engaged only')}</div>
+                    <div class="stat-card"><div class="stat-value">${w.avg_initial_puzzles || 0}</div><div class="stat-label">Avg puzzles, first run</div>${avgSub}</div>
                     <div class="stat-card"><div class="stat-value">${w.howto_rate || 0}%</div><div class="stat-label">Opened How-to-Solve</div>${sub((w.howto_clicked || 0) + ' of ' + eng)}</div>
                     <div class="stat-card"><div class="stat-value">${w.tutorial_rate || 0}%</div><div class="stat-label">Watched it through</div>${sub((w.tutorial_completed || 0) + ' of ' + (w.howto_clicked || 0) + ' openers')}</div>
                     <div class="stat-card"><div class="stat-value">${w.nudge_rate || 0}%</div><div class="stat-label">PotD nudge clicked</div>${sub((w.potd_nudge_clicked || 0) + ' of ' + eng)}</div>
