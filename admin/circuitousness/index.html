@@ -830,12 +830,12 @@
                 };
                 const order = ['fast', 'standard', 'extended', 'single', 'pre'];
                 html += `<div style="margin-top:14px;">
-                    <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">Ladder experiment — which first-run variant engages best. Stats here count only runs with <strong>≥3 initial-run solves</strong>: the four ladders are identical through puzzle 3, so shallower runs can't distinguish them.</div>
+                    <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">Ladder experiment — which first-run variant engages best. Stats here count only runs with <strong>≥3 initial-run solves</strong>: the four ladders are identical through puzzle 3, so shallower runs can't distinguish them. The <strong>&lt;3</strong> figure's parenthetical is how many of those discarded players never came back — the rest returned on a later visit and started playing again.</div>
                     <table style="width:100%;border-collapse:collapse;font-size:12px;">
                     <tr style="border-bottom:1px solid var(--primary);">
                         <th style="text-align:left;padding:4px;">Variant</th>
                         <th style="text-align:right;padding:4px;">Players</th>
-                        <th style="text-align:right;padding:4px;" title="reached the divergence point (3+ initial-run solves) / didn't">3+ / &lt;3</th>
+                        <th style="text-align:right;padding:4px;" title="reached the divergence point (3+ initial-run solves) / didn't. The number in parentheses is how many of the &lt;3 group never returned: a later visit where they started playing again counts as a return, so the parenthetical is the genuinely-lost count.">3+ / &lt;3 (lost)</th>
                         <th style="text-align:right;padding:4px;">Avg puzzles</th>
                         <th style="text-align:right;padding:4px;">How-to</th>
                         <th style="text-align:right;padding:4px;" title="of How-to openers">Tutorial</th>
@@ -847,10 +847,20 @@
                 order.forEach((k) => {
                     const v = vmap[k];
                     if (!v) return;
+                    // "(lost)" = discarded players who never came back to play
+                    // on a later visit. Omitted entirely (not shown as 0) when
+                    // the back-end predates the field, so a stale API can't
+                    // read as "nobody returned"; also omitted when nothing
+                    // bounced, where it would just be noise.
+                    const bounced = v.bounced || 0;
+                    const lost    = (v.bounced_lost !== undefined) ? v.bounced_lost : null;
+                    const lostTxt = (lost !== null && bounced > 0)
+                        ? ` <span title="${bounced - lost} of these ${bounced} came back on a later visit and started playing again">(${lost})</span>`
+                        : '';
                     html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
                         <td style="padding:4px;color:var(--text-dim);">${escapeHtml(VLABELS[k] || k)}</td>
                         <td style="text-align:right;padding:4px;">${v.players || 0}</td>
-                        <td style="text-align:right;padding:4px;color:var(--text-dim);">${v.engaged || 0} / ${v.bounced || 0}</td>
+                        <td style="text-align:right;padding:4px;color:var(--text-dim);">${v.engaged || 0} / ${bounced}${lostTxt}</td>
                         <td style="text-align:right;padding:4px;">${v.avg_initial_puzzles || 0}</td>
                         <td style="text-align:right;padding:4px;">${v.howto_rate || 0}%</td>
                         <td style="text-align:right;padding:4px;">${v.tutorial_rate || 0}%</td>
