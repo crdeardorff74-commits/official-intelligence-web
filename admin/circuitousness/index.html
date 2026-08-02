@@ -885,23 +885,45 @@
             // player's first run lasted. Lifetime-only (the API doesn't
             // window it), labeled so the tab mismatch can't mislead.
             const dist = cachedFirstRun.initial_puzzles_distribution || {};
-            const keys = Object.keys(dist).sort((a, b) => {
-                if (a === '15+') return 1;
-                if (b === '15+') return -1;
-                return parseInt(a, 10) - parseInt(b, 10);
-            });
+            // Bucket order is PROGRESSION, not numeric value: nothing →
+            // the two warm-up puzzles → real puzzles. The '-2' / '-1'
+            // keys name the warm-ups' own internal puzzle numbers (the
+            // 3x3 and the 4x3 that open a new player's run since v1.45),
+            // so they sort BETWEEN '0' and '1' despite being negative —
+            // a plain numeric sort would file them ahead of "finished
+            // nothing", which is backwards.
+            const rank = (k) => {
+                if (k === '0')  return -3;
+                if (k === '-2') return -2;
+                if (k === '-1') return -1;
+                if (k === '15+') return 1e9;
+                return parseInt(k, 10);
+            };
+            const keys = Object.keys(dist).sort((a, b) => rank(a) - rank(b));
             if (keys.length > 0) {
                 const total = keys.reduce((s, k) => s + dist[k], 0);
                 html += `<div style="margin-top:14px;">
                     <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">Puzzles completed in the first run (lifetime) — where first sessions end:</div>`;
+                // The warm-up buckets are LAST-PUZZLE-REACHED, not counts,
+                // so "-2 puzzles" would be nonsense — name the board instead.
+                const WARMUP_LABELS = {
+                    '-2': 'warm-up −2 (3×3)',
+                    '-1': 'warm-up −1 (4×3)',
+                };
                 keys.forEach(k => {
                     const count = dist[k];
                     const pct = total > 0 ? (count / total * 100).toFixed(1) : '0.0';
-                    // 0 = never solved anything (the drop-off bucket) in red;
-                    // deep runs (15+) in amber; everything between in green.
-                    const color = k === '0' ? '#ff5050' : (k === '15+' ? '#ffaa00' : '#00ff64');
+                    // Drop-off gradient: 0 (solved nothing at all) is the
+                    // hard red; the two warm-up buckets are a lighter red —
+                    // still a first session that never reached a real
+                    // puzzle, but further along than 0. Real puzzles green,
+                    // deep runs (15+) amber.
+                    const color = k === '0' ? '#ff5050'
+                        : (WARMUP_LABELS[k] ? '#ff8c50'
+                        : (k === '15+' ? '#ffaa00' : '#00ff64'));
+                    const label = WARMUP_LABELS[k] || `${k} puzzle${k === '1' ? '' : 's'}`;
                     html += `<div class="chart-row">
-                        <span class="chart-label">${escapeHtml(k)} puzzle${k === '1' ? '' : 's'}</span>
+                        <span class="chart-label">${escapeHtml(label)}</span>
                         <div class="chart-bar-bg">
                             <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
                         </div>
