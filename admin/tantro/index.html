@@ -299,6 +299,11 @@
                     <button class="window-tab"        data-window="30d"      onclick="setWindow(this, '30d')">LAST 30D</button>
                 </div>
                 
+                <!-- Engagement (playtime / per-game outcome / abandonment).
+                     Full width and above the funnel because these are the
+                     three things a CrazyGames trial is actually scored on. -->
+                <div id="visitEngagement" style="margin-bottom: 20px;"></div>
+
                 <div class="visits-two-col">
                     <div class="visits-left">
                         <div id="visitStats">
@@ -867,9 +872,13 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
             btn.classList.add('active');
             currentWindow = win;
             if (cachedStats) renderSummary();
+            loadEngagement();   // its own query window — must re-fetch, not re-render
         }
 
         async function loadVisitStats() {
+            // Fired in parallel rather than chained: the engagement panel must
+            // still render if the older visits/stats query fails.
+            loadEngagement();
             try {
                 const res = await fetch(`${GAME_API_URL}/admin/visits/stats?_=${Date.now()}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -1347,6 +1356,171 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
             out.innerHTML = html;
         }
         
+        // ── Engagement panel ──
+        // Playtime, per-game outcome and abandonment: the three CrazyGames
+        // scoring dimensions plus the diagnostics that say where players are
+        // lost. Backed by GET /api/admin/engagement, which reads the
+        // game_results table and the timing columns on page_visits.
+        //
+        // Deliberately few charts: at trial volume (~500 plays) a finer
+        // breakdown puts a handful of humans in each cell, and reading
+        // four-person differences as signal is the trap that burned
+        // Circuitousness (see CRAZYGAMES.md §6).
+        const ENGAGEMENT_DAYS = { lifetime: 0, '24h': 1, '7d': 7, '30d': 30 };
+
+        function fmtSecs(s) {
+            if (s === null || s === undefined) return '—';
+            s = Math.round(s);
+            if (s < 60) return s + 's';
+            const m = Math.floor(s / 60);
+            return m + 'm ' + String(s % 60).padStart(2, '0') + 's';
+        }
+
+        function pct(n, d) {
+            return d > 0 ? (n / d * 100).toFixed(1) + '%' : '—';
+        }
+
+        async function loadEngagement() {
+            const out = document.getElementById('visitEngagement');
+            if (!out) return;
+            const days = ENGAGEMENT_DAYS[currentWindow] !== undefined ? ENGAGEMENT_DAYS[currentWindow] : 30;
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/engagement?days=${days}&_=${Date.now()}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                // Same defensive parse as loadReturning: a 500 returns an HTML
+                // error page and res.json() would throw an opaque parse error.
+                const body = await res.text();
+                let data = null;
+                try { data = JSON.parse(body); } catch (_) { /* HTML error page */ }
+                if (!res.ok || !data) {
+                    const msg = (data && data.error) ? data.error
+                        : res.status === 404
+                            ? 'Endpoint not live yet — redeploy the back-end (GET /api/admin/engagement).'
+                            : `HTTP ${res.status} ${res.statusText} — server error (check Render logs).`;
+                    out.innerHTML = `<h3 style="margin-bottom:6px;color:var(--primary);">> Engagement</h3>`
+                        + `<div style="color:#888;padding:5px;">${escapeHtml(msg)}</div>`;
+                    return;
+                }
+                renderEngagement(data);
+            } catch (e) {
+                out.innerHTML = `<div style="color:#888;padding:5px;">Network error: ${escapeHtml(e.message || e)}</div>`;
+            }
+        }
+
+        function renderEngagement(data) {
+            const out = document.getElementById('visitEngagement');
+            if (!out) return;
+            const devices = data.by_device || {};
+            const all = devices.all;
+            if (!all || !all.sessions) {
+                out.innerHTML = '<h3 style="margin-bottom:6px;color:var(--primary);">> Engagement</h3>'
+                    + '<div style="color:#666;padding:5px;">No engagement rows yet for this window. '
+                    + 'They start landing once a build with analytics.js is deployed and played.</div>';
+                return;
+            }
+
+            // Delivery health first, on purpose: if beacons are being lost,
+            // every rate below it is under-counted and must not be read as
+            // player behaviour.
+            const d = all.delivery || {};
+            const landed = d.pct_landed;
+            const healthColor = landed === null ? '#888' : landed >= 95 ? '#52B788' : landed >= 85 ? '#FFD93D' : '#FF6B6B';
+            let html = '<h3 style="margin-bottom:6px;color:var(--primary);">> Engagement'
+                + `<span style="font-size:12px;color:var(--text-dim);"> (${data.days ? 'last ' + data.days + 'd' : 'lifetime'})</span></h3>`;
+            html += `<div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;">
+                Delivery health:
+                <span style="color:${healthColor};">${d.rows_landed || 0} of ${d.client_games_started || 0} started games recorded (${landed === null ? '—' : landed + '%'})</span>
+                · ${d.stuck_in_progress || 0} rows never got a closing beacon.
+                Read this before believing anything below it.
+                <br>${escapeHtml(data.note || '')}</div>`;
+
+            // One block per device. Desktop and Mobile are scored as separate
+            // 15-point cards, so they are never averaged together here.
+            const order = ['all', 'desktop', 'phone', 'tablet', 'unknown'];
+            const present = order.filter(k => devices[k] && devices[k].sessions);
+            html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(20rem,1fr));gap:1rem;">';
+
+            present.forEach(key => {
+                const t = devices[key];
+                const ec = t.end_cause || {};
+                const ecTotal = (ec.game_over || 0) + (ec.abandoned || 0) + (ec.in_progress || 0);
+                const fec = t.first_game_end_cause || {};
+                const fecTotal = (fec.game_over || 0) + (fec.abandoned || 0) + (fec.in_progress || 0);
+
+                html += `<div style="border:1px solid rgba(255,255,255,0.15);padding:0.6rem;">`;
+                html += `<div style="color:var(--primary);margin-bottom:6px;">${key.toUpperCase()}
+                    <span style="color:var(--text-dim);font-size:11px;">· ${t.sessions} sessions · ${t.games} games</span></div>`;
+
+                const rows = [
+                    ['Median session (visible)', fmtSecs(t.median_session_seconds)],
+                    ['Median play time', fmtSecs(t.median_play_seconds)],
+                    ['Mean play time', fmtSecs(t.mean_play_seconds)],
+                    ['Median game', fmtSecs(t.median_game_seconds)],
+                    ['Median 1st game', fmtSecs(t.median_first_game_seconds)],
+                    ['Median lines/game', t.median_lines === null ? '—' : t.median_lines],
+                    ['Intro → first game', fmtSecs(t.median_time_to_first_start_seconds)]
+                ];
+                html += '<div style="font-size:12px;">';
+                rows.forEach(r => {
+                    html += `<div style="display:flex;justify-content:space-between;gap:0.5rem;">
+                        <span style="color:var(--text-dim);">${r[0]}</span><span>${r[1]}</span></div>`;
+                });
+                html += '</div>';
+
+                // How games end. `abandoned` is the number that was invisible
+                // before this panel existed: a player who quit mid-game.
+                html += '<div style="margin-top:8px;font-size:12px;color:var(--primary);">How games end</div>';
+                [['game_over', 'Played to game over', '#52B788'],
+                 ['abandoned', 'Quit mid-game', '#FF6B6B'],
+                 ['in_progress', 'No closing beacon', '#777']].forEach(([k, label, color]) => {
+                    const n = ec[k] || 0;
+                    const w = ecTotal > 0 ? (n / ecTotal * 100) : 0;
+                    html += `<div class="chart-row">
+                        <span class="chart-label" style="font-size:11px;">${label}</span>
+                        <div class="chart-bar-bg"><div style="height:100%;width:${w.toFixed(1)}%;background:${color};opacity:0.6;"></div></div>
+                        <span class="chart-count">${n} (${pct(n, ecTotal)})</span></div>`;
+                });
+                if (fecTotal) {
+                    html += `<div style="font-size:11px;color:var(--text-dim);margin-top:4px;">
+                        First game only: ${pct(fec.abandoned || 0, fecTotal)} quit mid-game (${fec.abandoned || 0} of ${fecTotal}).</div>`;
+                }
+
+                // Duration histogram. Buckets are dense under two minutes
+                // because that is where a drop-in arcade audience decides.
+                html += '<div style="margin-top:8px;font-size:12px;color:var(--primary);">Game length '
+                    + '<span style="color:var(--text-dim);font-size:11px;">(bar = all games, ▸ = first games)</span></div>';
+                const hist = t.duration_hist || {};
+                const firstHist = t.first_game_hist || {};
+                const maxBucket = Math.max(1, ...Object.values(hist));
+                Object.keys(hist).forEach(label => {
+                    const n = hist[label];
+                    const f = firstHist[label] || 0;
+                    html += `<div class="chart-row">
+                        <span class="chart-label" style="font-size:11px;">${label}</span>
+                        <div class="chart-bar-bg"><div style="height:100%;width:${(n / maxBucket * 100).toFixed(1)}%;background:#45B7D1;opacity:0.6;"></div></div>
+                        <span class="chart-count">${n} <span style="color:var(--text-dim);">▸${f}</span></span></div>`;
+                });
+
+                // Does a short first game predict a one-and-done session?
+                const od = t.one_and_done || 0, mg = t.multi_game || 0;
+                if (od + mg > 0) {
+                    html += `<div style="margin-top:8px;font-size:12px;color:var(--primary);">One-and-done</div>
+                        <div style="font-size:11px;color:var(--text-dim);">
+                        ${od} sessions played exactly one game (${pct(od, od + mg)} of sessions that played at all).<br>
+                        First game under ${data.short_first_game_threshold_seconds}s:
+                        <span style="color:#FF6B6B;">${pct(t.one_and_done_short_first || 0, od)}</span> of one-and-dones
+                        vs <span style="color:#52B788;">${pct(t.multi_game_short_first || 0, mg)}</span> of returners.
+                        </div>`;
+                }
+
+                html += '</div>';
+            });
+
+            html += '</div>';
+            out.innerHTML = html;
+        }
+
         // ── Live auto-refresh ──
         // Re-pull the active tab's data every 60s so the admin view stays
         // current without manual clicks. Started only once the admin gate
