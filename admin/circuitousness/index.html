@@ -885,6 +885,9 @@
             // player's first run lasted. Lifetime-only (the API doesn't
             // window it), labeled so the tab mismatch can't mislead.
             const dist = cachedFirstRun.initial_puzzles_distribution || {};
+            // Per-bucket stuck-or-bored split; {} against a back-end that
+            // predates it, which just omits the annotation.
+            const abandon = cachedFirstRun.abandon_split || {};
             // Bucket order is PROGRESSION, not numeric value: nothing →
             // the two warm-up puzzles → real puzzles. The '-2' / '-1'
             // keys name the warm-ups' own internal puzzle numbers (the
@@ -922,12 +925,26 @@
                         : (WARMUP_LABELS[k] ? '#ff8c50'
                         : (k === '15+' ? '#ffaa00' : '#00ff64'));
                     const label = WARMUP_LABELS[k] || `${k} puzzle${k === '1' ? '' : 's'}`;
+                    // STUCK-OR-BORED split. Of the players in this bucket
+                    // whose session we can actually speak for (rows created
+                    // after the column shipped — older ones sit at 0, which
+                    // would read as "left satisfied" without our knowing),
+                    // how many walked away from a board they never solved?
+                    // Denominator is the measurable subset, NOT the bar
+                    // height, so this can't quietly imply coverage it
+                    // doesn't have. Omitted entirely until there's data.
+                    const ab = abandon[k];
+                    let stuckTxt = '';
+                    if (ab && ab.measured > 0) {
+                        const sPct = (ab.stalled / ab.measured * 100).toFixed(0);
+                        stuckTxt = ` <span style="color:#ff8c50;" title="${ab.stalled} of ${ab.measured} measurable players in this bucket left mid-puzzle rather than after a solve; median ${ab.median_secs}s on that board">· ${sPct}% stuck (${ab.median_secs}s)</span>`;
+                    }
                     html += `<div class="chart-row">
                         <span class="chart-label">${escapeHtml(label)}</span>
                         <div class="chart-bar-bg">
                             <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
                         </div>
-                        <span class="chart-count">${count} (${pct}%)</span>
+                        <span class="chart-count">${count} (${pct}%)${stuckTxt}</span>
                     </div>`;
                 });
                 html += '</div>';
