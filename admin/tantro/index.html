@@ -1441,6 +1441,42 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                 Read this before believing anything below it.
                 <br>${escapeHtml(data.note || '')}</div>`;
 
+            // Impression-level conversion, above everything else because it
+            // is the number a platform benchmark is computed against. The
+            // older start rate (elsewhere on this page) divides by visits,
+            // which only exist after an interaction — so it silently omits
+            // everyone who loaded and left. Both are shown together here so
+            // the gap between them is visible rather than surprising.
+            const lf = data.load_funnel || {};
+            if (lf.all && lf.all.loads) {
+                html += '<div style="margin-bottom:10px;border:1px solid rgba(255,255,255,0.15);padding:0.6rem;">';
+                html += '<div style="color:var(--primary);margin-bottom:4px;">CONVERSION FROM PAGE LOAD</div>';
+                html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">'
+                     +  '<tr style="border-bottom:1px solid rgba(255,255,255,0.2);">'
+                     +  '<th style="text-align:left;padding:3px;"></th>'
+                     +  '<th style="text-align:right;padding:3px;">Loads</th>'
+                     +  '<th style="text-align:right;padding:3px;" title="loads that produced a real interaction (a page_visits row)">Interacted</th>'
+                     +  '<th style="text-align:right;padding:3px;" title="started a game, as a share of ALL loads — the platform-comparable number">Started / load</th>'
+                     +  '<th style="text-align:right;padding:3px;" title="started a game, as a share of INTERACTED loads — the historical TANTЯO start rate">Started / interacted</th></tr>';
+                ['all', 'desktop', 'phone', 'tablet'].filter(k => lf[k] && lf[k].loads).forEach(k => {
+                    const b = lf[k];
+                    const f = v => (v === null || v === undefined) ? '—' : v + '%';
+                    html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                        <td style="padding:3px;color:var(--text-dim);">${k.toUpperCase()}</td>
+                        <td style="padding:3px;text-align:right;">${b.loads}</td>
+                        <td style="padding:3px;text-align:right;">${b.interacted} <span style="color:var(--text-dim);font-size:10px;">(${f(b.pct_interacted)})</span></td>
+                        <td style="padding:3px;text-align:right;color:#FFD93D;">${f(b.pct_started)}</td>
+                        <td style="padding:3px;text-align:right;color:var(--text-dim);">${f(b.pct_started_of_interacted)}</td></tr>`;
+                });
+                html += '</table>';
+                html += '<div style="font-size:11px;color:var(--text-dim);margin-top:4px;">'
+                     +  'The last column is the old start rate — computed over people who already engaged. '
+                     +  'The gap between the two columns IS the pre-interaction bounce, invisible before page_loads existed. '
+                     +  'These rows are noisier than visits by construction: requiring an interaction is what kept '
+                     +  'JS-executing crawlers out, and only the user-agent blocklist protects this table.</div>';
+                html += '</div>';
+            }
+
             // One block per device. Desktop and Mobile are scored as separate
             // 15-point cards, so they are never averaged together here.
             const order = ['all', 'desktop', 'phone', 'tablet', 'unknown'];
