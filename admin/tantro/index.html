@@ -1468,12 +1468,18 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                 });
                 html += '</div>';
 
-                // How games end. `abandoned` is the number that was invisible
-                // before this panel existed: a player who quit mid-game.
+                // How games end. TANTЯO has no quit button, so `abandoned`
+                // and `in_progress` are the SAME player behaviour — leaving
+                // mid-game. They differ only in whether the exit beacon
+                // survived (closing the whole browser, rather than the tab,
+                // kills an in-flight beacon). Labelled as one behaviour with
+                // a confidence split, and totalled, so the split is never
+                // mistaken for two different things players did.
+                const leftMidGame = (ec.abandoned || 0) + (ec.in_progress || 0);
                 html += '<div style="margin-top:8px;font-size:12px;color:var(--primary);">How games end</div>';
                 [['game_over', 'Played to game over', '#52B788'],
-                 ['abandoned', 'Quit mid-game', '#FF6B6B'],
-                 ['in_progress', 'No closing beacon', '#777']].forEach(([k, label, color]) => {
+                 ['abandoned', 'Left mid-game (confirmed)', '#FF6B6B'],
+                 ['in_progress', 'Left mid-game (beacon lost)', '#777']].forEach(([k, label, color]) => {
                     const n = ec[k] || 0;
                     const w = ecTotal > 0 ? (n / ecTotal * 100) : 0;
                     html += `<div class="chart-row">
@@ -1481,9 +1487,14 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                         <div class="chart-bar-bg"><div style="height:100%;width:${w.toFixed(1)}%;background:${color};opacity:0.6;"></div></div>
                         <span class="chart-count">${n} (${pct(n, ecTotal)})</span></div>`;
                 });
+                html += `<div style="font-size:11px;color:var(--text-dim);margin-top:4px;">
+                    Left mid-game either way: <span style="color:#FF6B6B;">${leftMidGame} (${pct(leftMidGame, ecTotal)})</span>.
+                    There is no quit button — the two rows above are the same act, split by whether the
+                    exit beacon survived. A lost beacon leaves the duration as a lower bound.</div>`;
                 if (fecTotal) {
+                    const fecLeft = (fec.abandoned || 0) + (fec.in_progress || 0);
                     html += `<div style="font-size:11px;color:var(--text-dim);margin-top:4px;">
-                        First game only: ${pct(fec.abandoned || 0, fecTotal)} quit mid-game (${fec.abandoned || 0} of ${fecTotal}).</div>`;
+                        First game only: ${pct(fecLeft, fecTotal)} left mid-game (${fecLeft} of ${fecTotal}).</div>`;
                 }
 
                 // Duration histogram. Buckets are dense under two minutes
