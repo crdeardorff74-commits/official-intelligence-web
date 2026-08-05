@@ -1560,14 +1560,22 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                 const ctl = t.controls || {};
                 const played = t.played_sessions || 0;
                 if (played) {
+                    // `never_rotated` includes sessions we simply never heard
+                    // control data from, so report those separately — "we
+                    // don't know" and "they never rotated" are very
+                    // different claims about the same number.
+                    const noData = t.played_no_control_data || 0;
                     const noRot = t.never_rotated || 0;
+                    const knownNoRot = Math.max(0, noRot - noData);
                     const noRotShort = t.never_rotated_short_first || 0;
-                    const rotColor = played && (noRot / played) > 0.2 ? '#FF6B6B' : '#FFD93D';
-                    html += `<div style="margin-top:8px;font-size:12px;color:var(--primary);">Controls</div>
+                    const rotColor = played && (knownNoRot / played) > 0.2 ? '#FF6B6B' : '#FFD93D';
+                    html += `<div style="margin-top:8px;font-size:12px;color:var(--primary);">Controls
+                        <span style="color:var(--text-dim);font-size:11px;">· of ${played} sessions that played</span></div>
                         <div style="font-size:11px;color:var(--text-dim);margin-bottom:2px;">
-                        Played but <span style="color:${rotColor};">never rotated a piece: ${noRot} (${pct(noRot, played)})</span>
+                        Played but <span style="color:${rotColor};">never rotated a piece: ${knownNoRot} (${pct(knownNoRot, played)})</span>
                         — of those, ${noRotShort} also had a first game under ${data.short_first_game_threshold_seconds}s.
-                        Never hard-dropped: ${t.never_hard_dropped || 0} (${pct(t.never_hard_dropped || 0, played)}).</div>`;
+                        Never hard-dropped: ${t.never_hard_dropped || 0} (${pct(t.never_hard_dropped || 0, played)}).
+                        ${noData ? `<span style="color:#777;">${noData} played session(s) sent no control data at all and are excluded — old client, or syncs that never landed.</span>` : ''}</div>`;
                     const CONTROL_LABELS = [
                         ['src_kbd',   'Keyboard'],
                         ['src_touch', 'Swipe gestures'],
