@@ -1553,6 +1553,40 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                     });
                 }
 
+                // Controls discovery. The headline is "played but never
+                // rotated": a player who started a game and never once
+                // rotated a piece did not find the controls, which looks
+                // identical to "too hard" or "boring" everywhere else.
+                const ctl = t.controls || {};
+                const played = t.played_sessions || 0;
+                if (played) {
+                    const noRot = t.never_rotated || 0;
+                    const noRotShort = t.never_rotated_short_first || 0;
+                    const rotColor = played && (noRot / played) > 0.2 ? '#FF6B6B' : '#FFD93D';
+                    html += `<div style="margin-top:8px;font-size:12px;color:var(--primary);">Controls</div>
+                        <div style="font-size:11px;color:var(--text-dim);margin-bottom:2px;">
+                        Played but <span style="color:${rotColor};">never rotated a piece: ${noRot} (${pct(noRot, played)})</span>
+                        — of those, ${noRotShort} also had a first game under ${data.short_first_game_threshold_seconds}s.
+                        Never hard-dropped: ${t.never_hard_dropped || 0} (${pct(t.never_hard_dropped || 0, played)}).</div>`;
+                    const CONTROL_LABELS = [
+                        ['src_kbd',   'Keyboard'],
+                        ['src_touch', 'Swipe gestures'],
+                        ['src_btn',   'On-screen buttons'],
+                        ['src_pad',   'Gamepad'],
+                        ['act_move',  'Moved a piece'],
+                        ['act_rot',   'Rotated a piece'],
+                        ['act_hard',  'Hard dropped']
+                    ];
+                    CONTROL_LABELS.forEach(([k, label]) => {
+                        const n = ctl[k] || 0;
+                        const w = played > 0 ? Math.min(100, n / played * 100) : 0;
+                        html += `<div class="chart-row">
+                            <span class="chart-label" style="font-size:11px;">${label}</span>
+                            <div class="chart-bar-bg"><div style="height:100%;width:${w.toFixed(1)}%;background:#45B7D1;opacity:0.5;"></div></div>
+                            <span class="chart-count">${n} (${pct(n, played)})</span></div>`;
+                    });
+                }
+
                 // Does a short first game predict a one-and-done session?
                 const od = t.one_and_done || 0, mg = t.multi_game || 0;
                 if (od + mg > 0) {
