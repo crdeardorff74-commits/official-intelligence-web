@@ -1533,6 +1533,17 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                     Left mid-game either way: <span style="color:#FF6B6B;">${leftMidGame} (${pct(leftMidGame, ecTotal)})</span>.
                     There is no quit button — the two rows above are the same act, split by whether the
                     exit beacon survived. A lost beacon leaves the duration as a lower bound.</div>`;
+                // Soundtrack reach. Denominator is FINISHED games, because
+                // only the game-over payload carries the music state — an
+                // abandoned game has no answer, and counting those would
+                // read as "music off".
+                const fin = t.finished_games || 0;
+                if (fin) {
+                    const withMusic = t.finished_with_music || 0;
+                    html += `<div style="font-size:11px;color:var(--text-dim);margin-top:4px;">
+                        Ended with music audible: <span style="color:#FFD93D;">${withMusic} of ${fin} finished games (${pct(withMusic, fin)})</span>.
+                        Counts only music actually coming out — not muted, not paused, volume above zero.</div>`;
+                }
                 if (fecTotal) {
                     const fecLeft = (fec.abandoned || 0) + (fec.in_progress || 0);
                     html += `<div style="font-size:11px;color:var(--text-dim);margin-top:4px;">
@@ -1546,7 +1557,12 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                 const hist = t.duration_hist || {};
                 const firstHist = t.first_game_hist || {};
                 const maxBucket = Math.max(1, ...Object.values(hist));
-                Object.keys(hist).forEach(label => {
+                // Iterate the ORDERED label list from the server, never
+                // Object.keys(hist): jsonify sorts dict keys, so the
+                // histogram arrives alphabetical ("0-14s, 1-2m, 10m+,
+                // 15-29s, ...") rather than shortest-to-longest.
+                const bucketOrder = data.duration_buckets || Object.keys(hist);
+                bucketOrder.forEach(label => {
                     const n = hist[label];
                     const f = firstHist[label] || 0;
                     html += `<div class="chart-row">
@@ -1612,6 +1628,16 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                         — of those, ${noRotShort} also had a first game under ${data.short_first_game_threshold_seconds}s.
                         Never hard-dropped: ${t.never_hard_dropped || 0} (${pct(t.never_hard_dropped || 0, played)}).
                         ${noData ? `<span style="color:#777;">${noData} played session(s) sent no control data at all and are excluded — old client, or syncs that never landed.</span>` : ''}</div>`;
+                    // Deliberately its own line above the input mix: it is a
+                    // property of the DEVICE, not of how the player played.
+                    // Tallied among played sessions like the rest, because
+                    // the guard only ever runs during gameplay.
+                    const reduced = ctl.perf_reduced || 0;
+                    const redColor = played && (reduced / played) > 0.25 ? '#FF6B6B' : 'var(--text-dim)';
+                    html += `<div style="font-size:11px;color:var(--text-dim);margin-bottom:2px;">
+                        Auto-reduced effects (glow off, device too slow):
+                        <span style="color:${redColor};">${reduced} (${pct(reduced, played)})</span>.
+                        High here means the glow default is too expensive for this audience.</div>`;
                     const CONTROL_LABELS = [
                         ['src_kbd',   'Keyboard'],
                         ['src_touch', 'Swipe gestures'],
