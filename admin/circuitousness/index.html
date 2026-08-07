@@ -379,15 +379,15 @@
                 `<div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${n} browser${n===1?'':'s'}</div>`;
             const fr = isLifetime ? d.finish_rate    : d['finish_rate' + suffix];
             const shr= isLifetime ? d.share_rate     : d['share_rate'  + suffix];
-            // menu→start (menu converted to a puzzle). A low menu_start_rate
-            // blames card selection.
-            const msr = isLifetime ? d.menu_start_rate : d['menu_start_rate' + suffix];
+            // visit→start, collapsing the intermediate menu stage. The summary
+            // cards count ALL visits (including embed loads that platform-
+            // redirect.js diverts before the intro), so the visit→menu and
+            // menu→start splits live in the On-site Intro Funnel panel below,
+            // where they're measured against on-site visits only.
+            const sr = isLifetime ? d.start_rate : d['start_rate' + suffix];
             // One combined funnel-chain rate card. Each % is the conversion
-            // from the previous stage: menu →(msr)→ start →(fr)→ finish
-            // →(shr)→ share. The visit→menu stage (agree_rate) is not shown
-            // here — the summary cards count ALL visits including embed loads
-            // that never reach the intro, so the On-site Intro Funnel panel
-            // below is the trustworthy home for that number.
+            // from the previous stage: visits →(sr)→ start →(fr)→ finish
+            // →(shr)→ share.
             document.getElementById('visitStats').innerHTML = `
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px;">
                     <div class="stat-card"><div class="stat-value">${v}</div><div class="stat-label">Visits</div><div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${se} session${se===1?'':'s'}</div></div>
@@ -395,7 +395,7 @@
                     <div class="stat-card"><div class="stat-value">${fi}</div><div class="stat-label">Finished</div>${subBrowsers(fiu)}</div>
                     <div class="stat-card"><div class="stat-value">${sh}</div><div class="stat-label">Shared</div></div>
                     <div class="stat-card">
-                        <div class="stat-value">${msr}% <span style="white-space:nowrap;">→&nbsp;${fr}%</span> <span style="white-space:nowrap;">→&nbsp;${shr}%</span></div>
+                        <div class="stat-value">${sr}% <span style="white-space:nowrap;">→&nbsp;${fr}%</span> <span style="white-space:nowrap;">→&nbsp;${shr}%</span></div>
                         <div class="stat-label">Start / Finish / Share</div>
                     </div>
                 </div>`;
