@@ -1490,9 +1490,22 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                 const fec = t.first_game_end_cause || {};
                 const fecTotal = (fec.game_over || 0) + (fec.abandoned || 0) + (fec.in_progress || 0);
 
+                // Header counts three different units, in widening order:
+                // visitors (browsers) < sessions (visits — one player can
+                // reload all day) < games. Visitors is the people number;
+                // everything below the header is per-session or per-game and
+                // must not be read as a headcount.
+                const vis = t.visitors;
+                const vpv = t.visits_per_visitor;
+                const visTitle = vis === undefined ? ''
+                    : `distinct browsers (localStorage id)${t.anon_visits ? `, incl. ${t.anon_visits} visit(s) with no id, each counted as its own visitor` : ''}`
+                      + (vpv ? ` — ${vpv} visits per visitor` : '');
                 html += `<div style="border:1px solid rgba(255,255,255,0.15);padding:0.6rem;">`;
                 html += `<div style="color:var(--primary);margin-bottom:6px;">${key.toUpperCase()}
-                    <span style="color:var(--text-dim);font-size:11px;">· ${t.sessions} sessions · ${t.games} games</span></div>`;
+                    <span style="color:var(--text-dim);font-size:11px;">${vis === undefined ? ''
+                        : `· <span title="${visTitle}" style="color:#FFD93D;">${vis} visitors</span>`}
+                    · <span title="page visits — one player who reloads or comes back later produces several">${t.sessions} sessions</span>
+                    · ${t.games} games</span></div>`;
 
                 const rows = [
                     ['Median session (visible)', fmtSecs(t.median_session_seconds)],
