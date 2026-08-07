@@ -189,6 +189,16 @@
                          display:none until its separate fetch succeeds, so a
                          pre-deploy back-end just leaves the panel absent. -->
                     <div id="visitFirstRun" style="grid-column: 1 / -1; display: none;"></div>
+                    <!-- Engagement (playtime / per-puzzle outcome /
+                         abandonment) and Retention (forward D1/D3/D7
+                         cohorts), both added 2026-08-07. Engagement has its
+                         OWN query window (?days=) rather than the tab
+                         picker, because it aggregates server-side; Retention
+                         windows by cohort day. Both stay empty until the
+                         instrumented front-end build is deployed and
+                         played. -->
+                    <div id="visitEngagement" style="grid-column: 1 / -1;"></div>
+                    <div id="visitRetention" style="grid-column: 1 / -1;"></div>
                     <div id="visitDevices"></div>
                     <div id="visitOS"></div>
                     <div id="visitShares"></div>
@@ -214,6 +224,11 @@
         const token        = localStorage.getItem('oi_token');
         let cachedStats    = null;
         let cachedFirstRun = null;
+        // Engagement and Retention each own their query window, so unlike
+        // the others these caches exist only to re-render without a
+        // re-fetch (window-button clicks re-fetch deliberately).
+        let cachedEngagement = null;
+        let cachedRetention  = null;
         let currentWindow  = 'lifetime';
 
         // ── On-site Intro Funnel show/hide toggle ──
@@ -323,6 +338,12 @@
                 // First-time-player funnel is its own endpoint too — refresh
                 // it on the same cadence.
                 loadFirstRunStats();
+                // Engagement and Retention each own their query window
+                // (?days= / cohort days), so they must RE-FETCH rather than
+                // re-render off cachedStats — the window tabs don't reach
+                // them.
+                loadEngagement();
+                loadRetention();
             }
         }
 
@@ -805,29 +826,63 @@
                       + '</strong> at ≥3 (' + (w.engaged_3plus || 0) + ' players)')
                 : sub('engaged only');
             el.style.display = '';
+            // ── The first session, as one descending funnel ──
+            // Rewritten 2026-08-07 for the practice → pitch → Surge
+            // sequence that replaced the Zen drop-in on 2026-08-06. Every
+            // rate on this row is over ALL new players, so the four cards
+            // read straight across as "how far down the sequence did they
+            // get". The older cards below keep their engaged-only
+            // denominators, which is why they're a separate row.
+            const ladder = (w.practice_any_rate !== undefined);
             let html = `
                 <h3 style="margin-bottom: 6px; color: var(--primary);">> First-Time Players</h3>
                 <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">
-                    One row per new browser, opened by the first-visit auto-start run (<strong>${escapeHtml(winLabel)}</strong>).
-                    "Outside the run" = any later voluntary play — menu Zen/Marathon, resumes, PotD — same sitting or any later day.
-                    Averages/rates cover <strong>engaged players only</strong> (≥1 initial-run solve); 0-puzzle bouncers are counted but excluded.
+                    One row per new browser, opened when their first session commits a puzzle action (<strong>${escapeHtml(winLabel)}</strong>).
+                    The first session is three <strong>practice</strong> puzzles → a <strong>pitch</strong> screen → a real <strong>Surge</strong> run.
+                    "Outside the run" = any later voluntary play — menu Marathon, resumes, PotD — same sitting or any later day.
+                </div>`;
+            if (ladder) {
+                // Retry rate is the one to watch: the entire premise of the
+                // redesign is that a run which ENDS, with a score, makes a
+                // player want another go. If it sits near zero the premise
+                // is dead, and no amount of practice-phase polish fixes it.
+                const retryColor = (w.retried || 0) === 0 ? '#ff5050'
+                    : (w.retry_rate >= 30 ? '#00ff64' : '#ffaa00');
+                html += `<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:10px;">
+                    <div class="stat-card"><div class="stat-value">${w.players || 0}</div><div class="stat-label">New players</div>${sub('landed and touched a tile')}</div>
+                    <div class="stat-card"><div class="stat-value">${w.practice_any_rate || 0}%</div><div class="stat-label">Solved a practice puzzle</div>${sub((w.practice_any || 0) + ' of ' + (w.players || 0))}</div>
+                    <div class="stat-card"><div class="stat-value">${w.pitch_rate || 0}%</div><div class="stat-label">Reached the pitch</div>${sub((w.reached_pitch || 0) + ' — finished all three')}</div>
+                    <div class="stat-card"><div class="stat-value" style="color:${w.surge_rate >= 50 ? '#00ff64' : '#ffaa00'};">${w.surge_rate || 0}%</div><div class="stat-label">Started Surge</div>${sub((w.surge_started || 0) + ' of ' + (w.players || 0) + ' · ' + Math.max(0, (w.reached_pitch || 0) - (w.surge_started || 0)) + ' saw the pitch and passed')}</div>
                 </div>
-                <div style="display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:10px;">
-                    <div class="stat-card"><div class="stat-value">${w.players || 0}</div><div class="stat-label">New players</div>${newPlayersSub}</div>
+                <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:10px;">
+                    <div class="stat-card"><div class="stat-value" style="color:${retryColor};">${w.retry_rate || 0}%</div><div class="stat-label">Took Try Again</div>${sub((w.retried || 0) + ' of ' + (w.surge_started || 0) + ' Surge starters · ' + (w.avg_retries || 0) + ' avg')}</div>
+                    <div class="stat-card"><div class="stat-value">${w.avg_initial_puzzles || 0}</div><div class="stat-label">Avg Surge solves</div>${avgSub}</div>
+                    <div class="stat-card"><div class="stat-value">${w.outside_start_rate || 0}%</div><div class="stat-label">Started outside the run</div>${sub((w.outside_started || 0) + ' of ' + eng + ' engaged')}</div>
+                    <div class="stat-card"><div class="stat-value">${w.outside_solve_rate || 0}%</div><div class="stat-label">Solved outside the run</div>${sub((w.outside_solved || 0) + ' of ' + (w.outside_started || 0) + ' starters')}</div>
+                </div>`;
+            }
+            // Menu-surface discovery + the engaged/bounced split. Same
+            // engaged-only denominators these always had — a player who
+            // solved nothing was ruled a lost cause in 2026-07-29 and is
+            // tracked but not averaged in.
+            html += `<div style="display:grid;grid-template-columns:repeat(${ladder ? 5 : 8},minmax(0,1fr));gap:10px;">
+                    ${ladder ? '' : `<div class="stat-card"><div class="stat-value">${w.players || 0}</div><div class="stat-label">New players</div>${newPlayersSub}</div>
                     <div class="stat-card"><div class="stat-value">${w.avg_initial_puzzles || 0}</div><div class="stat-label">Avg puzzles, first run</div>${avgSub}</div>
+                    <div class="stat-card"><div class="stat-value">${w.outside_start_rate || 0}%</div><div class="stat-label">Started outside the run</div>${sub((w.outside_started || 0) + ' of ' + eng)}</div>`}
+                    <div class="stat-card"><div class="stat-value">${eng}</div><div class="stat-label">Engaged / bounced</div>${newPlayersSub || sub('≥1 Surge solve')}</div>
                     <div class="stat-card"><div class="stat-value">${w.howto_rate || 0}%</div><div class="stat-label">Opened How-to-Solve</div>${sub((w.howto_clicked || 0) + ' of ' + eng)}</div>
                     <div class="stat-card"><div class="stat-value">${w.tutorial_rate || 0}%</div><div class="stat-label">Watched it through</div>${sub((w.tutorial_completed || 0) + ' of ' + (w.howto_clicked || 0) + ' openers')}</div>
                     <div class="stat-card"><div class="stat-value">${w.nudge_rate || 0}%</div><div class="stat-label">PotD nudge clicked</div>${sub((w.potd_nudge_clicked || 0) + ' of ' + eng)}</div>
                     <div class="stat-card"><div class="stat-value">${w.daily_rate || 0}%</div><div class="stat-label">Daily &amp; More clicked</div>${sub((w.daily_more_clicked || 0) + ' of ' + eng)}</div>
-                    <div class="stat-card"><div class="stat-value">${w.outside_start_rate || 0}%</div><div class="stat-label">Started outside the run</div>${sub((w.outside_started || 0) + ' of ' + eng)}</div>
-                    <div class="stat-card"><div class="stat-value">${w.outside_solve_rate || 0}%</div><div class="stat-label">Solved outside the run</div>${sub((w.outside_solved || 0) + ' of ' + (w.outside_started || 0) + ' starters')}</div>
                 </div>`;
-            // Ladder-experiment breakdown (A/B/C/D): one row per first-run
-            // variant, same engaged-only stats as the cards, following the
-            // window tabs. Absent until the back-end redeploys with the
-            // `variants` field. The 'pre' row (players from before the
-            // experiment, NULL variant) only appears when such rows fall
-            // inside the window.
+            // The A/B/C/D ladder-experiment table lived here until
+            // 2026-08-07. It was retired with the experiment: the first
+            // session is now one fixed sequence for everyone (practice →
+            // pitch → Surge), so there are no arms to compare and the table
+            // was reporting on an assignment nobody receives. The back end
+            // no longer sends `variants`; this block only renders if some
+            // older deploy still does, and can be deleted outright once
+            // nothing does.
             const vmap = cachedFirstRun.variants && cachedFirstRun.variants[currentWindow];
             if (vmap) {
                 const VLABELS = {
@@ -889,16 +944,16 @@
             // predates it, which just omits the annotation.
             const abandon = cachedFirstRun.abandon_split || {};
             // Bucket order is PROGRESSION, not numeric value: nothing →
-            // the two warm-up puzzles → real puzzles. The '-2' / '-1'
-            // keys name the warm-ups' own internal puzzle numbers (the
-            // 3x3 and the 4x3 that open a new player's run since v1.45),
-            // so they sort BETWEEN '0' and '1' despite being negative —
-            // a plain numeric sort would file them ahead of "finished
-            // nothing", which is backwards.
+            // the practice puzzles → Surge puzzles. 'p1'..'p3' are practice
+            // solves and sort BETWEEN "finished nothing" and the first real
+            // puzzle. ('-2' / '-1' are the retired warm-up keys from before
+            // 2026-08-07, kept in the sort so a stale back-end still
+            // renders in the right order.)
             const rank = (k) => {
-                if (k === '0')  return -3;
-                if (k === '-2') return -2;
-                if (k === '-1') return -1;
+                if (k === '0')  return -9;
+                if (k === '-2' || k === 'p1') return -8;
+                if (k === '-1' || k === 'p2') return -7;
+                if (k === 'p3') return -6;
                 if (k === '15+') return 1e9;
                 return parseInt(k, 10);
             };
@@ -906,12 +961,16 @@
             if (keys.length > 0) {
                 const total = keys.reduce((s, k) => s + dist[k], 0);
                 html += `<div style="margin-top:14px;">
-                    <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">Puzzles completed in the first run (lifetime) — where first sessions end:</div>`;
-                // The warm-up buckets are LAST-PUZZLE-REACHED, not counts,
-                // so "-2 puzzles" would be nonsense — name the board instead.
+                    <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">Where first sessions end (lifetime). Practice solves first, then puzzles solved in the Surge run itself:</div>`;
+                // Practice buckets are counts of PRE-SURGE solves, so they
+                // need their own labels — "1 puzzle" would collide with the
+                // Surge column. ('-2' / '-1' are the retired warm-up keys.)
                 const WARMUP_LABELS = {
-                    '-2': 'warm-up −2 (3×3)',
-                    '-1': 'warm-up −1 (4×3)',
+                    'p1': 'practice 1 of 3',
+                    'p2': 'practice 2 of 3',
+                    'p3': 'practice 3 of 3 (no Surge solve)',
+                    '-2': 'warm-up −2 (3×3, retired)',
+                    '-1': 'warm-up −1 (4×3, retired)',
                 };
                 keys.forEach(k => {
                     const count = dist[k];
@@ -924,7 +983,9 @@
                     const color = k === '0' ? '#ff5050'
                         : (WARMUP_LABELS[k] ? '#ff8c50'
                         : (k === '15+' ? '#ffaa00' : '#00ff64'));
-                    const label = WARMUP_LABELS[k] || `${k} puzzle${k === '1' ? '' : 's'}`;
+                    const label = WARMUP_LABELS[k] || (k === '0'
+                        ? 'nothing solved'
+                        : `Surge: ${k} solve${k === '1' ? '' : 's'}`);
                     // STUCK-OR-BORED split. Of the players in this bucket
                     // whose session we can actually speak for (rows created
                     // after the column shipped — older ones sit at 0, which
@@ -950,6 +1011,380 @@
                 html += '</div>';
             }
             el.innerHTML = html;
+        }
+
+        // ── Engagement panel ──
+        // GET /api/admin/engagement. Everything here comes from the
+        // instrumentation added 2026-08-07 (page_loads, puzzle_results, and
+        // the clock columns on page_visits), so it is empty until a build
+        // carrying analytics.js has been deployed AND played. Own query
+        // window (?days=), independent of the tab picker above, because the
+        // aggregation happens server-side.
+        let engagementDays = 30;
+        function fmtSecs(v) {
+            if (v === null || v === undefined) return '—';
+            const s = Math.round(v);
+            if (s < 60) return s + 's';
+            const m = Math.floor(s / 60), r = s % 60;
+            if (m < 60) return m + 'm' + (r ? ' ' + r + 's' : '');
+            return Math.floor(m / 60) + 'h ' + (m % 60) + 'm';
+        }
+        function pctOf(n, d) { return d > 0 ? (n / d * 100).toFixed(1) + '%' : '—'; }
+        function setEngagementDays(d) { engagementDays = d; loadEngagement(); }
+
+        async function loadEngagement() {
+            const out = document.getElementById('visitEngagement');
+            if (!out) return;
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/engagement?days=${engagementDays}&_=${Date.now()}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const body = await res.text();
+                let data = null;
+                try { data = JSON.parse(body); } catch (_) { /* HTML error page */ }
+                if (!res.ok || !data || !data.by_device) {
+                    out.innerHTML = '<h3 style="margin-bottom:6px;color:var(--primary);">> Engagement</h3>'
+                        + `<div style="color:#888;padding:5px;">${res.status === 404
+                            ? 'Endpoint not live yet — redeploy the back-end (GET /api/admin/engagement).'
+                            : 'Failed to load: ' + escapeHtml((data && data.error) || res.status)}</div>`;
+                    return;
+                }
+                cachedEngagement = data;
+                renderEngagement();
+            } catch (e) {
+                out.innerHTML = '<h3 style="margin-bottom:6px;color:var(--primary);">> Engagement</h3>'
+                    + `<div style="color:#888;padding:5px;">Network error: ${escapeHtml(e.message || e)}</div>`;
+            }
+        }
+
+        function renderEngagement() {
+            const out = document.getElementById('visitEngagement');
+            if (!out || !cachedEngagement) return;
+            const data = cachedEngagement;
+            const devices = data.by_device || {};
+            const all = devices.all;
+            const dayBtns = [7, 30, 90, 0].map(d =>
+                `<button class="btn btn-primary" style="font-size:9px;padding:2px 10px;${d === engagementDays ? 'font-weight:bold;' : 'opacity:0.6;'}"
+                    onclick="setEngagementDays(${d})">${d === 0 ? 'lifetime' : d + 'd'}</button>`).join(' ');
+            let html = '<h3 style="margin-bottom:6px;color:var(--primary);">> Engagement '
+                + `<span style="font-size:12px;color:var(--text-dim);">(${data.days ? 'last ' + data.days + 'd' : 'lifetime'})</span>`
+                + `<span style="float:right;">${dayBtns}</span></h3>`;
+
+            if (!all || !all.sessions) {
+                out.innerHTML = html + '<div style="color:#666;padding:5px;">No engagement rows yet for this window. '
+                    + 'They start landing once a front-end build carrying analytics.js is deployed and played.</div>';
+                return;
+            }
+
+            // Delivery health FIRST, on purpose: if beacons are being lost,
+            // every rate below it is under-counted and must not be read as
+            // player behaviour.
+            const d = all.delivery || {};
+            const landed = d.pct_landed;
+            const healthColor = landed === null ? '#888' : landed >= 95 ? '#52B788' : landed >= 85 ? '#FFD93D' : '#FF6B6B';
+            html += `<div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;">
+                Delivery health:
+                <span style="color:${healthColor};">${d.rows_landed || 0} of ${d.client_puzzles_started || 0} started puzzles recorded (${landed === null ? '—' : landed + '%'})</span>
+                · ${d.stuck_in_progress || 0} rows never got a closing beacon.
+                Read this before believing anything below it.
+                <br>${escapeHtml(data.note || '')}</div>`;
+
+            // Impression-level conversion. The older start rate (in the
+            // funnel above) divides by VISITS, which only exist after real
+            // engagement — so it silently omits everyone who loaded and
+            // left. Both are shown together so the gap between them is
+            // visible rather than surprising.
+            const lf = data.load_funnel || {};
+            if (lf.all && lf.all.loads) {
+                html += '<div style="margin-bottom:10px;border:1px solid rgba(255,255,255,0.15);padding:0.6rem;">';
+                html += '<div style="color:var(--primary);margin-bottom:4px;">CONVERSION FROM PAGE LOAD</div>';
+                html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">'
+                     +  '<tr style="border-bottom:1px solid rgba(255,255,255,0.2);">'
+                     +  '<th style="text-align:left;padding:3px;"></th>'
+                     +  '<th style="text-align:right;padding:3px;">Loads</th>'
+                     +  '<th style="text-align:right;padding:3px;" title="loads that produced a real interaction (a page_visits row)">Interacted</th>'
+                     +  '<th style="text-align:right;padding:3px;" title="started a puzzle, as a share of ALL loads — the platform-comparable number">Started / load</th>'
+                     +  '<th style="text-align:right;padding:3px;" title="started a puzzle, as a share of INTERACTED loads — the historical start rate">Started / interacted</th></tr>';
+                ['all', 'desktop', 'phone', 'tablet'].filter(k => lf[k] && lf[k].loads).forEach(k => {
+                    const b = lf[k];
+                    const f = v => (v === null || v === undefined) ? '—' : v + '%';
+                    html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                        <td style="padding:3px;color:var(--text-dim);">${k.toUpperCase()}</td>
+                        <td style="padding:3px;text-align:right;">${b.loads}</td>
+                        <td style="padding:3px;text-align:right;">${b.interacted} <span style="color:var(--text-dim);font-size:10px;">(${f(b.pct_interacted)})</span></td>
+                        <td style="padding:3px;text-align:right;color:#FFD93D;">${f(b.pct_started)}</td>
+                        <td style="padding:3px;text-align:right;color:var(--text-dim);">${f(b.pct_started_of_interacted)}</td></tr>`;
+                });
+                html += '</table>';
+                html += '<div style="font-size:11px;color:var(--text-dim);margin-top:4px;">'
+                     +  'The last column is the old start rate — computed over people who already engaged. '
+                     +  'The gap between the two columns IS the pre-interaction bounce, invisible before page_loads existed. '
+                     +  'These rows are noisier than visits by construction: requiring an interaction is what kept '
+                     +  'JS-executing crawlers out, and only the user-agent blocklist protects this table.</div>';
+                html += '</div>';
+            }
+
+            // One block per device. Desktop and mobile are never averaged
+            // together — this game plays very differently under a fingertip,
+            // and the platforms score them separately anyway.
+            const order = ['all', 'desktop', 'phone', 'tablet', 'unknown'];
+            const present = order.filter(k => devices[k] && devices[k].sessions);
+            html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(20rem,1fr));gap:1rem;">';
+
+            present.forEach(key => {
+                const t = devices[key];
+                const ec = t.end_cause || {};
+                const ecTotal = (ec.solved || 0) + (ec.failed || 0) + (ec.abandoned || 0) + (ec.in_progress || 0);
+
+                // Header counts three different units, in widening order:
+                // visitors (browsers) < sessions (visits — one player can
+                // reload all day) < puzzles. Visitors is the people number;
+                // everything below the header is per-session or per-puzzle
+                // and must not be read as a headcount.
+                const vis = t.visitors;
+                const visTitle = vis === undefined ? ''
+                    : `distinct browsers (localStorage id)${t.anon_visits ? `, incl. ${t.anon_visits} visit(s) with no id, each counted as its own visitor` : ''}`
+                      + (t.visits_per_visitor ? ` — ${t.visits_per_visitor} visits per visitor` : '');
+                html += `<div style="border:1px solid rgba(255,255,255,0.15);padding:0.6rem;">`;
+                html += `<div style="color:var(--primary);margin-bottom:6px;">${key.toUpperCase()}
+                    <span style="color:var(--text-dim);font-size:11px;">${vis === undefined ? ''
+                        : `· <span title="${visTitle}" style="color:#FFD93D;">${vis} visitors</span>`}
+                    · <span title="page visits — one player who reloads or comes back later produces several">${t.sessions} sessions</span>
+                    · ${t.puzzles} puzzles</span></div>`;
+
+                const rows = [
+                    ['Median session (visible)', fmtSecs(t.median_session_seconds)],
+                    ['Median play time', fmtSecs(t.median_play_seconds)],
+                    ['Mean play time', fmtSecs(t.mean_play_seconds)],
+                    ['Median puzzle', fmtSecs(t.median_puzzle_seconds)],
+                    ['Median 1st puzzle', fmtSecs(t.median_first_puzzle_seconds)],
+                    ['Median moves/puzzle', t.median_moves === null ? '—' : t.median_moves],
+                    ['Load → first puzzle', fmtSecs(t.median_time_to_first_start_seconds)]
+                ];
+                html += '<div style="font-size:12px;">';
+                rows.forEach(r => {
+                    html += `<div style="display:flex;justify-content:space-between;gap:0.5rem;">
+                        <span style="color:var(--text-dim);">${r[0]}</span><span>${r[1]}</span></div>`;
+                });
+                html += '</div>';
+
+                // How puzzles end. `abandoned` and `in_progress` are the
+                // SAME player behaviour — leaving a board — and differ only
+                // in whether the exit beacon survived (closing the whole
+                // browser, rather than the tab, kills an in-flight beacon).
+                // Labelled as one behaviour with a confidence split, and
+                // totalled, so the split is never mistaken for two different
+                // things players did. `failed` is genuinely different: the
+                // Surge clock ran out.
+                const leftMid = (ec.abandoned || 0) + (ec.in_progress || 0);
+                html += '<div style="margin-top:8px;font-size:12px;color:var(--primary);">How puzzles end</div>';
+                [['solved', 'Solved it', '#52B788'],
+                 ['failed', 'Ran out of time', '#FFD93D'],
+                 ['abandoned', 'Walked away (confirmed)', '#FF6B6B'],
+                 ['in_progress', 'Walked away (beacon lost)', '#777']].forEach(([k, label, color]) => {
+                    const n = ec[k] || 0;
+                    const w = ecTotal > 0 ? (n / ecTotal * 100) : 0;
+                    html += `<div class="chart-row">
+                        <span class="chart-label" style="font-size:11px;">${label}</span>
+                        <div class="chart-bar-bg"><div style="height:100%;width:${w.toFixed(1)}%;background:${color};opacity:0.6;"></div></div>
+                        <span class="chart-count">${n} (${pctOf(n, ecTotal)})</span></div>`;
+                });
+                html += `<div style="font-size:11px;color:var(--text-dim);margin-top:4px;">
+                    Walked away either way: <span style="color:#FF6B6B;">${leftMid} (${pctOf(leftMid, ecTotal)})</span>.
+                    The two rows are the same act, split by whether the exit beacon survived —
+                    a lost beacon leaves the duration as a lower bound.</div>`;
+
+                // Duration histogram. Iterate the ORDERED label list from
+                // the API, never Object.keys() — jsonify sorts dict keys and
+                // would hand back "0-14s, 1-2m, 10m+, 15-29s…".
+                const buckets = data.duration_buckets || [];
+                const hist = t.duration_hist || {};
+                const histTotal = buckets.reduce((s, b) => s + (hist[b] || 0), 0);
+                if (histTotal > 0) {
+                    html += '<div style="margin-top:8px;font-size:12px;color:var(--primary);">How long a puzzle takes</div>';
+                    buckets.forEach(b => {
+                        const n = hist[b] || 0;
+                        const w = histTotal > 0 ? (n / histTotal * 100) : 0;
+                        html += `<div class="chart-row">
+                            <span class="chart-label" style="font-size:11px;">${escapeHtml(b)}</span>
+                            <div class="chart-bar-bg"><div style="height:100%;width:${w.toFixed(1)}%;background:#00ff64;opacity:0.5;"></div></div>
+                            <span class="chart-count">${n}</span></div>`;
+                    });
+                }
+
+                // Per-mode split. The practice → Surge sequence is the whole
+                // first-session bet, so seeing those two side by side with
+                // Marathon and PotD is the fastest read on whether it works.
+                const modes = data.mode_order || [];
+                const ms = t.mode_split || {};
+                const modeKeys = modes.filter(m => ms[m] && ms[m].puzzles)
+                    .concat(Object.keys(ms).filter(m => modes.indexOf(m) < 0 && ms[m].puzzles));
+                if (modeKeys.length) {
+                    html += '<div style="margin-top:8px;font-size:12px;color:var(--primary);">By mode</div>'
+                         +  '<table style="width:100%;border-collapse:collapse;font-size:11px;">'
+                         +  '<tr style="color:var(--text-dim);"><th style="text-align:left;padding:2px;">Mode</th>'
+                         +  '<th style="text-align:right;padding:2px;">Puzzles</th>'
+                         +  '<th style="text-align:right;padding:2px;">Solved</th>'
+                         +  '<th style="text-align:right;padding:2px;">Median</th></tr>';
+                    modeKeys.forEach(m => {
+                        const b = ms[m];
+                        html += `<tr><td style="padding:2px;color:var(--text-dim);">${escapeHtml(m)}</td>
+                            <td style="text-align:right;padding:2px;">${b.puzzles}</td>
+                            <td style="text-align:right;padding:2px;">${b.solved} <span style="color:var(--text-dim);">(${b.pct_solved === null ? '—' : b.pct_solved + '%'})</span></td>
+                            <td style="text-align:right;padding:2px;">${fmtSecs(b.median_seconds)}</td></tr>`;
+                    });
+                    html += '</table>';
+                }
+
+                // One-and-done. A short first puzzle followed by nothing is
+                // the fingerprint of a board that read as impenetrable —
+                // very different from a session that played several and
+                // stopped.
+                const oad = t.one_and_done || 0, multi = t.multi_puzzle || 0;
+                const played = oad + multi;
+                if (played > 0) {
+                    html += `<div style="margin-top:8px;font-size:11px;color:var(--text-dim);">
+                        One-and-done: <strong>${oad}</strong> of ${played} playing sessions (${pctOf(oad, played)}),
+                        of which <strong>${t.one_and_done_short_first || 0}</strong> had a first puzzle under
+                        ${data.short_first_puzzle_threshold_seconds || 30}s.</div>`;
+                }
+
+                // Controls discovery, over PLAYED sessions only — a visitor
+                // who never opened a board obviously never rotated a tile,
+                // and counting them would bury the signal under the bounce
+                // rate. "Played but never rotated" is the controls-failure
+                // fingerprint: rotation IS the game.
+                const ps = t.played_sessions || 0;
+                if (ps > 0) {
+                    const ctl = t.controls || {};
+                    const nr = t.never_rotated || 0;
+                    html += `<div style="margin-top:6px;font-size:11px;color:var(--text-dim);">
+                        Controls (of ${ps} playing sessions):
+                        rotate <strong>${ctl.act_rot || 0}</strong> ·
+                        lock <strong>${ctl.act_lock || 0}</strong> ·
+                        hint <strong>${ctl.act_hint || 0}</strong> ·
+                        mouse <strong>${ctl.src_mouse || 0}</strong> ·
+                        touch <strong>${ctl.src_touch || 0}</strong>
+                        <br><span style="color:${nr > ps * 0.2 ? '#FF6B6B' : 'var(--text-dim)'};">Never rotated: ${nr} (${pctOf(nr, ps)})</span>${
+                            t.played_no_control_data ? ` · <span title="a client too old to report controls, or a session whose syncs never landed — NOT the same claim as &quot;never rotated&quot;">${t.played_no_control_data} sent no control data</span>` : ''}</div>`;
+                }
+
+                // Menu reach — the number this game learned about the hard
+                // way (9.2% lifetime, which made everything behind the menu
+                // invisible to 90% of players).
+                if (t.sessions) {
+                    html += `<div style="margin-top:6px;font-size:11px;color:var(--text-dim);">
+                        Touched any menu surface: <strong>${t.touched_any_menu || 0}</strong> of ${t.sessions} (${pctOf(t.touched_any_menu || 0, t.sessions)})</div>`;
+                }
+                html += '</div>';
+            });
+            html += '</div>';
+            out.innerHTML = html;
+        }
+
+        // ── Retention panel (forward cohorts) ──
+        // GET /api/admin/retention. Of the browsers first seen on day D, how
+        // many came back on D+1/3/7 — the direction the platforms grade, and
+        // the OPPOSITE question from the Return Players Audit above (which
+        // asks "of the browsers here today, how many had been here before").
+        // Cohorts too young for a horizon are excluded from that horizon's
+        // totals rather than counted as 0%.
+        async function loadRetention() {
+            const out = document.getElementById('visitRetention');
+            if (!out) return;
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/retention?days=30&_=${Date.now()}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const body = await res.text();
+                let data = null;
+                try { data = JSON.parse(body); } catch (_) { /* HTML error page */ }
+                if (!res.ok || !data || !data.by_device) {
+                    out.innerHTML = '<h3 style="margin-bottom:6px;color:var(--primary);">> Retention (D1 / D3 / D7)</h3>'
+                        + `<div style="color:#888;padding:5px;">${res.status === 404
+                            ? 'Endpoint not live yet — redeploy the back-end (GET /api/admin/retention).'
+                            : 'Failed to load: ' + escapeHtml((data && data.error) || res.status)}</div>`;
+                    return;
+                }
+                cachedRetention = data;
+                renderRetention();
+            } catch (e) {
+                out.innerHTML = '<h3 style="margin-bottom:6px;color:var(--primary);">> Retention (D1 / D3 / D7)</h3>'
+                    + `<div style="color:#888;padding:5px;">Network error: ${escapeHtml(e.message || e)}</div>`;
+            }
+        }
+
+        function renderRetention() {
+            const out = document.getElementById('visitRetention');
+            if (!out || !cachedRetention) return;
+            const data = cachedRetention;
+            const horizons = data.horizons || [1, 3, 7];
+            let html = '<h3 style="margin-bottom:6px;color:var(--primary);">> Retention (forward cohorts)</h3>';
+            html += `<div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">
+                Of the browsers FIRST seen on a day, how many came back N days later. This is the direction a
+                platform grades; the Return Players Audit above answers the backward question and is not comparable.
+                <br>${escapeHtml(data.note || '')}</div>`;
+
+            const devices = data.by_device || {};
+            const order = ['all', 'desktop', 'phone', 'tablet', 'unknown'];
+            const present = order.filter(k => devices[k]);
+            if (!present.length) {
+                out.innerHTML = html + '<div style="color:#666;padding:5px;">No cohorts yet.</div>';
+                return;
+            }
+
+            // Totals per device first — the headline. Percentages are over
+            // MATURE cohorts only, so D7 can legitimately quote a smaller
+            // base than D1.
+            html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px;">'
+                 +  '<tr style="border-bottom:1px solid var(--primary);"><th style="text-align:left;padding:4px;">Device</th>'
+                 +  horizons.map(h => `<th style="text-align:right;padding:4px;" title="returned at all / returned AND played, over mature cohorts">D${h}</th>`).join('')
+                 +  '<th style="text-align:right;padding:4px;" title="came back on ANY later day, not just the horizon">Ever back</th></tr>';
+            present.forEach(k => {
+                const dev = devices[k];
+                const totals = dev.totals || {};
+                const everNum = (dev.cohorts || []).reduce((s, c) => s + (c.ever_returned || 0), 0);
+                const everDen = (dev.cohorts || []).reduce((s, c) => s + (c.new_browsers || 0), 0);
+                html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <td style="padding:4px;color:var(--text-dim);">${k.toUpperCase()}</td>`;
+                horizons.forEach(h => {
+                    const t = totals['d' + h] || {};
+                    const p = t.pct;
+                    const color = p === null || p === undefined ? '#888' : (p >= 10 ? '#52B788' : p >= 3 ? '#FFD93D' : '#FF6B6B');
+                    html += `<td style="text-align:right;padding:4px;color:${color};"
+                        title="${t.returned || 0} of ${t.cohort_browsers || 0} browsers across ${t.mature_cohorts || 0} mature cohorts; ${t.returned_played || 0} of them played">
+                        ${p === null || p === undefined ? '—' : p + '%'}
+                        <span style="color:var(--text-dim);font-size:10px;">(${t.pct_played === null || t.pct_played === undefined ? '—' : t.pct_played + '%'} played)</span></td>`;
+                });
+                html += `<td style="text-align:right;padding:4px;">${pctOf(everNum, everDen)}</td></tr>`;
+            });
+            html += '</table>';
+
+            // Per-day cohorts for ALL devices. Ineligible cells read "—"
+            // rather than 0%, because tomorrow has not happened yet and a 0
+            // there would drag every eyeball average down.
+            const cohorts = (devices.all && devices.all.cohorts) || [];
+            if (cohorts.length) {
+                html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:4px;">Cohort days (all devices) — "—" means the horizon has not fully elapsed yet:</div>';
+                html += '<table style="width:100%;border-collapse:collapse;font-size:11px;">'
+                     +  '<tr style="color:var(--text-dim);"><th style="text-align:left;padding:2px;">First seen</th>'
+                     +  '<th style="text-align:right;padding:2px;">New</th>'
+                     +  horizons.map(h => `<th style="text-align:right;padding:2px;">D${h}</th>`).join('')
+                     +  '<th style="text-align:right;padding:2px;">Ever</th></tr>';
+                cohorts.forEach(c => {
+                    html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+                        <td style="padding:2px;color:var(--text-dim);">${escapeHtml(c.day)}</td>
+                        <td style="text-align:right;padding:2px;">${c.new_browsers}</td>`;
+                    horizons.forEach(h => {
+                        const cell = c['d' + h] || {};
+                        html += `<td style="text-align:right;padding:2px;" title="${cell.returned || 0} returned, ${cell.returned_played || 0} played">${
+                            cell.eligible ? (cell.pct === null ? '—' : cell.pct + '%') : '<span style="color:#555;">—</span>'}</td>`;
+                    });
+                    html += `<td style="text-align:right;padding:2px;">${c.ever_returned}</td></tr>`;
+                });
+                html += '</table>';
+            }
+            out.innerHTML = html;
         }
 
         // Per-stage tabbed breakdown panel — same pattern Tantro uses.
