@@ -191,12 +191,12 @@
                     <div id="visitFirstRun" style="grid-column: 1 / -1; display: none;"></div>
                     <!-- Engagement (playtime / per-puzzle outcome /
                          abandonment) and Retention (forward D1/D3/D7
-                         cohorts), both added 2026-08-07. Engagement has its
-                         OWN query window (?days=) rather than the tab
-                         picker, because it aggregates server-side; Retention
-                         windows by cohort day. Both stay empty until the
-                         instrumented front-end build is deployed and
-                         played. -->
+                         cohorts), both added 2026-08-07. Engagement follows
+                         the tab picker above (re-fetching, since it
+                         aggregates server-side); Retention keeps its own
+                         picker because it windows by cohort day. Both stay
+                         empty until the instrumented front-end build is
+                         deployed and played. -->
                     <div id="visitEngagement" style="grid-column: 1 / -1;"></div>
                     <div id="visitRetention" style="grid-column: 1 / -1;"></div>
                     <div id="visitDevices"></div>
@@ -338,10 +338,9 @@
                 // First-time-player funnel is its own endpoint too — refresh
                 // it on the same cadence.
                 loadFirstRunStats();
-                // Engagement and Retention each own their query window
-                // (?days= / cohort days), so they must RE-FETCH rather than
-                // re-render off cachedStats — the window tabs don't reach
-                // them.
+                // Engagement follows the window tabs but aggregates
+                // server-side, and Retention scopes by cohort day, so both
+                // must RE-FETCH rather than re-render off cachedStats.
                 loadEngagement();
                 loadRetention();
             }
@@ -353,6 +352,11 @@
             currentWindow = win;
             if (cachedStats) { renderSummary(); renderOnsiteFunnel(); renderShareSource(); renderSolveAudio(); }
             if (cachedFirstRun) renderFirstRun();
+            // Engagement aggregates server-side, so a tab change has to
+            // RE-FETCH — there is no windowed field on cachedEngagement to
+            // re-render from. Retention is deliberately NOT here: it scopes
+            // by cohort day and still owns its own picker.
+            loadEngagement();
         }
 
         function renderSummary() {
@@ -1017,10 +1021,20 @@
         // GET /api/admin/engagement. Everything here comes from the
         // instrumentation added 2026-08-07 (page_loads, puzzle_results, and
         // the clock columns on page_visits), so it is empty until a build
-        // carrying analytics.js has been deployed AND played. Own query
-        // window (?days=), independent of the tab picker above, because the
-        // aggregation happens server-side.
-        let engagementDays = 30;
+        // carrying analytics.js has been deployed AND played.
+        //
+        // Driven by the LIFETIME/24H/7D/30D tab picker at the top of the
+        // page (user call 2026-08-07 — it had its own 7/30/90/lifetime row
+        // and TANTЯO ties both to one control). Because this panel
+        // aggregates SERVER-side it must RE-FETCH on a tab change rather
+        // than re-render off a cache, which is why setWindow calls
+        // loadEngagement() directly. Keep this map in step with the tabs;
+        // days=0 is lifetime, matching the endpoint's ?days= contract.
+        // (The old 90d option is gone with the separate row — nothing to
+        // recover, since the top picker tops out at 30d and every window
+        // returns the same rows until this instrumentation has 90 days of
+        // history.)
+        const ENGAGEMENT_DAYS = { lifetime: 0, '24h': 1, '7d': 7, '30d': 30 };
         function fmtSecs(v) {
             if (v === null || v === undefined) return '—';
             const s = Math.round(v);
@@ -1030,13 +1044,13 @@
             return Math.floor(m / 60) + 'h ' + (m % 60) + 'm';
         }
         function pctOf(n, d) { return d > 0 ? (n / d * 100).toFixed(1) + '%' : '—'; }
-        function setEngagementDays(d) { engagementDays = d; loadEngagement(); }
 
         async function loadEngagement() {
             const out = document.getElementById('visitEngagement');
             if (!out) return;
+            const days = ENGAGEMENT_DAYS[currentWindow] !== undefined ? ENGAGEMENT_DAYS[currentWindow] : 30;
             try {
-                const res = await fetch(`${GAME_API_URL}/admin/engagement?days=${engagementDays}&_=${Date.now()}`, {
+                const res = await fetch(`${GAME_API_URL}/admin/engagement?days=${days}&_=${Date.now()}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const body = await res.text();
@@ -1063,12 +1077,11 @@
             const data = cachedEngagement;
             const devices = data.by_device || {};
             const all = devices.all;
-            const dayBtns = [7, 30, 90, 0].map(d =>
-                `<button class="btn btn-primary" style="font-size:9px;padding:2px 10px;${d === engagementDays ? 'font-weight:bold;' : 'opacity:0.6;'}"
-                    onclick="setEngagementDays(${d})">${d === 0 ? 'lifetime' : d + 'd'}</button>`).join(' ');
+            // Label the ACTIVE TAB, not data.days — the server echoes 24h
+            // back as days=1, which would read "last 1d".
+            const winLabel = currentWindow === 'lifetime' ? 'lifetime' : 'last ' + currentWindow;
             let html = '<h3 style="margin-bottom:6px;color:var(--primary);">> Engagement '
-                + `<span style="font-size:12px;color:var(--text-dim);">(${data.days ? 'last ' + data.days + 'd' : 'lifetime'})</span>`
-                + `<span style="float:right;">${dayBtns}</span></h3>`;
+                + `<span style="font-size:12px;color:var(--text-dim);">(${winLabel})</span></h3>`;
 
             if (!all || !all.sessions) {
                 out.innerHTML = html + '<div style="color:#666;padding:5px;">No engagement rows yet for this window. '
