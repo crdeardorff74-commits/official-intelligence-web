@@ -109,12 +109,17 @@
             gap: 2vw;
             margin-top: 20px;
         }
+        /* 45:55 split, matching the Circuitousness admin (its 2026-07-29
+           user call): the right column carries the denser panels, and since
+           2026-08-07 that includes Engagement and Retention. flex-grow
+           ratios over a 0 basis divide the space left after the 2vw gap
+           exactly 45/55; the ≤1200px media query still stacks them. */
         .visits-left {
-            flex: 1;
+            flex: 45 1 0;
             min-width: 0;
         }
         .visits-right {
-            flex: 1;
+            flex: 55 1 0;
             min-width: 0;
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -124,7 +129,12 @@
         .visits-right > div {
             min-width: 0;
         }
-        #visitChallenges {
+        /* Panels that span the whole right column rather than sitting in
+           the 3-up breakdown grid. Engagement and Retention are wide by
+           construction (a device-card grid and a per-day cohort table). */
+        #visitChallenges,
+        #visitEngagement,
+        #visitRetention {
             grid-column: 1 / -1;
         }
         @media (max-width: 1200px) {
@@ -299,16 +309,6 @@
                     <button class="window-tab"        data-window="30d"      onclick="setWindow(this, '30d')">LAST 30D</button>
                 </div>
                 
-                <!-- Engagement (playtime / per-game outcome / abandonment).
-                     Full width and above the funnel because these are the
-                     three things a CrazyGames trial is actually scored on. -->
-                <div id="visitEngagement" style="margin-bottom: 20px;"></div>
-
-                <!-- Forward D1/D3/D7 cohorts. Separate from the Return
-                     Players Audit below, which answers the BACKWARD
-                     question and is not comparable to a retention score. -->
-                <div id="visitRetention" style="margin-bottom: 20px;"></div>
-
                 <div class="visits-two-col">
                     <div class="visits-left">
                         <div id="visitStats">
@@ -331,6 +331,18 @@
                             </div>
                             <div id="returningResults"><div class="loading">Loading return-player audit...</div></div>
                         </div>
+                        <!-- Engagement (playtime / per-game outcome /
+                             abandonment) and Retention (forward D1/D3/D7
+                             cohorts). Both sit here rather than full-width
+                             above the columns (where they were until
+                             2026-08-07) so this page reads like the
+                             Circuitousness one: retention questions grouped
+                             together, with the Return Players Audit directly
+                             above them answering the BACKWARD version of the
+                             same question — the two are easy to confuse and
+                             belong side by side, not pages apart. -->
+                        <div id="visitEngagement"></div>
+                        <div id="visitRetention"></div>
                         <div id="visitDevices"></div>
                         <div id="visitOS"></div>
                         <div id="visitShares"></div>
