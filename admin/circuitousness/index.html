@@ -367,7 +367,6 @@
             const suffix = '_' + currentWindow;
             const v  = isLifetime ? d.total_visits   : d['visits'   + suffix];
             const se = isLifetime ? d.total_sessions : d['sessions' + suffix];
-            const ag = isLifetime ? d.total_agreed   : d['agreed'   + suffix];
             const st = isLifetime ? d.total_started  : d['started'  + suffix];
             const fi = isLifetime ? d.total_finished : d['finished' + suffix];
             const sh = isLifetime ? d.total_shared   : d['shared'   + suffix];
@@ -380,26 +379,24 @@
                 `<div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${n} browser${n===1?'':'s'}</div>`;
             const fr = isLifetime ? d.finish_rate    : d['finish_rate' + suffix];
             const shr= isLifetime ? d.share_rate     : d['share_rate'  + suffix];
-            // The two diagnostic rates: visit→menu (got past the warning) and
-            // menu→start (menu converted to a puzzle). A low agree_rate blames
-            // the warning gate; a low menu_start_rate blames card selection.
-            const agr = isLifetime ? d.agree_rate      : d['agree_rate'      + suffix];
+            // menu→start (menu converted to a puzzle). A low menu_start_rate
+            // blames card selection.
             const msr = isLifetime ? d.menu_start_rate : d['menu_start_rate' + suffix];
-            // One combined funnel-chain rate card (instead of two) keeps the
-            // row to 6 cards so it doesn't wrap. Each % is the conversion from
-            // the previous stage: visits →(agr)→ menu →(msr)→ start →(fr)→
-            // finish →(shr)→ share. `sr` (started/visits) is no longer shown
-            // here — it's the product of agr×msr and redundant in the chain.
+            // One combined funnel-chain rate card. Each % is the conversion
+            // from the previous stage: menu →(msr)→ start →(fr)→ finish
+            // →(shr)→ share. The visit→menu stage (agree_rate) is not shown
+            // here — the summary cards count ALL visits including embed loads
+            // that never reach the intro, so the On-site Intro Funnel panel
+            // below is the trustworthy home for that number.
             document.getElementById('visitStats').innerHTML = `
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px;">
                     <div class="stat-card"><div class="stat-value">${v}</div><div class="stat-label">Visits</div><div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${se} session${se===1?'':'s'}</div></div>
-                    <div class="stat-card"><div class="stat-value">${ag}</div><div class="stat-label">Reached menu</div></div>
                     <div class="stat-card"><div class="stat-value">${st}</div><div class="stat-label">Started</div>${subBrowsers(stu)}</div>
                     <div class="stat-card"><div class="stat-value">${fi}</div><div class="stat-label">Finished</div>${subBrowsers(fiu)}</div>
                     <div class="stat-card"><div class="stat-value">${sh}</div><div class="stat-label">Shared</div></div>
                     <div class="stat-card">
-                        <div class="stat-value">${agr}% <span style="white-space:nowrap;">→&nbsp;${msr}%</span> <span style="white-space:nowrap;">→&nbsp;${fr}%</span> <span style="white-space:nowrap;">→&nbsp;${shr}%</span></div>
-                        <div class="stat-label">Menu / Start / Finish / Share</div>
+                        <div class="stat-value">${msr}% <span style="white-space:nowrap;">→&nbsp;${fr}%</span> <span style="white-space:nowrap;">→&nbsp;${shr}%</span></div>
+                        <div class="stat-label">Start / Finish / Share</div>
                     </div>
                 </div>`;
         }
