@@ -1246,6 +1246,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                  +  '<th style="text-align:left;padding:4px;">Lang</th>'
                  +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished / Shared — Tantro has no intro gate, so every visit reaches the menu and the first dot is always lit">M/S/F/Sh</th>'
                  +  '<th style="text-align:left;padding:4px;">User-Agent</th>'
+                 +  '<th style="padding:4px;" title="Wipe this browser: deletes ALL its visits, game results and page loads (test-traffic cleanup)"></th>'
                  +  '</tr>';
             rows.forEach(r => {
                 let t = '?';
@@ -1264,10 +1265,47 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                     <td style="padding:4px;color:var(--text-dim);">${escapeHtml(r.lang)}</td>
                     <td style="padding:4px;text-align:center;white-space:nowrap;">${flag(true)}${flag(r.started)}${flag(r.finished)}${flag(r.shared)}</td>
                     <td style="padding:4px;color:var(--text-dim);" title="${escapeHtml(ua)}">${escapeHtml(uaShort)}</td>
+                    <td style="padding:4px;">${r.session ? `<button onclick="wipeSession('${escapeHtml(r.session)}')" title="Wipe this browser's rows (visits + game results + page loads)" style="background:none;border:1px solid rgba(255,80,80,0.4);color:#ff5050;border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;">✕</button>` : ''}</td>
                 </tr>`;
             });
             html += '</table>';
             el.innerHTML = html;
+        }
+
+        // Wipe one browser's rows (test-traffic cleanup). Dry-run first so
+        // the confirm dialog shows exactly what would go — the 8-char prefix
+        // shown in the table is what the endpoint keys on, and one browser
+        // usually owns several visit rows. Refreshes the whole stats panel
+        // afterwards so every derived number (funnel, engagement, retention)
+        // re-reads without the wiped rows.
+        async function wipeSession(prefix) {
+            if (!prefix || !token) return;
+            try {
+                const dryRes = await fetch(`${GAME_API_URL}/admin/wipe-session-visits`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionPrefix: prefix, dryRun: true })
+                });
+                const dry = await dryRes.json();
+                if (!dryRes.ok) { alert(`Dry-run failed: ${dry.error || dryRes.status}`); return; }
+                const msg = `Wipe browser ${prefix}?\n\n` +
+                    `Visits: ${dry.wouldDelete}\n` +
+                    `Game results: ${dry.wouldDeleteGameResults}\n` +
+                    `Page loads: ${dry.wouldDeletePageLoads}\n\n` +
+                    `This cannot be undone.`;
+                if (!confirm(msg)) return;
+                const res = await fetch(`${GAME_API_URL}/admin/wipe-session-visits`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionPrefix: prefix })
+                });
+                const data = await res.json();
+                if (!res.ok) { alert(`Wipe failed: ${data.error || res.status}`); return; }
+                alert(`Wiped ${prefix}: ${data.deleted} visits, ${data.gameResultsDeleted} game results, ${data.pageLoadsDeleted} page loads.`);
+                loadVisitStats();
+            } catch (e) {
+                alert(`Wipe failed: ${e.message || e}`);
+            }
         }
 
         // ── Return-players audit ──
