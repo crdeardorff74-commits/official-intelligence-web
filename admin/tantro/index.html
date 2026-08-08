@@ -1278,6 +1278,16 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
         // usually owns several visit rows. Refreshes the whole stats panel
         // afterwards so every derived number (funnel, engagement, retention)
         // re-reads without the wiped rows.
+        // Parse a response that SHOULD be JSON but may be an HTML error page
+        // (a 429 from the rate limiter was surfacing as "Unexpected token
+        // '<' ... is not valid JSON"). Always yields an object with .error
+        // on failure so callers can alert something readable.
+        async function jsonOrError(res) {
+            const text = await res.text();
+            try { return JSON.parse(text); }
+            catch (e) { return { error: `HTTP ${res.status}${res.status === 429 ? ' (rate limited — wait a minute and retry)' : ''}` }; }
+        }
+
         async function wipeSession(prefix) {
             if (!prefix || !token) return;
             try {
@@ -1286,7 +1296,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ sessionPrefix: prefix, dryRun: true })
                 });
-                const dry = await dryRes.json();
+                const dry = await jsonOrError(dryRes);
                 if (!dryRes.ok) { alert(`Dry-run failed: ${dry.error || dryRes.status}`); return; }
                 const msg = `Wipe browser ${prefix}?\n\n` +
                     `Visits: ${dry.wouldDelete}\n` +
@@ -1299,7 +1309,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ sessionPrefix: prefix })
                 });
-                const data = await res.json();
+                const data = await jsonOrError(res);
                 if (!res.ok) { alert(`Wipe failed: ${data.error || res.status}`); return; }
                 alert(`Wiped ${prefix}: ${data.deleted} visits, ${data.gameResultsDeleted} game results, ${data.pageLoadsDeleted} page loads.`);
                 loadVisitStats();
