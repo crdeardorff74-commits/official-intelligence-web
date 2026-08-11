@@ -163,6 +163,7 @@
                     <div id="visitChart"      style="margin-top: 20px;"></div>
                     <div id="visitRecent"     style="margin-top: 20px;"></div>
                     <div id="visitReferrers"  style="margin-top: 20px;"></div>
+                    <div id="visitCampaigns"  style="margin-top: 20px;"></div>
                     <div id="visitLanguages"  style="margin-top: 20px;"></div>
                 </div>
                 <div class="visits-right">
@@ -316,6 +317,7 @@
                 renderPlaysPerSession('visitPlays', 'Games Started per Session', cachedStats.plays_per_session, 'game');
                 renderDailyChart();
                 renderTopReferrers();
+                renderCampaigns();
                 renderTopLanguages();
                 renderRecentVisits();
                 renderDeviceBreakdown();
@@ -592,6 +594,59 @@
         function renderTopReferrers() { renderTopList('visitReferrers',  'Top Referrers',  cachedStats.top_referrers, 'value', 'Referrer'); }
         function renderTopLanguages() { renderTopList('visitLanguages',  'Top Languages',  cachedStats.top_languages, 'value', 'Language'); }
 
+        // Paid campaigns (utm_* from the landing URL). Separate from Top
+        // Referrers on purpose: a Brave notification click arrives with NO
+        // referrer, so paid traffic hides inside the "(direct)" row there.
+        // Loads is the impression count — Loads minus Visits is the paid
+        // traffic that landed and left without touching a tile, which is the
+        // number a buy lives or dies on. The whole block is hidden when no
+        // campaign has ever been tagged (the normal state between buys).
+        function renderCampaigns() {
+            const el = document.getElementById('visitCampaigns');
+            if (!el) return;
+            const groups = [
+                ['Campaign Source', (cachedStats && cachedStats.campaign_sources) || []],
+                ['Campaign',        (cachedStats && cachedStats.campaigns)        || []],
+                ['Ad Variant',      (cachedStats && cachedStats.campaign_ads)     || []],
+            ].filter(g => g[1].length > 0);
+            if (groups.length === 0) { el.innerHTML = ''; return; }
+            let html = '';
+            groups.forEach(([label, rows]) => {
+                html += `<h3 style="margin:0 0 10px;color:var(--primary);">> ${label}</h3>`;
+                html += '<table style="width:100%;border-collapse:collapse;margin-bottom:18px;">';
+                html += '<tr style="border-bottom:1px solid var(--primary);">'
+                     +  `<th style="text-align:left;padding:5px;">${label}</th>`
+                     +  '<th style="text-align:right;padding:5px;" title="page loads — impressions, including bounces">Loads</th>'
+                     +  '<th style="text-align:right;padding:5px;" title="loads that interacted enough to create a visit row">Visits</th>'
+                     +  '<th style="text-align:right;padding:5px;">Started</th>'
+                     +  '<th style="text-align:right;padding:5px;">Finished</th>'
+                     +  '<th style="text-align:right;padding:5px;" title="loads that never became a visit">Bounce%</th>'
+                     +  '<th style="text-align:right;padding:5px;" title="finished / loads">Conv%</th>'
+                     +  '</tr>';
+                rows.forEach(r => {
+                    // Loads is the honest denominator, but rows written before
+                    // the impression table carried campaigns can have loads=0
+                    // with real visits — fall back rather than divide by zero.
+                    const den    = r.loads || r.visits || 0;
+                    const bounce = r.loads > 0 ? ((r.loads - r.visits) / r.loads * 100).toFixed(1) : '—';
+                    const conv   = den > 0 ? (r.finished / den * 100).toFixed(1) : '0.0';
+                    const value  = r.value || '';
+                    const short  = value.length > 40 ? value.substring(0, 40) + '…' : value;
+                    html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                        <td style="padding:5px;color:var(--text-dim);word-break:break-all;">${escapeHtml(short)}</td>
+                        <td style="text-align:right;padding:5px;">${r.loads}</td>
+                        <td style="text-align:right;padding:5px;">${r.visits}</td>
+                        <td style="text-align:right;padding:5px;">${r.started}</td>
+                        <td style="text-align:right;padding:5px;">${r.finished}</td>
+                        <td style="text-align:right;padding:5px;">${bounce}${bounce === '—' ? '' : '%'}</td>
+                        <td style="text-align:right;padding:5px;">${conv}%</td>
+                    </tr>`;
+                });
+                html += '</table>';
+            });
+            el.innerHTML = html;
+        }
+
         // Recent individual visits — spot-check for double-counts (same
         // Session prefix on two rows = one browser reloaded/relaunched) and
         // bots (the User-Agent column). M/S/F = reached Menu / Started /
@@ -605,6 +660,11 @@
             const counts = {};
             rows.forEach(r => { counts[r.session] = (counts[r.session] || 0) + 1; });
             const flag = b => b ? '<span style="color:#00ff64;">●</span>' : '<span style="color:#444;">○</span>';
+            // A paid arrival and a bookmark both show referrer '(direct)' — the
+            // campaign tag is the only thing that tells them apart in this list.
+            const campTag = r => r.campaign
+                ? ` <span style="color:#ffaa00;" title="paid campaign: ${escapeHtml(r.campaign)}">[${escapeHtml(r.campaign)}]</span>`
+                : '';
             let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> Recent Visits <span style="font-size:11px;color:var(--text-dim);">(newest ${rows.length} — repeated Session = same browser)</span></h3>`;
             html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
             html += '<tr style="border-bottom:1px solid var(--primary);">'
@@ -647,7 +707,7 @@
                 }
                 html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(t)}</td>
-                    <td style="padding:4px;word-break:break-all;" title="${escapeHtml(r.referrer || '')}">${escapeHtml(refShort)}</td>
+                    <td style="padding:4px;word-break:break-all;" title="${escapeHtml(r.referrer || '')}">${escapeHtml(refShort)}${campTag(r)}</td>
                     <td style="padding:4px;${sessStyle}">${escapeHtml(r.session)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.device)}/${escapeHtml(r.os)}</td>
                     <td style="padding:4px;color:var(--text-dim);">${escapeHtml(r.lang)}</td>
