@@ -1227,6 +1227,81 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
         // Not window-filtered — always the newest rows overall. Mirrors the
         // Circuitousness admin panel (minus its embed/redirect Src column —
         // Tantro doesn't track embedding).
+        //
+        // Each row expands (the ▸ caret) into one session's engagement detail.
+        // That exists because the aggregate Engagement panel cannot isolate a
+        // single session: it takes only ?days=N. When CrazyGames rejected the
+        // 2026-08-11 submission after ONE reviewer session, the 24h window
+        // held 3 visitors and 9 sessions and there was no way to say which
+        // numbers were theirs. Expand their row instead.
+        // Token sets from PageVisit.control_flags / .funnel_flags — union-merged
+        // CSVs written by Analytics.control() / .flag(). Decoded here rather
+        // than server-side so adding a token stays a front-end-only change.
+        const CONTROL_SOURCES = { src_kbd: 'keyboard', src_touch: 'touch', src_btn: 'on-screen buttons' };
+        // Rendered as lit/unlit dots, because the ABSENCE is the finding: a
+        // session that played without ever rotating a piece never found the
+        // controls. That is what a 30-second first game usually is.
+        const CONTROL_ACTIONS = [['act_move', 'moved'], ['act_rot', 'rotated'], ['act_hard', 'hard-dropped']];
+        const FUNNEL_LABELS = {
+            intro_shown: 'first-time intro', htp: 'How to Play', lb: 'Leaderboards',
+            settings: 'Settings', skill_open: 'skill picker', skill_set: 'skill chosen',
+            diff_open: 'difficulty picker', diff_set: 'difficulty chosen',
+            chal_open: 'challenge picker', chal_set: 'challenge chosen'
+        };
+
+        function toggleVisitDetail(i) {
+            const el = document.getElementById('visitDetail' + i);
+            const caret = document.getElementById('visitCaret' + i);
+            if (!el) return;
+            const open = el.style.display !== 'none';
+            el.style.display = open ? 'none' : '';
+            if (caret) caret.textContent = open ? '▸' : '▾';
+        }
+
+        // One session's engagement, read end to end. The aggregate panel below
+        // cannot do this — /api/admin/engagement takes only ?days=N, so a lone
+        // CrazyGames reviewer session arrives averaged in with everyone else's.
+        function visitDetailHtml(r) {
+            // Payloads from a back end that predates these fields have none of
+            // them. Say so, rather than rendering every dot red — an absent
+            // column and a player who never rotated a piece must not look alike.
+            if (r.session_seconds === undefined) {
+                return '<div style="padding:6px 10px 8px 22px;color:#ffaa00;font-size:11px;">'
+                     + 'No engagement fields in this payload — deploy the back end (recent_visits gained them) and reload.</div>';
+            }
+            const dim = 'color:var(--text-dim);';
+            const dot = b => b ? '<span style="color:#00ff64;">●</span>' : '<span style="color:#ff5050;">○</span>';
+            const tokens = s => new Set((s || '').split(',').map(t => t.trim()).filter(Boolean));
+            const ctrl = tokens(r.control_flags);
+            const funnel = tokens(r.funnel_flags);
+
+            const srcs = Object.keys(CONTROL_SOURCES).filter(k => ctrl.has(k)).map(k => CONTROL_SOURCES[k]);
+            const acts = CONTROL_ACTIONS.map(([k, label]) => `${dot(ctrl.has(k))} ${label}`).join(' &nbsp;');
+            const opened = Object.keys(FUNNEL_LABELS).filter(k => funnel.has(k)).map(k => FUNNEL_LABELS[k]);
+
+            // games_started is what the CLIENT believes it began; games_recorded
+            // is what actually landed. A persistent gap means lost beacons, not
+            // a lost player.
+            const gap = (r.games_started || 0) > (r.games_recorded || 0);
+            const lines = [];
+            lines.push(`On page <b>${fmtSecs(r.session_seconds)}</b> &nbsp;·&nbsp; playing <b>${fmtSecs(r.play_seconds)}</b>`
+                + ` &nbsp;·&nbsp; landing screen → first game <b>${r.ttfs === null || r.ttfs === undefined ? 'never started one' : fmtSecs(r.ttfs)}</b>`);
+            lines.push(`Games: <b>${r.games_started || 0}</b> started / <b>${r.games_recorded || 0}</b> recorded`
+                + (gap ? ' <span style="color:#ffaa00;">← beacons lost</span>' : '')
+                + (r.versions && r.versions.length ? ` &nbsp;·&nbsp; build <b>${escapeHtml(r.versions.join(' → '))}</b>` : ''));
+            if (r.games_recorded) {
+                lines.push(`Game 1: <b>${fmtSecs(r.first_game_seconds)}</b>, ${escapeHtml(r.first_game_end || '?')}`
+                    + `, ${r.first_game_lines === null || r.first_game_lines === undefined ? '?' : r.first_game_lines} lines`
+                    + (r.first_game_resumed ? ' <span style="color:#ffaa00;">(resumed — clock restarted, short is not disengagement)</span>' : '')
+                    + (r.games_recorded > 1 ? ` &nbsp;·&nbsp; longest <b>${fmtSecs(r.longest_game_seconds)}</b>` : ''));
+            }
+            lines.push(`Controls: ${srcs.length ? escapeHtml(srcs.join(' + ')) : '<span style="color:#ff5050;">no input source recorded</span>'} &nbsp;—&nbsp; ${acts}`
+                + (ctrl.has('perf_reduced') ? ' &nbsp;·&nbsp; <span style="color:#ffaa00;">effects auto-reduced (device judged slow, or flagged on an earlier session)</span>' : ''));
+            lines.push(`Menus opened: ${opened.length ? escapeHtml(opened.join(', ')) : 'nothing'}`);
+
+            return `<div style="padding:6px 10px 8px 22px;${dim}font-size:11px;line-height:1.7;">${lines.join('<br>')}</div>`;
+        }
+
         function renderRecentVisits() {
             const rows = (cachedStats && cachedStats.recent_visits) || [];
             const el = document.getElementById('visitRecent');
@@ -1239,16 +1314,18 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
             let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> Recent Visits <span style="font-size:11px;color:var(--text-dim);">(newest ${rows.length} — repeated Session = same browser)</span></h3>`;
             html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
             html += '<tr style="border-bottom:1px solid var(--primary);">'
+                 +  '<th style="padding:4px;" title="Expand for this session\'s engagement detail"></th>'
                  +  '<th style="text-align:left;padding:4px;">Time</th>'
                  +  '<th style="text-align:left;padding:4px;">Referrer</th>'
                  +  '<th style="text-align:left;padding:4px;">Session</th>'
                  +  '<th style="text-align:left;padding:4px;">Device</th>'
                  +  '<th style="text-align:left;padding:4px;">Lang</th>'
                  +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished / Shared — Tantro has no intro gate, so every visit reaches the menu and the first dot is always lit">M/S/F/Sh</th>'
+                 +  '<th style="text-align:right;padding:4px;" title="Time with a game running and unpaused (tab-hidden time excluded). Expand the row for the rest.">Play</th>'
                  +  '<th style="text-align:left;padding:4px;">User-Agent</th>'
                  +  '<th style="padding:4px;" title="Wipe this browser: deletes ALL its visits, game results and page loads (test-traffic cleanup)"></th>'
                  +  '</tr>';
-            rows.forEach(r => {
+            rows.forEach((r, i) => {
                 let t = '?';
                 if (r.time) { const d = new Date(r.time); t = d.toLocaleString([], {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}); }
                 const ref = (r.referrer || '').replace(/^https?:\/\//, '');
@@ -1258,14 +1335,19 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                 const ua = r.ua || '';
                 const uaShort = ua.length > 52 ? ua.slice(0, 52) + '…' : ua;
                 html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <td style="padding:4px;"><button id="visitCaret${i}" onclick="toggleVisitDetail(${i})" title="Show this session's engagement detail" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:11px;padding:0 2px;">▸</button></td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(t)}</td>
                     <td style="padding:4px;word-break:break-all;" title="${escapeHtml(r.referrer || '')}">${escapeHtml(refShort)}</td>
                     <td style="padding:4px;${sessStyle}">${escapeHtml(r.session)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.device)}/${escapeHtml(r.os)}</td>
                     <td style="padding:4px;color:var(--text-dim);">${escapeHtml(r.lang)}</td>
                     <td style="padding:4px;text-align:center;white-space:nowrap;">${flag(true)}${flag(r.started)}${flag(r.finished)}${flag(r.shared)}</td>
+                    <td style="padding:4px;text-align:right;color:var(--text-dim);white-space:nowrap;">${fmtSecs(r.play_seconds)}</td>
                     <td style="padding:4px;color:var(--text-dim);" title="${escapeHtml(ua)}">${escapeHtml(uaShort)}</td>
                     <td style="padding:4px;">${r.session ? `<button onclick="wipeSession('${escapeHtml(r.session)}')" title="Wipe this browser's rows (visits + game results + page loads)" style="background:none;border:1px solid rgba(255,80,80,0.4);color:#ff5050;border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;">✕</button>` : ''}</td>
+                </tr>
+                <tr id="visitDetail${i}" style="display:none;border-bottom:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);">
+                    <td colspan="10">${visitDetailHtml(r)}</td>
                 </tr>`;
             });
             html += '</table>';
