@@ -1430,19 +1430,28 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                 const dry = await jsonOrError(dryRes);
                 if (!dryRes.ok) { alert(`Dry-run failed: ${dry.error || dryRes.status}`); return; }
 
+                // Context lines, kept SEPARATE from the repair counts. An
+                // earlier version merged "no evidence of a start" into one
+                // "unrepairable" total, which read as 639 broken rows when 1
+                // row was actually damaged — the rest were ordinary bounces.
+                const context = `\nFor context, visits with no evidence of a start: ${dry.visits_without_start_evidence}\n`
+                    + `  • ${dry.likely_genuine_non_starters} inside the instrumented era — these really did bounce, nothing to fix\n`
+                    + `  • ${dry.visits_predating_instrumentation} before game_results existed (pre-v1.63) — a blind spot, not damage;\n`
+                    + `    whether any of those started a game is unknowable either way\n`;
+
                 const lost = (dry.wouldSetStarted || 0) + (dry.wouldSetFinished || 0);
                 if (!lost) {
-                    alert('Nothing to repair — every visit with a game row already carries its flags.\n\n'
-                        + `Unrepairable (no game row at all, predates v1.63): ${dry.unrepairable_before_game_results}`);
+                    alert('Nothing to repair — every visit with a game row already carries its flags.\n'
+                        + context);
                     return;
                 }
                 if (!confirm('Repair funnel flags?\n\n'
                         + `Set started_game:  ${dry.wouldSetStarted} visits\n`
                         + `Set finished_game: ${dry.wouldSetFinished} visits\n`
-                        + `Cannot be repaired (no game row — predates v1.63): ${dry.unrepairable_before_game_results}\n\n`
-                        + '⚠ This RAISES the historical start rate, unevenly across time. Any '
-                        + 'before/after comparison spanning today is then reading a measurement '
-                        + 'change, not a traffic change.\n\n'
+                        + context
+                        + '\n⚠ This RAISES the historical start rate. Any before/after comparison '
+                        + 'spanning today is then reading a measurement change, not a traffic '
+                        + 'change.\n\n'
                         + 'This cannot be undone.')) return;
 
                 const res = await post(false);
