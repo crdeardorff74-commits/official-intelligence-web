@@ -1311,7 +1311,10 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
             const counts = {};
             rows.forEach(r => { counts[r.session] = (counts[r.session] || 0) + 1; });
             const flag = b => b ? '<span style="color:#00ff64;">●</span>' : '<span style="color:#444;">○</span>';
-            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> Recent Visits <span style="font-size:11px;color:var(--text-dim);">(newest ${rows.length} — repeated Session = same browser)</span></h3>`;
+            // The repair button lives HERE, next to the evidence: an unlit S dot
+            // on a row whose detail shows a recorded game is the bug it fixes.
+            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> Recent Visits <span style="font-size:11px;color:var(--text-dim);">(newest ${rows.length} — repeated Session = same browser)</span>`
+                 +  ` <button onclick="backfillFunnelFlags()" title="Rebuild started_game / finished_game from the game_results rows. Dry-runs first and shows the counts before changing anything." style="margin-left:8px;background:none;border:1px solid rgba(255,170,0,0.45);color:#ffaa00;border-radius:3px;cursor:pointer;font-size:10px;padding:2px 7px;vertical-align:middle;">Repair funnel flags</button></h3>`;
             html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
             html += '<tr style="border-bottom:1px solid var(--primary);">'
                  +  '<th style="padding:4px;" title="Expand for this session\'s engagement detail"></th>'
@@ -1397,6 +1400,63 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                 loadVisitStats();
             } catch (e) {
                 alert(`Wipe failed: ${e.message || e}`);
+            }
+        }
+
+        // ── Repair the funnel flags ──
+        // started_game / finished_game were written by fire-and-forget PATCHes
+        // that dropped whenever the visit POST was slow to answer, while the
+        // game_results row (queued and retried) landed regardless. So a visit
+        // can show a 9m 55s game and still read "visited, never started" — an
+        // unlit S dot on a row whose detail shows a recorded game, which is
+        // exactly why this button sits in that table's header.
+        //
+        // The front end no longer loses them (game.js whenVisitReady); this
+        // rebuilds the flags on rows already written, from the game rows
+        // themselves, so it reconstructs rather than estimates. Idempotent.
+        //
+        // Dry-run first ALWAYS, same shape as wipeSession: the update is
+        // one-way, and the confirm dialog is where the counts get read.
+        async function backfillFunnelFlags() {
+            if (!token) { alert('Not authenticated — log in again.'); return; }
+            const url = `${GAME_API_URL}/admin/backfill-funnel-flags`;
+            const post = (dryRun) => fetch(url, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dryRun })
+            });
+            try {
+                const dryRes = await post(true);
+                const dry = await jsonOrError(dryRes);
+                if (!dryRes.ok) { alert(`Dry-run failed: ${dry.error || dryRes.status}`); return; }
+
+                const lost = (dry.wouldSetStarted || 0) + (dry.wouldSetFinished || 0);
+                if (!lost) {
+                    alert('Nothing to repair — every visit with a game row already carries its flags.\n\n'
+                        + `Unrepairable (no game row at all, predates v1.63): ${dry.unrepairable_before_game_results}`);
+                    return;
+                }
+                if (!confirm('Repair funnel flags?\n\n'
+                        + `Set started_game:  ${dry.wouldSetStarted} visits\n`
+                        + `Set finished_game: ${dry.wouldSetFinished} visits\n`
+                        + `Cannot be repaired (no game row — predates v1.63): ${dry.unrepairable_before_game_results}\n\n`
+                        + '⚠ This RAISES the historical start rate, unevenly across time. Any '
+                        + 'before/after comparison spanning today is then reading a measurement '
+                        + 'change, not a traffic change.\n\n'
+                        + 'This cannot be undone.')) return;
+
+                const res = await post(false);
+                const data = await jsonOrError(res);
+                if (!res.ok) { alert(`Repair failed: ${data.error || res.status}`); return; }
+                alert(`Repaired: started_game on ${data.startedSet} visits, `
+                    + `finished_game on ${data.finishedSet}.\n\n`
+                    + 'finished_count was deliberately left alone — it counts game-over events, '
+                    + 'and inventing one from a flag would corrupt the daily digest.');
+                // Every derived number (funnel, referrers, languages, engagement,
+                // retention) reads off these flags, so reload the whole panel.
+                loadVisitStats();
+            } catch (e) {
+                alert(`Repair failed: ${e.message || e}`);
             }
         }
 
