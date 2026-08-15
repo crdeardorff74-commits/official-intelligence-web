@@ -129,6 +129,12 @@
             <h1 style="margin: 0;">> CIRCUITOUSNESS ADMIN</h1>
             <div style="display: flex; gap: 10px; margin-left: auto;">
                 <button id="adminRefresh" class="btn btn-primary" style="display: none;" onclick="loadVisitStats()">🔄 REFRESH</button>
+                <!-- Mosaic difficulty-calibration corpus (mosaic_solves) as a
+                     JSON file — one row per solved designed-mosaic test play;
+                     plot movesOverFloor against score to find where the
+                     difficulty formula bends. Same admin JWT as everything
+                     else on this page. -->
+                <button id="mosaicSolvesBtn" class="btn btn-primary" style="display: none;" onclick="downloadMosaicSolves()">⬇ MOSAIC SOLVES</button>
                 <a href="/admin/" class="btn btn-primary">← ADMIN HUB</a>
                 <a href="/" class="btn btn-primary">← BACK TO SITE</a>
             </div>
@@ -283,6 +289,7 @@
                 if (data.user && data.user.is_admin) {
                     document.getElementById('adminContent').style.display = 'block';
                     document.getElementById('adminRefresh').style.display = '';
+                    document.getElementById('mosaicSolvesBtn').style.display = '';
                     loadVisitStats();
                     startAutoRefresh();
                 } else {
@@ -290,6 +297,45 @@
                 }
             } catch (err) {
                 document.getElementById('notAdmin').style.display = 'block';
+            }
+        }
+
+        // ⬇ MOSAIC SOLVES — pull the whole difficulty-calibration corpus
+        // (GET /admin/mosaic/solves: one row per solved designed-mosaic
+        // test play, prediction + actual + movesOverFloor) and save it as
+        // a dated JSON file. Client-side Blob download rather than a link
+        // straight at the endpoint, because the admin JWT rides an
+        // Authorization header and a plain <a href> can't send one. The
+        // button doubles as its own status readout — row count on
+        // success, FAILED on error — so no layout is disturbed.
+        async function downloadMosaicSolves() {
+            const btn = document.getElementById('mosaicSolvesBtn');
+            const label = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '… FETCHING';
+            try {
+                const res = await fetch(`${GAME_API_URL}/admin/mosaic/solves?_=${Date.now()}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+                const blob = new Blob([JSON.stringify(data, null, 2)],
+                                      { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'mosaic_solves-' + new Date().toISOString().slice(0, 10) + '.json';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 5000);
+                btn.textContent = '⬇ ' + data.count + ' ROWS';
+            } catch (err) {
+                console.error('mosaic solves download failed', err);
+                btn.textContent = '✖ FAILED';
+            } finally {
+                btn.disabled = false;
+                setTimeout(() => { btn.textContent = label; }, 2500);
             }
         }
 
