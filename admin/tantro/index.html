@@ -1295,8 +1295,25 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                     + (r.first_game_resumed ? ' <span style="color:#ffaa00;">(resumed — clock restarted, short is not disengagement)</span>' : '')
                     + (r.games_recorded > 1 ? ` &nbsp;·&nbsp; longest <b>${fmtSecs(r.longest_game_seconds)}</b>` : ''));
             }
+            // Perf tokens (split 2026-08-19, phones-only from v4.40):
+            //   perf_fired   — measured slow THIS session (fresh judgment)
+            //   perf_reduced — session ran with reduced effects (fired now
+            //                  OR re-applied from an earlier session's flag)
+            //   perf_cap     — flat ~30fps fingerprint (Energy Saver / RDP /
+            //                  30Hz display): effects kept, nothing flagged.
+            // Pre-split builds only ever sent perf_reduced, so its
+            // fallback wording still hedges.
+            let perfNote = '';
+            if (ctrl.has('perf_fired')) {
+                perfNote = ' &nbsp;·&nbsp; <span style="color:#ffaa00;">effects auto-reduced — judged slow THIS session</span>';
+            } else if (ctrl.has('perf_reduced')) {
+                perfNote = ' &nbsp;·&nbsp; <span style="color:#ffaa00;">ran with reduced effects (flagged in an earlier session, or a pre-v4.40 build)</span>';
+            }
+            if (ctrl.has('perf_cap')) {
+                perfNote += ' &nbsp;·&nbsp; <span style="color:#3a7bd5;">frame-rate cap detected (Energy Saver / RDP / 30Hz) — effects kept</span>';
+            }
             lines.push(`Controls: ${srcs.length ? escapeHtml(srcs.join(' + ')) : '<span style="color:#ff5050;">no input source recorded</span>'} &nbsp;—&nbsp; ${acts}`
-                + (ctrl.has('perf_reduced') ? ' &nbsp;·&nbsp; <span style="color:#ffaa00;">effects auto-reduced (device judged slow, or flagged on an earlier session)</span>' : ''));
+                + perfNote);
             lines.push(`Menus opened: ${opened.length ? escapeHtml(opened.join(', ')) : 'nothing'}`);
 
             return `<div style="padding:6px 10px 8px 22px;${dim}font-size:11px;line-height:1.7;">${lines.join('<br>')}</div>`;
@@ -1343,7 +1360,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                     <td style="padding:4px;white-space:nowrap;" title="${escapeHtml(r.referrer || '')}">${escapeHtml(refShort)}</td>
                     <td style="padding:4px;${sessStyle}">${escapeHtml(r.session)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.device)}/${escapeHtml(r.os)}</td>
-                    <td style="padding:4px;color:var(--text-dim);">${escapeHtml(r.lang)}</td>
+                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.lang)}</td>
                     <td style="padding:4px;text-align:center;white-space:nowrap;">${flag(true)}${flag(r.started)}${flag(r.finished)}${flag(r.shared)}</td>
                     <td style="padding:4px;text-align:right;color:var(--text-dim);white-space:nowrap;">${fmtSecs(r.play_seconds)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;" title="${escapeHtml(ua)}">${escapeHtml(uaShort)}</td>
