@@ -693,6 +693,81 @@
             el.innerHTML = html;
         }
 
+        // ── Per-session engagement detail (the ▸ caret) ──
+        // Token vocabularies from the front-end's analytics.js / game.js and
+        // the back-end's engagement.py MENU_FLAGS — unknown tokens render raw
+        // rather than vanish, so a new flag shows up before this map learns it.
+        const CONTROL_SOURCES = { src_mouse: 'mouse', src_touch: 'touch', src_key: 'keyboard', src_pad: 'gamepad' };
+        // Lit/unlit dots, because the ABSENCE is the finding: a session that
+        // played without ever rotating a tile never found the controls.
+        const CONTROL_ACTIONS = [['act_rot', 'rotated'], ['act_lock', 'locked'], ['act_hint', 'used hint'], ['act_gate', 'used gate']];
+        const FUNNEL_LABELS = {
+            menu: 'mode menu', howto: 'How to Solve', lb: 'Leaderboards',
+            settings: 'Settings', potd_cal: 'PotD calendar', credits: 'credits',
+            daily_more: 'PotD "more puzzles"'
+        };
+
+        function toggleVisitDetail(i) {
+            const el = document.getElementById('visitDetail' + i);
+            const caret = document.getElementById('visitCaret' + i);
+            if (!el) return;
+            const open = el.style.display !== 'none';
+            el.style.display = open ? 'none' : '';
+            if (caret) caret.textContent = open ? '▸' : '▾';
+        }
+
+        // One session's engagement, read end to end. The aggregate engagement
+        // panel cannot do this — it averages a lone interesting session in
+        // with everyone else's. Mirrors TANTЯO's; circ's unit is the puzzle.
+        function visitDetailHtml(r) {
+            // Payloads from a back end that predates these fields have none of
+            // them. Say so, rather than rendering every dot red — an absent
+            // column and a player who never rotated a tile must not look alike.
+            if (r.session_seconds === undefined) {
+                return '<div style="padding:6px 10px 8px 22px;color:#ffaa00;font-size:11px;">'
+                     + 'No engagement fields in this payload — deploy the back end (recent_visits gained them) and reload.</div>';
+            }
+            const dim = 'color:var(--text-dim);';
+            const dot = b => b ? '<span style="color:#00ff64;">●</span>' : '<span style="color:#ff5050;">○</span>';
+            const tokens = s => new Set((s || '').split(',').map(t => t.trim()).filter(Boolean));
+            const ctrl = tokens(r.control_flags);
+            const funnel = tokens(r.funnel_flags);
+
+            const srcs = Object.keys(CONTROL_SOURCES).filter(k => ctrl.has(k)).map(k => CONTROL_SOURCES[k]);
+            const acts = CONTROL_ACTIONS.map(([k, label]) => `${dot(ctrl.has(k))} ${label}`).join(' &nbsp;');
+            const opened = Array.from(funnel).map(k => FUNNEL_LABELS[k] || k);
+
+            // puzzles_started is what the CLIENT believes it began;
+            // puzzles_recorded is what actually landed. A persistent gap
+            // means lost beacons, not a lost player.
+            const gap = (r.puzzles_started || 0) > (r.puzzles_recorded || 0);
+            const lines = [];
+            lines.push(`On page <b>${fmtSecs(r.session_seconds)}</b> &nbsp;·&nbsp; playing <b>${fmtSecs(r.play_seconds)}</b>`
+                + ` &nbsp;·&nbsp; landing screen → first puzzle <b>${r.ttfs === null || r.ttfs === undefined ? 'never started one' : fmtSecs(r.ttfs)}</b>`);
+            lines.push(`Puzzles: <b>${r.puzzles_started || 0}</b> started / <b>${r.puzzles_recorded || 0}</b> recorded / <b>${r.puzzles_solved || 0}</b> solved`
+                + (gap ? ' <span style="color:#ffaa00;">← beacons lost</span>' : '')
+                + (r.versions && r.versions.length ? ` &nbsp;·&nbsp; build <b>${escapeHtml(r.versions.join(' → '))}</b>` : ''));
+            if (r.puzzles_recorded) {
+                lines.push(`Puzzle 1: <b>${fmtSecs(r.first_puzzle_seconds)}</b>, ${escapeHtml(r.first_puzzle_end || '?')}`
+                    + `, ${escapeHtml(r.first_puzzle_mode || '?')} ${escapeHtml(r.first_puzzle_dims || '')}`
+                    + `, ${r.first_puzzle_moves === null || r.first_puzzle_moves === undefined ? '?' : r.first_puzzle_moves} moves`
+                    + ((r.first_puzzle_hints || 0) > 0 ? `, ${r.first_puzzle_hints} hint${r.first_puzzle_hints > 1 ? 's' : ''}` : '')
+                    + (r.first_puzzle_resumed ? ' <span style="color:#ffaa00;">(resumed — clock restarted, short is not disengagement)</span>' : '')
+                    + (r.puzzles_recorded > 1 ? ` &nbsp;·&nbsp; longest <b>${fmtSecs(r.longest_puzzle_seconds)}</b>` : ''));
+            }
+            lines.push(`Controls: ${srcs.length ? escapeHtml(srcs.join(' + ')) : '<span style="color:#ff5050;">no input source recorded</span>'} &nbsp;—&nbsp; ${acts}`);
+            lines.push(`Menus opened: ${opened.length ? escapeHtml(opened.join(', ')) : 'nothing'}`);
+            // Which outbound links THIS session clicked — the aggregate
+            // share/credits panels can't attribute, this row can.
+            const links = [];
+            if (r.share_platform) links.push(`shared: <b>${escapeHtml(r.share_platform)}</b>`);
+            if (r.credits_clicks) links.push(`credits links: <b>${escapeHtml(r.credits_clicks)}</b>`);
+            if (r.donate) links.push('<b>ASPCA donate clicked</b>');
+            lines.push(`Links: ${links.length ? links.join(' &nbsp;·&nbsp; ') : 'none clicked'}`);
+
+            return `<div style="padding:6px 10px 8px 22px;${dim}font-size:11px;line-height:1.7;">${lines.join('<br>')}</div>`;
+        }
+
         // Recent individual visits — spot-check for double-counts (same
         // Session prefix on two rows = one browser reloaded/relaunched) and
         // bots (the User-Agent column). M/S/F = reached Menu / Started /
@@ -714,6 +789,7 @@
             let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> Recent Visits <span style="font-size:11px;color:var(--text-dim);">(newest ${rows.length} — repeated Session = same browser)</span></h3>`;
             html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
             html += '<tr style="border-bottom:1px solid var(--primary);">'
+                 +  '<th style="padding:4px;" title="Expand for this session\'s engagement detail"></th>'
                  +  '<th style="text-align:left;padding:4px;">Time</th>'
                  +  '<th style="text-align:left;padding:4px;">Referrer</th>'
                  +  '<th style="text-align:left;padding:4px;">Session</th>'
@@ -724,7 +800,7 @@
                  +  '<th style="text-align:left;padding:4px;">User-Agent</th>'
                  +  '<th style="padding:4px;" title="Wipe this browser: deletes ALL its visits (incl. their share-platform + credits-link clicks), puzzle results, page loads and first-run funnel row (test-traffic cleanup)"></th>'
                  +  '</tr>';
-            rows.forEach(r => {
+            rows.forEach((r, i) => {
                 let t = '?';
                 if (r.time) { const d = new Date(r.time); t = d.toLocaleString([], {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}); }
                 const ref = (r.referrer || '').replace(/^https?:\/\//, '');
@@ -753,15 +829,19 @@
                     srcTag = '<span style="color:#888;" title="embedded on an unknown or blank-referrer host">embed</span>';
                 }
                 html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <td style="padding:4px;"><button id="visitCaret${i}" onclick="toggleVisitDetail(${i})" title="Show this session's engagement detail" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:11px;padding:0 2px;">▸</button></td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(t)}</td>
                     <td style="padding:4px;white-space:nowrap;" title="${escapeHtml(r.referrer || '')}">${escapeHtml(refShort)}${campTag(r)}</td>
                     <td style="padding:4px;${sessStyle}">${escapeHtml(r.session)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.device)}/${escapeHtml(r.os)}</td>
-                    <td style="padding:4px;color:var(--text-dim);">${escapeHtml(r.lang)}</td>
+                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.lang)}</td>
                     <td style="padding:4px;white-space:nowrap;">${srcTag}</td>
                     <td style="padding:4px;text-align:center;white-space:nowrap;">${flag(r.agreed)}${flag(r.started)}${flag(r.finished)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;" title="${escapeHtml(ua)}">${escapeHtml(uaShort)}</td>
                     <td style="padding:4px;">${/^[0-9a-fA-F-]{8}$/.test(r.session || '') ? `<button onclick="wipeSession('${escapeHtml(r.session)}')" title="Wipe this browser's rows (visits + share/credits clicks + puzzle results + page loads + first-run row)" style="background:none;border:1px solid rgba(255,80,80,0.4);color:#ff5050;border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;">✕</button>` : ''}</td>
+                </tr>
+                <tr id="visitDetail${i}" style="display:none;border-bottom:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);">
+                    <td colspan="10">${visitDetailHtml(r)}</td>
                 </tr>`;
             });
             html += '</table>';
