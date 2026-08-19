@@ -722,6 +722,7 @@
                  +  '<th style="text-align:left;padding:4px;" title="where the load ran: site = own origin; cg = CrazyGames embed; itch = itch embed; embed = framed on an unknown host; ↻itch = itch mobile redirect handoff (saw the redirect overlay, not the intro). Embed platform is inferred from the referrer.">Src</th>'
                  +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished">M/S/F</th>'
                  +  '<th style="text-align:left;padding:4px;">User-Agent</th>'
+                 +  '<th style="padding:4px;" title="Wipe this browser: deletes ALL its visits (incl. their share-platform + credits-link clicks), puzzle results, page loads and first-run funnel row (test-traffic cleanup)"></th>'
                  +  '</tr>';
             rows.forEach(r => {
                 let t = '?';
@@ -760,10 +761,68 @@
                     <td style="padding:4px;white-space:nowrap;">${srcTag}</td>
                     <td style="padding:4px;text-align:center;white-space:nowrap;">${flag(r.agreed)}${flag(r.started)}${flag(r.finished)}</td>
                     <td style="padding:4px;color:var(--text-dim);" title="${escapeHtml(ua)}">${escapeHtml(uaShort)}</td>
+                    <td style="padding:4px;">${/^[0-9a-fA-F-]{8}$/.test(r.session || '') ? `<button onclick="wipeSession('${escapeHtml(r.session)}')" title="Wipe this browser's rows (visits + share/credits clicks + puzzle results + page loads + first-run row)" style="background:none;border:1px solid rgba(255,80,80,0.4);color:#ff5050;border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;">✕</button>` : ''}</td>
                 </tr>`;
             });
             html += '</table>';
             el.innerHTML = html;
+        }
+
+        // Wipe one browser's rows (test-traffic cleanup). Dry-run first so
+        // the confirm dialog shows exactly what would go — the 8-char prefix
+        // shown in the table is what the endpoint keys on, and one browser
+        // usually owns several visit rows. Share-platform and credits-link
+        // clicks live ON the visit rows (CSV columns), so they're listed in
+        // the dialog and vanish from every breakdown with the wipe — no
+        // separate scrub. Refreshes the whole stats panel afterwards so every
+        // derived number (funnel, share/credits breakdowns, engagement,
+        // retention) re-reads without the wiped rows. Mirrors TANTЯO's admin
+        // page; the endpoint here is the open dev one, no auth needed, but
+        // the Bearer header is sent anyway for symmetry.
+        // Parse a response that SHOULD be JSON but may be an HTML error page
+        // (a 429 from the rate limiter surfaces as "Unexpected token '<' ...
+        // is not valid JSON" otherwise). Always yields an object with .error
+        // on failure so callers can alert something readable.
+        async function jsonOrError(res) {
+            const text = await res.text();
+            try { return JSON.parse(text); }
+            catch (e) { return { error: `HTTP ${res.status}${res.status === 429 ? ' (rate limited — wait a minute and retry)' : ''}` }; }
+        }
+
+        async function wipeSession(prefix) {
+            if (!prefix) return;
+            try {
+                const dryRes = await fetch(`${GAME_API_URL}/admin/wipe-session-visits`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionPrefix: prefix, dryRun: true })
+                });
+                const dry = await jsonOrError(dryRes);
+                if (!dryRes.ok) { alert(`Dry-run failed: ${dry.error || dryRes.status}`); return; }
+                const msg = `Wipe browser ${prefix}?\n\n` +
+                    `Visits: ${dry.wouldDelete}\n` +
+                    `Puzzle results: ${dry.wouldDeletePuzzleResults}\n` +
+                    `Page loads: ${dry.wouldDeletePageLoads}\n` +
+                    `First-run rows: ${dry.wouldDeleteFirstRun}\n` +
+                    `Share clicks removed with them: ${dry.shareClicks}\n` +
+                    `Credits-link clicks removed with them: ${dry.creditsClicks}\n\n` +
+                    `This cannot be undone.`;
+                if (!confirm(msg)) return;
+                const res = await fetch(`${GAME_API_URL}/admin/wipe-session-visits`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionPrefix: prefix })
+                });
+                const data = await jsonOrError(res);
+                if (!res.ok) { alert(`Wipe failed: ${data.error || res.status}`); return; }
+                alert(`Wiped ${prefix}: ${data.deleted} visits ` +
+                    `(carrying ${data.shareClicks} share clicks + ${data.creditsClicks} credits clicks), ` +
+                    `${data.puzzleResultsDeleted} puzzle results, ${data.pageLoadsDeleted} page loads, ` +
+                    `${data.firstRunDeleted} first-run rows.`);
+                loadVisitStats();
+            } catch (e) {
+                alert(`Wipe failed: ${e.message || e}`);
+            }
         }
 
         // ── Return-players audit ──
