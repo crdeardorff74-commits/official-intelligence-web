@@ -164,6 +164,16 @@
                         <select id="filterList" onchange="renderSongs()">
                             <option value="">All lists</option>
                         </select>
+                        <select id="filterExplicit" onchange="renderSongs()">
+                            <option value="">Any rating</option>
+                            <option value="yes">Explicit only</option>
+                            <option value="no">Clean only</option>
+                        </select>
+                        <select id="filterInstrumental" onchange="renderSongs()">
+                            <option value="">Any vocals</option>
+                            <option value="yes">Instrumental only</option>
+                            <option value="no">With vocals</option>
+                        </select>
                     </div>
                     <div id="songsList"><div class="empty">Loading…</div></div>
                 </div>
@@ -276,31 +286,40 @@
         //   nothing selected      -> ALL SONGS (267)
         //   list dropdown only    -> ALL GAMES > GAMEPLAY (41)
         //   game + list           -> TANTRO > ALBUM_INTRO (12)
+        //   flag dropdowns        -> ALL GAMES > GAMEPLAY > CLEAN > INSTRUMENTAL (9)
         //   plus a search term    -> ... > "horizon" (3)
-        function updateScopeHeading(count, search, fGame, fList) {
-            let label = (fGame || fList)
-                ? `${(fGame || 'all games').toUpperCase()} > ${(fList || 'all lists').toUpperCase()}`
+        function updateScopeHeading(count, f) {
+            let label = (f.game || f.list)
+                ? `${(f.game || 'all games').toUpperCase()} > ${(f.list || 'all lists').toUpperCase()}`
                 : 'ALL SONGS';
-            if (search) label += ` > "${search}"`;
+            if (f.explicit) label += f.explicit === 'yes' ? ' > EXPLICIT' : ' > CLEAN';
+            if (f.instrumental) label += f.instrumental === 'yes' ? ' > INSTRUMENTAL' : ' > WITH VOCALS';
+            if (f.search) label += ` > "${f.search}"`;
             document.getElementById('songScope').textContent = label;
             document.getElementById('songCount').textContent = `(${count})`;
         }
 
         function renderSongs() {
-            const search = (document.getElementById('searchInput').value || '').toLowerCase();
-            const fGame = document.getElementById('filterGame').value;
-            const fList = document.getElementById('filterList').value;
+            const f = {
+                search: (document.getElementById('searchInput').value || '').toLowerCase(),
+                game: document.getElementById('filterGame').value,
+                list: document.getElementById('filterList').value,
+                explicit: document.getElementById('filterExplicit').value,
+                instrumental: document.getElementById('filterInstrumental').value,
+            };
 
             let visible = allSongs;
-            if (search) visible = visible.filter(s =>
-                (s.label || '').toLowerCase().includes(search) ||
-                (s.key || '').toLowerCase().includes(search) ||
-                (s.filename || '').toLowerCase().includes(search));
-            if (fGame || fList) visible = visible.filter(s =>
+            if (f.search) visible = visible.filter(s =>
+                (s.label || '').toLowerCase().includes(f.search) ||
+                (s.key || '').toLowerCase().includes(f.search) ||
+                (s.filename || '').toLowerCase().includes(f.search));
+            if (f.game || f.list) visible = visible.filter(s =>
                 (s.memberships || []).some(m =>
-                    (!fGame || m.game === fGame) && (!fList || m.list_name === fList)));
+                    (!f.game || m.game === f.game) && (!f.list || m.list_name === f.list)));
+            if (f.explicit) visible = visible.filter(s => !!s.explicit === (f.explicit === 'yes'));
+            if (f.instrumental) visible = visible.filter(s => !!s.instrumental === (f.instrumental === 'yes'));
 
-            updateScopeHeading(visible.length, search, fGame, fList);
+            updateScopeHeading(visible.length, f);
 
             const container = document.getElementById('songsList');
             if (!visible.length) { container.innerHTML = '<div class="empty">No songs match.</div>'; return; }
