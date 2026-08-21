@@ -153,7 +153,7 @@
                 <!-- Songs list -->
                 <div class="panel">
                     <div class="admin-header" style="margin-bottom: 1rem;">
-                        <h2>> ALL SONGS <span id="songCount" class="count-badge"></span></h2>
+                        <h2>> <span id="songScope">ALL SONGS</span> <span id="songCount" class="count-badge"></span></h2>
                         <button class="btn btn-primary" onclick="showEditor()">+ NEW SONG</button>
                     </div>
                     <div class="search-row">
@@ -264,12 +264,26 @@
                 const res = await fetch(`${API_URL}/api/admin/songs`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
                 allSongs = data.songs || [];
-                document.getElementById('songCount').textContent = `(${allSongs.length})`;
                 renderSongs();
                 loadOrderList();
             } catch (e) {
                 showMessage('Failed to load songs', 'error');
             }
+        }
+
+        // Heading reflects whatever is currently narrowing the list, so the
+        // count next to it always describes what is actually on screen:
+        //   nothing selected      -> ALL SONGS (267)
+        //   list dropdown only    -> ALL GAMES > GAMEPLAY (41)
+        //   game + list           -> TANTRO > ALBUM_INTRO (12)
+        //   plus a search term    -> ... > "horizon" (3)
+        function updateScopeHeading(count, search, fGame, fList) {
+            let label = (fGame || fList)
+                ? `${(fGame || 'all games').toUpperCase()} > ${(fList || 'all lists').toUpperCase()}`
+                : 'ALL SONGS';
+            if (search) label += ` > "${search}"`;
+            document.getElementById('songScope').textContent = label;
+            document.getElementById('songCount').textContent = `(${count})`;
         }
 
         function renderSongs() {
@@ -285,6 +299,8 @@
             if (fGame || fList) visible = visible.filter(s =>
                 (s.memberships || []).some(m =>
                     (!fGame || m.game === fGame) && (!fList || m.list_name === fList)));
+
+            updateScopeHeading(visible.length, search, fGame, fList);
 
             const container = document.getElementById('songsList');
             if (!visible.length) { container.innerHTML = '<div class="empty">No songs match.</div>'; return; }
