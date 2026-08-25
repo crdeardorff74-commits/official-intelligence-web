@@ -935,3 +935,84 @@ footer a:hover {
         display: none;
     }
 }
+
+/* --- Individual-maker identity -------------------------------------------
+   "Official Intelligence" reads like an institution. These two blocks are the
+   counterweight: a byline under the header logo, and the footer statement that
+   the label is one named person. Both appear on every page. */
+
+.byline {
+    font-size: clamp(0.65rem, 1.2vw, 0.8125rem);
+    color: var(--text-dim);
+    margin-top: 0.35rem;
+    letter-spacing: 0.5px;
+}
+
+.byline a {
+    color: var(--text-tertiary);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--text-dim);
+}
+
+.byline a:hover {
+    color: var(--neon-pink);
+}
+
+.footer-maker {
+    max-width: 48rem;
+    margin: 0.45rem auto 0;
+    font-size: clamp(0.65rem, 1.1vw, 0.75rem);
+    line-height: 1.55;
+    color: var(--text-dim);
+}
+
+.footer-maker strong {
+    color: var(--text-tertiary);
+    font-weight: normal;
+}
+
+/* Homepage "Who makes this" panel. */
+.maker-card {
+    margin: 2rem 0 0;
+    padding: clamp(1rem, 2.5vw, 1.5rem);
+    border: 2px solid var(--text-dim);
+    background: rgba(0, 255, 136, 0.03);
+}
+
+.maker-card .section-header {
+    margin-top: 0;
+}
+
+.maker-card p {
+    color: #b9f5d6;
+    line-height: 1.7;
+    font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+    margin-bottom: 0.75rem;
+}
+
+.maker-card strong {
+    color: var(--neon-green);
+}
+
+.maker-card em {
+    color: var(--text-tertiary);
+    font-style: normal;
+}
+
+.maker-card .maker-links {
+    margin: 0.9rem 0 0;
+    font-size: clamp(0.8rem, 1.3vw, 0.9rem);
+    color: var(--text-dim);
+}
+
+/* Same cyan as the footer/nav links, not the amber used on the legal pages —
+   these sit on the dark homepage and need to read as ordinary site links. */
+.maker-card .maker-links a {
+    color: var(--text-tertiary);
+    text-decoration: none;
+}
+
+.maker-card .maker-links a:hover {
+    color: var(--neon-pink);
+    text-decoration: underline;
+}
