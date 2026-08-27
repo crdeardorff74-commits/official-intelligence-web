@@ -768,10 +768,90 @@
             return `<div style="padding:6px 10px 8px 22px;${dim}font-size:11px;line-height:1.7;">${lines.join('<br>')}</div>`;
         }
 
+        // The game's OWN hostname. A referrer on this host means the previous
+        // page in that tab was the game itself — a reload or a re-entry, not
+        // an arrival. Matched on HOST, never on the whole URL: an itch
+        // referral like digeratist.itch.io/circuitousness carries the slug in
+        // its PATH and must not be mistaken for a self-referrer.
+        const SELF_HOST_RE = /^(?:[a-z0-9-]+\.)*circuitousness\.[a-z0-9.-]+$/i;
+
+        // Why a ○○○ row is NOT an intro rejection.
+        //
+        // The first dot is `agreed`, which only lights when the intro overlay
+        // is DISMISSED (intro.js recordAgreed — the button, Enter or Escape).
+        // A returning browser gets the full splash on every load, and a visit
+        // row is minted per PAGE LOAD, unconditionally, 500ms after
+        // DOMContentLoaded — note tracking.js's recordVisit does NOT wait for
+        // the page to be visible, whereas analytics.js's recordPageLoad
+        // deliberately does. So an unattended load (iOS Safari evicting a
+        // backgrounded tab and reloading it on re-entry) mints a full ○○○ row
+        // that no human ever looked at, and it sits in this list looking
+        // identical to someone who read the warning and walked away.
+        //
+        // Returns null when the row really does read as a rejection.
+        // Ordered most-decisive first; the first match wins.
+        function introBounceExcuse(r, agreedSessions) {
+            if (r.agreed) return null;   // nothing to correct — they got past it
+
+            // 1. The dots are simply WRONG. Milestone PATCHes and the
+            //    /session beacon are independent delivery paths, so when the
+            //    second one reports play the first one lost its writes — the
+            //    exact failure tracking.js's delivery-robustness note
+            //    describes. Amber: this is a bug in the data, not a reload.
+            const played = (r.puzzles_started || 0) > 0
+                || (r.puzzles_recorded || 0) > 0
+                || (r.play_seconds || 0) > 0;
+            if (played) {
+                return { tag: 'beacons?', color: '#ffaa00', title:
+                    'Dots undercount — this session recorded actual play ('
+                    + (r.puzzles_started || 0) + ' started / '
+                    + (r.puzzles_recorded || 0) + ' recorded / '
+                    + fmtSecs(r.play_seconds) + ' playing) despite ○○○. '
+                    + 'The milestone PATCHes were lost, not the player.' };
+            }
+
+            // 2. itch mobile redirect handoff. Already tagged ↻itch in Src;
+            //    repeated here so the funnel cell agrees with it — these
+            //    players were shown platform-redirect's overlay INSTEAD of
+            //    the intro, so they could not have dismissed it.
+            if (r.redirected) {
+                return { tag: 'handoff', color: '#888', title:
+                    'itch mobile redirect handoff — saw the redirect overlay, '
+                    + 'not the intro. There was no intro here to reject.' };
+            }
+
+            // 3. Self-referrer: the previous page in this tab was the game.
+            const refHost = (r.referrer || '').replace(/^https?:\/\//, '').split('/')[0];
+            if (SELF_HOST_RE.test(refHost)) {
+                return { tag: '↻reload', color: '#888', title:
+                    'Referred by the game\'s own host (' + refHost + ') — a reload '
+                    + 'or tab re-entry, not a fresh arrival. iOS Safari reloads '
+                    + 'evicted background tabs on re-selection, which mints a '
+                    + 'visit row nobody attended.' };
+            }
+
+            // 4. This browser dismissed the intro on ANOTHER row in this list.
+            //    Mirrors the back end's unique-browser funnel dedupe: a
+            //    browser that reached the menu even once is not a bounce.
+            //    Positive evidence only — the list is the newest 30 rows, so
+            //    ABSENCE here proves nothing and is never treated as one.
+            if (agreedSessions.has(r.session)) {
+                return { tag: '↩seen', color: '#888', title:
+                    'This browser dismissed the intro on another row in this '
+                    + 'list — it has already seen and accepted the splash, so '
+                    + 'this load is a re-open rather than a rejection.' };
+            }
+
+            return null;
+        }
+
         // Recent individual visits — spot-check for double-counts (same
         // Session prefix on two rows = one browser reloaded/relaunched) and
         // bots (the User-Agent column). M/S/F = reached Menu / Started /
-        // Finished. Not window-filtered — always the newest rows overall.
+        // Finished — but see introBounceExcuse: a bare ○○○ is not
+        // automatically an intro rejection, and rows with a known innocent
+        // explanation are tagged so they don't read as one.
+        // Not window-filtered — always the newest rows overall.
         function renderRecentVisits() {
             const rows = (cachedStats && cachedStats.recent_visits) || [];
             const el = document.getElementById('visitRecent');
@@ -780,13 +860,39 @@
             // Count session prefixes so repeats (double-loads) can be flagged.
             const counts = {};
             rows.forEach(r => { counts[r.session] = (counts[r.session] || 0) + 1; });
+            // Browsers that dismissed the intro on ANY row here — so a later
+            // ○○○ load from one of them reads as a re-open, not a rejection.
+            const agreedSessions = new Set(rows.filter(r => r.agreed).map(r => r.session));
             const flag = b => b ? '<span style="color:#00ff64;">●</span>' : '<span style="color:#444;">○</span>';
+            // Tag appended to a ○○○ cell when that row has an innocent
+            // explanation. Three dim circles otherwise read as "looked at the
+            // intro and refused", which for a reloaded background tab is a
+            // conclusion about a human who was never there.
+            const bounceTag = r => {
+                const ex = introBounceExcuse(r, agreedSessions);
+                return ex
+                    ? ` <span style="color:${ex.color};font-size:10px;" title="${escapeHtml(ex.title)}">${escapeHtml(ex.tag)}</span>`
+                    : '';
+            };
             // A paid arrival and a bookmark both show referrer '(direct)' — the
             // campaign tag is the only thing that tells them apart in this list.
             const campTag = r => r.campaign
                 ? ` <span style="color:#ffaa00;" title="paid campaign: ${escapeHtml(r.campaign)}">[${escapeHtml(r.campaign)}]</span>`
                 : '';
             let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> Recent Visits <span style="font-size:11px;color:var(--text-dim);">(newest ${rows.length} — repeated Session = same browser)</span></h3>`;
+            // Visible legend, not just a th tooltip: the whole point of the
+            // tags is that an UNEXPLAINED ○○○ should look different from an
+            // explained one at a glance, and a tooltip you have to hover to
+            // find does not change how the table reads.
+            html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;line-height:1.6;">'
+                 +  'The first dot in M/S/F = the <b>intro splash was dismissed</b>, not gameplay. '
+                 +  '○○○ tagged '
+                 +  '<span style="color:#ffaa00;">beacons?</span> (row recorded real play — dots lost their writes), '
+                 +  '<span style="color:#888;">handoff</span> (itch redirect overlay shown instead of the intro), '
+                 +  '<span style="color:#888;">↻reload</span> (referred by the game host itself — reload / tab re-entry), or '
+                 +  '<span style="color:#888;">↩seen</span> (this browser dismissed the intro on another row) '
+                 +  'is <b>not</b> an intro rejection. Only an untagged ○○○ is.'
+                 +  '</div>';
             html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
             html += '<tr style="border-bottom:1px solid var(--primary);">'
                  +  '<th style="padding:4px;" title="Expand for this session\'s engagement detail"></th>'
@@ -796,7 +902,7 @@
                  +  '<th style="text-align:left;padding:4px;">Device</th>'
                  +  '<th style="text-align:left;padding:4px;">Lang</th>'
                  +  '<th style="text-align:left;padding:4px;" title="where the load ran: site = own origin; cg = CrazyGames embed; itch = itch embed; embed = framed on an unknown host; ↻itch = itch mobile redirect handoff (saw the redirect overlay, not the intro). Embed platform is inferred from the referrer.">Src</th>'
-                 +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished">M/S/F</th>'
+                 +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished. The first dot is the INTRO SPLASH being dismissed, not gameplay — so a bare ○○○ only means nobody tapped past the title screen on this load. Tagged rows have a known innocent reason: beacons? = the row recorded real play and the dots lost their writes; handoff = itch redirect overlay shown instead of the intro; ↻reload = referred by the game host itself, i.e. a reload or tab re-entry; ↩seen = this browser dismissed the intro on another row here. Untagged ○○○ is the only kind that reads as a real intro rejection.">M/S/F</th>'
                  +  '<th style="text-align:left;padding:4px;">User-Agent</th>'
                  +  '<th style="padding:4px;" title="Wipe this browser: deletes ALL its visits (incl. their share-platform + credits-link clicks), puzzle results, page loads and first-run funnel row (test-traffic cleanup)"></th>'
                  +  '</tr>';
@@ -836,7 +942,7 @@
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.device)}/${escapeHtml(r.os)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.lang)}</td>
                     <td style="padding:4px;white-space:nowrap;">${srcTag}</td>
-                    <td style="padding:4px;text-align:center;white-space:nowrap;">${flag(r.agreed)}${flag(r.started)}${flag(r.finished)}</td>
+                    <td style="padding:4px;text-align:center;white-space:nowrap;">${flag(r.agreed)}${flag(r.started)}${flag(r.finished)}${bounceTag(r)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;" title="${escapeHtml(ua)}">${escapeHtml(uaShort)}</td>
                     <td style="padding:4px;">${/^[0-9a-fA-F-]{8}$/.test(r.session || '') ? `<button onclick="wipeSession('${escapeHtml(r.session)}')" title="Wipe this browser's rows (visits + share/credits clicks + puzzle results + page loads + first-run row)" style="background:none;border:1px solid rgba(255,80,80,0.4);color:#ff5050;border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;">✕</button>` : ''}</td>
                 </tr>
