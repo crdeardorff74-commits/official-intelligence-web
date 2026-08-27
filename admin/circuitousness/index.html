@@ -811,13 +811,35 @@
             }
 
             // 2. itch mobile redirect handoff. Already tagged ↻itch in Src;
-            //    repeated here so the funnel cell agrees with it — these
-            //    players were shown platform-redirect's overlay INSTEAD of
-            //    the intro, so they could not have dismissed it.
+            //    repeated here so the funnel cell agrees with it.
+            //
+            //    platform-redirect.js has TWO paths and only one shows an
+            //    overlay, so the wording must cover both (corrected
+            //    2026-08-27 after a row turned up that saw no overlay at all):
+            //      Stage 1 — top-level on itch's CDN (itch's fullscreen
+            //        launch). location.replace() fires in <head> and the page
+            //        just leaves. Nothing is ever painted.
+            //      Stage 2 — itch's in-page iframe, where top-navigation is
+            //        sandbox-blocked. The "play the full version" overlay
+            //        covers the page and the player taps through it.
+            //    Either way the INTRO never showed, which is the only thing
+            //    this tag actually claims.
+            //
+            //    Whether a Stage 1 load even produces a row is a RACE:
+            //    location.replace() queues a navigation, it does not halt the
+            //    document, so recordVisit() (DOMContentLoaded + 500ms) writes
+            //    a row only when the timer beats the commit. So the absence of
+            //    a ↻itch row next to an arrival proves nothing — read the
+            //    ARRIVAL's referrer instead: html-classic.itch.zone/ is
+            //    Stage 1, (direct) is Stage 2 (Safari drops the referrer when
+            //    a tab is opened from a cross-site iframe).
             if (r.redirected) {
                 return { tag: 'handoff', color: '#888', title:
-                    'itch mobile redirect handoff — saw the redirect overlay, '
-                    + 'not the intro. There was no intro here to reject.' };
+                    'itch mobile redirect handoff — platform-redirect sent this '
+                    + 'load to the real origin, either by navigating away on its '
+                    + 'own (top-level on itch\'s CDN) or via the "play the full '
+                    + 'version" overlay (itch\'s in-page iframe). The intro never '
+                    + 'showed, so there was nothing here to reject.' };
             }
 
             // 3. Self-referrer: the previous page in this tab was the game.
@@ -888,7 +910,7 @@
                  +  'The first dot in M/S/F = the <b>intro splash was dismissed</b>, not gameplay. '
                  +  '○○○ tagged '
                  +  '<span style="color:#ffaa00;">beacons?</span> (row recorded real play — dots lost their writes), '
-                 +  '<span style="color:#888;">handoff</span> (itch redirect overlay shown instead of the intro), '
+                 +  '<span style="color:#888;">handoff</span> (an itch redirect sent this load to the real origin — the intro never showed), '
                  +  '<span style="color:#888;">↻reload</span> (referred by the game host itself — reload / tab re-entry), or '
                  +  '<span style="color:#888;">↩seen</span> (this browser dismissed the intro on another row) '
                  +  'is <b>not</b> an intro rejection. Only an untagged ○○○ is.'
@@ -901,8 +923,8 @@
                  +  '<th style="text-align:left;padding:4px;">Session</th>'
                  +  '<th style="text-align:left;padding:4px;">Device</th>'
                  +  '<th style="text-align:left;padding:4px;">Lang</th>'
-                 +  '<th style="text-align:left;padding:4px;" title="where the load ran: site = own origin; cg = CrazyGames embed; itch = itch embed; embed = framed on an unknown host; ↻itch = itch mobile redirect handoff (saw the redirect overlay, not the intro). Embed platform is inferred from the referrer.">Src</th>'
-                 +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished. The first dot is the INTRO SPLASH being dismissed, not gameplay — so a bare ○○○ only means nobody tapped past the title screen on this load. Tagged rows have a known innocent reason: beacons? = the row recorded real play and the dots lost their writes; handoff = itch redirect overlay shown instead of the intro; ↻reload = referred by the game host itself, i.e. a reload or tab re-entry; ↩seen = this browser dismissed the intro on another row here. Untagged ○○○ is the only kind that reads as a real intro rejection.">M/S/F</th>'
+                 +  '<th style="text-align:left;padding:4px;" title="where the load ran: site = own origin; cg = CrazyGames embed; itch = itch embed; embed = framed on an unknown host; ↻itch = itch mobile redirect handoff: platform-redirect sent this load to the real origin, either by navigating away on its own (top-level on the itch CDN) or via the play-the-full-version overlay (the itch in-page iframe) — either way the intro never showed. Embed platform is inferred from the referrer.">Src</th>'
+                 +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished. The first dot is the INTRO SPLASH being dismissed, not gameplay — so a bare ○○○ only means nobody tapped past the title screen on this load. Tagged rows have a known innocent reason: beacons? = the row recorded real play and the dots lost their writes; handoff = an itch redirect sent this load to the real origin, so the intro never showed; ↻reload = referred by the game host itself, i.e. a reload or tab re-entry; ↩seen = this browser dismissed the intro on another row here. Untagged ○○○ is the only kind that reads as a real intro rejection.">M/S/F</th>'
                  +  '<th style="text-align:left;padding:4px;">User-Agent</th>'
                  +  '<th style="padding:4px;" title="Wipe this browser: deletes ALL its visits (incl. their share-platform + credits-link clicks), puzzle results, page loads and first-run funnel row (test-traffic cleanup)"></th>'
                  +  '</tr>';
@@ -916,15 +938,19 @@
                 const ua = r.ua || '';
                 const uaShort = ua.length > 52 ? ua.slice(0, 52) + '…' : ua;
                 // Where the load ran. ↻itch (amber) = mobile redirect handoff:
-                // the player saw platform-redirect's overlay, not the intro, so
-                // a ○○○ here is NOT an intro rejection. site (blue) = own origin.
+                // platform-redirect sent this load to the real origin — by
+                // navigating away on its own (top-level on itch's CDN) or via
+                // the overlay (itch's in-page iframe). See introBounceExcuse
+                // above for the full two-path note and the row-writing race.
+                // The intro never showed either way, so a ○○○ here is NOT an
+                // intro rejection. site (blue) = own origin.
                 // Embeds: the tracking payload only carries an `embedded`
                 // boolean, so the PLATFORM is inferred from the referrer —
                 // cg (purple) = CrazyGames, itch (dim) = itch, embed (dim) =
                 // framed on an unknown/blank-referrer host.
                 let srcTag;
                 if (r.redirected) {
-                    srcTag = '<span style="color:#ffaa00;" title="itch mobile redirect handoff — saw the redirect overlay, not the intro">↻itch</span>';
+                    srcTag = '<span style="color:#ffaa00;" title="itch mobile redirect handoff — platform-redirect sent this load to the real origin, by navigating away on its own (top-level on itch\'s CDN) or via the overlay (itch\'s in-page iframe). The intro never showed either way.">↻itch</span>';
                 } else if (!r.embedded) {
                     srcTag = '<span style="color:#3a7bd5;" title="own origin">site</span>';
                 } else if (/crazygames\.com/i.test(ref)) {
