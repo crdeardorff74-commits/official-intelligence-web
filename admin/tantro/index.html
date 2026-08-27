@@ -1224,6 +1224,9 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
         // bots (the User-Agent column). M/S/F/Sh = reached Menu / Started /
         // Finished / Shared; Tantro has no intro gate, so the Menu dot is
         // always lit — one dot alone reads "visited but never started".
+        // But see startBounceExcuse: a bare ●○○○ is not automatically a
+        // rejection, and rows with a known innocent explanation are tagged
+        // so they don't read as one.
         // Not window-filtered — always the newest rows overall. Mirrors the
         // Circuitousness admin panel (minus its embed/redirect Src column —
         // Tantro doesn't track embedding).
@@ -1319,6 +1322,83 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
             return `<div style="padding:6px 10px 8px 22px;${dim}font-size:11px;line-height:1.7;">${lines.join('<br>')}</div>`;
         }
 
+        // The game's OWN hostname. A referrer on this host means the previous
+        // page in that tab was the game itself — a reload or a re-entry, not
+        // an arrival. Matched on HOST, never on the whole URL: an itch
+        // referral looks like digeratist.itch.io/tantro, with the slug in its
+        // PATH, and must not be mistaken for a self-referrer.
+        const SELF_HOST_RE = /^(?:[a-z0-9-]+\.)*tantro\.[a-z0-9.-]+$/i;
+
+        // Why a ●○○○ row is NOT a rejection.
+        //
+        // Ported from the Circuitousness admin panel (2026-08-27), but the
+        // shape it looks for is different, and the difference matters:
+        //
+        //   - Circuitousness has an intro gate, so its first dot is `agreed`
+        //     and a REJECTION reads ○○○. Tantro has no gate — the Menu dot is
+        //     hardcoded lit — so the row that reads as a rejection here is
+        //     ●○○○: arrived, never started a game.
+        //
+        //   - Circuitousness mints a visit row on every page load,
+        //     unconditionally. Tantro's `_recordVisit` (game.js) is gated on a
+        //     real human interaction — mousemove / scroll / touchstart /
+        //     keydown / click, and never within the first second. So Tantro
+        //     does NOT accumulate phantom rows from unattended background-tab
+        //     reloads the way Circuitousness does; every row here had a person
+        //     on it. That makes a bare ●○○○ a STRONGER signal than its
+        //     Circuitousness counterpart, and makes these tags rarer — but it
+        //     is exactly why the ones that do fire are worth reading.
+        //
+        // Returns null when the row really does read as a rejection.
+        // Ordered most-decisive first; the first match wins.
+        function startBounceExcuse(r, startedSessions) {
+            if (r.started) return null;   // nothing to correct — they played
+
+            // 1. The dots are simply WRONG. The funnel booleans and the
+            //    game-result rows are separate delivery paths, so a row whose
+            //    detail shows a recorded game with an unlit S dot lost its
+            //    writes, not its player. This is the exact row the "Repair
+            //    funnel flags" button above the table rebuilds — amber, to
+            //    match it, because it is a data bug and it is fixable.
+            const played = (r.games_started || 0) > 0
+                || (r.games_recorded || 0) > 0
+                || (r.play_seconds || 0) > 0;
+            if (played) {
+                return { tag: 'beacons?', color: '#ffaa00', title:
+                    'Dots undercount — this session recorded actual play ('
+                    + (r.games_started || 0) + ' started / '
+                    + (r.games_recorded || 0) + ' recorded / '
+                    + fmtSecs(r.play_seconds) + ' playing) with the S dot dark. '
+                    + 'The funnel flags were lost, not the player — this is what '
+                    + '"Repair funnel flags" rebuilds.' };
+            }
+
+            // 2. Self-referrer: the previous page in this tab was the game.
+            //    Not a phantom row (the interaction gate rules that out) but
+            //    not a new visitor either — it is the same person's second
+            //    row, and counting it as a fresh arrival deflates start rate.
+            const refHost = (r.referrer || '').replace(/^https?:\/\//, '').split('/')[0];
+            if (SELF_HOST_RE.test(refHost)) {
+                return { tag: '↻reload', color: '#888', title:
+                    'Referred by the game host itself (' + refHost + ') — a reload '
+                    + 'or tab re-entry by someone already here, not a fresh arrival. '
+                    + 'Counting it as a new visitor deflates the start rate.' };
+            }
+
+            // 3. This browser started a game on ANOTHER row in this list, so
+            //    it has already converted at least once and this load is a
+            //    re-open. Positive evidence only — the list is the newest 30
+            //    rows, so ABSENCE here proves nothing and is never a claim.
+            if (startedSessions.has(r.session)) {
+                return { tag: '↩seen', color: '#888', title:
+                    'This browser started a game on another row in this list — '
+                    + 'it has already converted, so this load is a re-open '
+                    + 'rather than someone who arrived and refused to play.' };
+            }
+
+            return null;
+        }
+
         function renderRecentVisits() {
             const rows = (cachedStats && cachedStats.recent_visits) || [];
             const el = document.getElementById('visitRecent');
@@ -1327,11 +1407,32 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
             // Count session prefixes so repeats (double-loads) can be flagged.
             const counts = {};
             rows.forEach(r => { counts[r.session] = (counts[r.session] || 0) + 1; });
+            // Browsers that started a game on ANY row here — so a later
+            // ●○○○ load from one of them reads as a re-open, not a refusal.
+            const startedSessions = new Set(rows.filter(r => r.started).map(r => r.session));
             const flag = b => b ? '<span style="color:#00ff64;">●</span>' : '<span style="color:#444;">○</span>';
+            // Tag appended to a ●○○○ cell when that row has an innocent
+            // explanation. Three dark dots in a row otherwise read as
+            // "showed up and refused to play", which for a reload by someone
+            // who already played is a conclusion about the wrong person.
+            const bounceTag = r => {
+                const ex = startBounceExcuse(r, startedSessions);
+                return ex
+                    ? ` <span style="color:${ex.color};font-size:10px;" title="${escapeHtml(ex.title)}">${escapeHtml(ex.tag)}</span>`
+                    : '';
+            };
             // The repair button lives HERE, next to the evidence: an unlit S dot
             // on a row whose detail shows a recorded game is the bug it fixes.
             let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> Recent Visits <span style="font-size:11px;color:var(--text-dim);">(newest ${rows.length} — repeated Session = same browser)</span>`
                  +  ` <button onclick="backfillFunnelFlags()" title="Rebuild started_game / finished_game from the game_results rows. Dry-runs first and shows the counts before changing anything." style="margin-left:8px;background:none;border:1px solid rgba(255,170,0,0.45);color:#ffaa00;border-radius:3px;cursor:pointer;font-size:10px;padding:2px 7px;vertical-align:middle;">Repair funnel flags</button></h3>`;
+            html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;line-height:1.6;">'
+                 +  'No intro gate, so the M dot is always lit — the row that reads as a rejection is <b>●○○○</b> (arrived, never started). '
+                 +  'One tagged '
+                 +  '<span style="color:#ffaa00;">beacons?</span> (row recorded real play — flags lost their writes, use Repair funnel flags), '
+                 +  '<span style="color:#888;">↻reload</span> (referred by the game host itself — reload / tab re-entry), or '
+                 +  '<span style="color:#888;">↩seen</span> (this browser started a game on another row) '
+                 +  'is <b>not</b> a rejection. Only an untagged ●○○○ is.'
+                 +  '</div>';
             html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
             html += '<tr style="border-bottom:1px solid var(--primary);">'
                  +  '<th style="padding:4px;" title="Expand for this session\'s engagement detail"></th>'
@@ -1340,7 +1441,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                  +  '<th style="text-align:left;padding:4px;">Session</th>'
                  +  '<th style="text-align:left;padding:4px;">Device</th>'
                  +  '<th style="text-align:left;padding:4px;">Lang</th>'
-                 +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished / Shared — Tantro has no intro gate, so every visit reaches the menu and the first dot is always lit">M/S/F/Sh</th>'
+                 +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished / Shared — Tantro has no intro gate, so every visit reaches the menu and the first dot is always lit. The row that reads as a rejection is therefore ●○○○: arrived, never started a game. Tagged rows have a known innocent reason: beacons? = the row recorded real play and the flags lost their writes (this is what Repair funnel flags rebuilds); ↻reload = referred by the game host itself, i.e. a reload or tab re-entry by someone already here; ↩seen = this browser started a game on another row here. Untagged ●○○○ is the only kind that reads as a real rejection.">M/S/F/Sh</th>'
                  +  '<th style="text-align:right;padding:4px;" title="Time with a game running and unpaused (tab-hidden time excluded). Expand the row for the rest.">Play</th>'
                  +  '<th style="text-align:left;padding:4px;">User-Agent</th>'
                  +  '<th style="padding:4px;" title="Wipe this browser: deletes ALL its visits, game results and page loads (test-traffic cleanup)"></th>'
@@ -1361,7 +1462,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                     <td style="padding:4px;${sessStyle}">${escapeHtml(r.session)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.device)}/${escapeHtml(r.os)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.lang)}</td>
-                    <td style="padding:4px;text-align:center;white-space:nowrap;">${flag(true)}${flag(r.started)}${flag(r.finished)}${flag(r.shared)}</td>
+                    <td style="padding:4px;text-align:center;white-space:nowrap;">${flag(true)}${flag(r.started)}${flag(r.finished)}${flag(r.shared)}${bounceTag(r)}</td>
                     <td style="padding:4px;text-align:right;color:var(--text-dim);white-space:nowrap;">${fmtSecs(r.play_seconds)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;" title="${escapeHtml(ua)}">${escapeHtml(uaShort)}</td>
                     <td style="padding:4px;">${r.session ? `<button onclick="wipeSession('${escapeHtml(r.session)}')" title="Wipe this browser's rows (visits + game results + page loads)" style="background:none;border:1px solid rgba(255,80,80,0.4);color:#ff5050;border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;">✕</button>` : ''}</td>
