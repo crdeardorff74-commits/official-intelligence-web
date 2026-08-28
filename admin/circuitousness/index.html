@@ -911,8 +911,30 @@
             const bounceTag = r => {
                 const ex = introBounceExcuse(r, agreedSessions);
                 return ex
-                    ? ` <span style="color:${ex.color};font-size:10px;" title="${escapeHtml(ex.title)}">${escapeHtml(ex.tag)}</span>`
+                    ? `<span style="color:${ex.color};font-size:10px;" title="${escapeHtml(ex.title)}">${escapeHtml(ex.tag)}</span>`
                     : '';
+            };
+            // The whole M/S/F cell. On a tagged row the tag REPLACES the dots
+            // instead of following them: introBounceExcuse only fires when
+            // `agreed` is false, and the back end keeps the funnel monotonic
+            // (finished ⇒ started ⇒ agreed — record_game_start and the
+            // /finished handler both set the flags below them), so a tagged
+            // row's dots are always ○○○ — three columns of width carrying no
+            // information, on the widest cells in the table.
+            //
+            // Guarded rather than assumed. If a lit dot ever turns up on a
+            // tagged row — a legacy row written before the back end enforced
+            // monotonicity, or a future excuse that fires on an agreed row —
+            // the dots stay, because that contradiction is exactly what
+            // someone reading this table needs to see. Silently dropping a
+            // lit dot to save width would be the one unrecoverable mistake
+            // here.
+            const msfCell = r => {
+                const tag = bounceTag(r);
+                const dots = flag(r.agreed) + flag(r.started) + flag(r.finished);
+                if (!tag) return dots;
+                if (!r.agreed && !r.started && !r.finished) return tag;
+                return dots + ' ' + tag;
             };
             // A paid arrival and a bookmark both show referrer '(direct)' — the
             // campaign tag is the only thing that tells them apart in this list.
@@ -926,12 +948,12 @@
             // find does not change how the table reads.
             html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;line-height:1.6;">'
                  +  'The first dot in M/S/F = the <b>intro splash was dismissed</b>, not gameplay. '
-                 +  '○○○ tagged '
+                 +  'A row whose dots are <b>replaced by a tag</b> had ○○○ for a known innocent reason — '
                  +  '<span style="color:#ffaa00;">beacons?</span> (row recorded real play — dots lost their writes), '
                  +  '<span style="color:#888;">handoff</span> (an itch redirect sent this load to the real origin — the intro never showed), '
                  +  '<span style="color:#888;">↻reload</span> (referred by the game host itself — reload / tab re-entry), or '
                  +  '<span style="color:#888;">↩seen</span> (this browser dismissed the intro on another row) '
-                 +  'is <b>not</b> an intro rejection. Only an untagged ○○○ is.'
+                 +  '— and is <b>not</b> an intro rejection. Only an untagged ○○○ is.'
                  +  '</div>';
             html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
             html += '<tr style="border-bottom:1px solid var(--primary);">'
@@ -943,7 +965,7 @@
                  +  '<th style="text-align:left;padding:4px;">Device</th>'
                  +  '<th style="text-align:left;padding:4px;">Lang</th>'
                  +  '<th style="text-align:left;padding:4px;" title="where the load ran: site = own origin; cg = CrazyGames embed; itch = itch embed; embed = framed on an unknown host; ↻itch = itch mobile redirect handoff: platform-redirect sent this load to the real origin, either by navigating away on its own (top-level on the itch CDN) or via the play-the-full-version overlay (the itch in-page iframe) — either way the intro never showed. Embed platform is inferred from the referrer.">Src</th>'
-                 +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished. The first dot is the INTRO SPLASH being dismissed, not gameplay — so a bare ○○○ only means nobody tapped past the title screen on this load. Tagged rows have a known innocent reason: beacons? = the row recorded real play and the dots lost their writes; handoff = an itch redirect sent this load to the real origin, so the intro never showed; ↻reload = referred by the game host itself, i.e. a reload or tab re-entry; ↩seen = this browser dismissed the intro on another row here. Untagged ○○○ is the only kind that reads as a real intro rejection.">M/S/F</th>'
+                 +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished. The first dot is the INTRO SPLASH being dismissed, not gameplay — so a bare ○○○ only means nobody tapped past the title screen on this load. A tagged row has a known innocent reason, and the tag REPLACES its dots (they are always ○○○ on those rows, so showing them only cost width): beacons? = the row recorded real play and the dots lost their writes; handoff = an itch redirect sent this load to the real origin, so the intro never showed; ↻reload = referred by the game host itself, i.e. a reload or tab re-entry; ↩seen = this browser dismissed the intro on another row here. Untagged ○○○ is the only kind that reads as a real intro rejection. Dots shown ALONGSIDE a tag would mean a row broke the funnel-monotonic rule — worth a look.">M/S/F</th>'
                  +  '<th style="text-align:left;padding:4px;">User-Agent</th>'
                  +  '<th style="padding:4px;" title="Wipe this browser: deletes ALL its visits (incl. their share-platform + credits-link clicks), puzzle results, page loads and first-run funnel row (test-traffic cleanup)"></th>'
                  +  '</tr>';
@@ -988,7 +1010,7 @@
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.device)}/${escapeHtml(r.os)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.lang)}</td>
                     <td style="padding:4px;white-space:nowrap;">${srcTag}</td>
-                    <td style="padding:4px;text-align:center;white-space:nowrap;">${flag(r.agreed)}${flag(r.started)}${flag(r.finished)}${bounceTag(r)}</td>
+                    <td style="padding:4px;text-align:center;white-space:nowrap;">${msfCell(r)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;" title="${escapeHtml(ua)}">${escapeHtml(uaShort)}</td>
                     <td style="padding:4px;">${/^[0-9a-fA-F-]{8}$/.test(r.session || '') ? `<button onclick="wipeSession('${escapeHtml(r.session)}')" title="Wipe this browser's rows (visits + share/credits clicks + puzzle results + page loads + first-run row)" style="background:none;border:1px solid rgba(255,80,80,0.4);color:#ff5050;border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;">✕</button>` : ''}</td>
                 </tr>
