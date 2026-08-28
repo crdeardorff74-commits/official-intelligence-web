@@ -687,15 +687,26 @@ footer a:hover {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: clamp(1.25rem, 3vw, 1.875rem);
+    margin-bottom: clamp(0.6rem, 1.5vw, 0.9rem);
     flex-wrap: wrap;
     gap: clamp(0.75rem, 1.5vw, 1rem);
 }
 
 .admin-header h1 {
     font-family: 'Press Start 2P', cursive;
-    font-size: clamp(1rem, 2vw, 1.25rem);
+    font-size: clamp(0.8rem, 1.5vw, 1rem);
     color: var(--neon-green);
+}
+
+/* Admin-header buttons only — NOT .btn globally (2026-08-28).
+   These are dense navigation on a data-heavy page, where the chrome
+   competes with the content for vertical space; the site's other buttons
+   are calls to action and should stay full size. Vertical padding is cut
+   harder than horizontal, since height is what was costing the page room.
+   `.admin-header` is used by the five admin pages only, so this cannot
+   reach the public site. */
+.admin-header .btn {
+    padding: clamp(0.4rem, 0.8vw, 0.5rem) clamp(0.75rem, 1.6vw, 1.1rem);
 }
 
 .admin-header h2 {
