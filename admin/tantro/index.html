@@ -1567,17 +1567,36 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
             };
             // The repair button lives HERE, next to the evidence: an unlit S dot
             // on a row whose detail shows a recorded game is the bug it fixes.
-            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> Recent Visits <span style="font-size:11px;color:var(--text-dim);">(newest ${rows.length} — repeated Session = same browser)</span>`
+            // The legend moved from a visible block under the heading into the
+            // heading's own tooltip (user's call, 2026-08-28). It had been a
+            // paragraph of small print above every load of this panel, and the
+            // same explanations already ride each tag's own title at the point
+            // of use, which is where they are actually needed.
+            //
+            // Plain text, not markup: title="" renders no HTML, so the bold
+            // and the per-tag colours are gone and the structure has to come
+            // from line breaks instead. It hangs off the TITLE TEXT rather
+            // than the whole <h3>, because the Repair button lives in this
+            // heading too and carries its own title — a child title wins on
+            // hover, so a heading-wide tooltip would blink out over the
+            // button. The help cursor and dotted underline mark the hover
+            // target; a tooltip nobody knows to reach for would be worse than
+            // the block it replaced.
+            const LEGEND =
+                  'No intro gate, so the M dot is always lit — the row that reads as a\n'
+                + 'rejection is ●○○○ (arrived, never started a game).\n\n'
+                + 'A row whose dots are REPLACED by a tag had ●○○○ for a known innocent reason:\n\n'
+                + '  beacons?   the row recorded real play — the flags lost their writes;\n'
+                + '             this is what Repair funnel flags rebuilds\n'
+                + '  ↻reload    referred by the game host itself — a reload or tab re-entry\n'
+                + '  ↩seen      this browser started a game on another row here\n\n'
+                + 'None of those is a rejection. Only an UNTAGGED ●○○○ is.\n\n'
+                + 'Dots shown ALONGSIDE a tag mean a later flag landed without its start —\n'
+                + 'also the Repair case.';
+            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">`
+                 +  `<span title="${escapeHtml(LEGEND)}" style="border-bottom:1px dotted var(--text-dim);cursor:help;">> Recent Visits</span>`
+                 +  ` <span style="font-size:11px;color:var(--text-dim);">(newest ${rows.length} — repeated Session = same browser)</span>`
                  +  ` <button onclick="backfillFunnelFlags()" title="Rebuild started_game / finished_game from the game_results rows. Dry-runs first and shows the counts before changing anything." style="margin-left:8px;background:none;border:1px solid rgba(255,170,0,0.45);color:#ffaa00;border-radius:3px;cursor:pointer;font-size:10px;padding:2px 7px;vertical-align:middle;">Repair funnel flags</button></h3>`;
-            html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;line-height:1.6;">'
-                 +  'No intro gate, so the M dot is always lit — the row that reads as a rejection is <b>●○○○</b> (arrived, never started). '
-                 +  'A row whose dots are <b>replaced by a tag</b> had ●○○○ for a known innocent reason — '
-                 +  '<span style="color:#ffaa00;">beacons?</span> (row recorded real play — flags lost their writes, use Repair funnel flags), '
-                 +  '<span style="color:#888;">↻reload</span> (referred by the game host itself — reload / tab re-entry), or '
-                 +  '<span style="color:#888;">↩seen</span> (this browser started a game on another row) '
-                 +  '— and is <b>not</b> a rejection. Only an untagged ●○○○ is. '
-                 +  'Dots shown <b>alongside</b> a tag mean a later flag landed without its start — the Repair case.'
-                 +  '</div>';
             html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
             html += '<tr style="border-bottom:1px solid var(--primary);">'
                  +  '<th style="padding:4px;" title="Expand for this session\'s engagement detail"></th>'
@@ -1701,7 +1720,19 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                 const context = `\nFor context, visits with no evidence of a start: ${dry.visits_without_start_evidence}\n`
                     + `  • ${dry.likely_genuine_non_starters} inside the instrumented era — these really did bounce, nothing to fix\n`
                     + `  • ${dry.visits_predating_instrumentation} before game_results existed (pre-v1.63) — a blind spot, not damage;\n`
-                    + `    whether any of those started a game is unknowable either way\n`;
+                    + `    whether any of those started a game is unknowable either way\n`
+                    // Subset of wouldSetStarted reachable only by the monotonic
+                    // rule (finished, but no game row and no counter) — i.e. old
+                    // rows the engagement tables cannot see. Reported separately
+                    // so the history boundary stays visible instead of being
+                    // folded into one total, which is the mistake this dialog's
+                    // context block already exists to avoid. Absent (undefined)
+                    // when the back end predates 2026-08-28, so the line is
+                    // omitted rather than printing "undefined".
+                    + (dry.started_repairable_by_finish_flag_only === undefined ? ''
+                        : `\nOf the started repairs, ${dry.started_repairable_by_finish_flag_only} come from the\n`
+                        + `monotonic rule alone (finished, but no game row and no counter) —\n`
+                        + `old rows the engagement tables cannot see.\n`);
 
                 const lost = (dry.wouldSetStarted || 0) + (dry.wouldSetFinished || 0);
                 if (!lost) {
