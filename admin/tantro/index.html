@@ -1547,16 +1547,17 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
             // information at all and must not be what keeps the dots on
             // screen — the test is the three REAL dots being dark.
             //
-            // Unlike circuitousness, this back end does NOT keep the funnel
-            // monotonic: PATCH /finished sets finished_game alone and
-            // /shared sets shared_game alone, neither touching started_game.
-            // So a row with a lost start-PATCH and a delivered finish-PATCH
-            // genuinely reaches this table as started=false, finished=true —
-            // and startBounceExcuse fires on it, since it only checks
-            // `started`. That row keeps its dots. It is exactly the
-            // delivery bug the "Repair funnel flags" button above exists to
-            // fix, and collapsing it to a bare tag would hide the evidence
-            // while leaving the button that repairs it sitting right there.
+            // A tagged row CAN still carry a lit dot, so the guard is not
+            // decorative. PATCH /finished sets started_game as of 2026-08-28,
+            // so finished-without-started is now only reachable in HISTORICAL
+            // rows (what the "Repair funnel flags" button above fixes). But
+            // /shared still sets shared_game alone — deliberately, since the
+            // share popup is not a funnel stage below finishing — so a lost
+            // start-PATCH with a delivered share-PATCH reaches this table
+            // live as started=false, shared=true, and startBounceExcuse fires
+            // on it because it only checks `started`. Either way the row
+            // keeps its dots: collapsing it to a bare tag would hide the
+            // evidence while leaving the repair button sitting right there.
             const msfCell = r => {
                 const tag = bounceTag(r);
                 const dots = flag(true) + flag(r.started) + flag(r.finished) + flag(r.shared);
@@ -1586,7 +1587,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                  +  '<th style="text-align:left;padding:4px;" title="Name this BROWSER last played under, matched on session_id (scores + game recordings). Browser-level and retroactive: it labels every row from that browser, including loads from before the name was first typed and loads with no game played. Blank = this browser has never played under a name (or played as Anonymous, or arrived with no session_id). The same person on a second device stays blank there until they play from it too.">Player</th>'
                  +  '<th style="text-align:left;padding:4px;">Device</th>'
                  +  '<th style="text-align:left;padding:4px;">Lang</th>'
-                 +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished / Shared — Tantro has no intro gate, so every visit reaches the menu and the first dot is always lit. The row that reads as a rejection is therefore ●○○○: arrived, never started a game. Tagged rows have a known innocent reason: beacons? = the row recorded real play and the flags lost their writes (this is what Repair funnel flags rebuilds); ↻reload = referred by the game host itself, i.e. a reload or tab re-entry by someone already here; ↩seen = this browser started a game on another row here. Untagged ●○○○ is the only kind that reads as a real rejection. On a tagged row the tag REPLACES the dots, since they are ●○○○ there and only cost width. Dots shown ALONGSIDE a tag mean a later funnel flag landed without its start — unlike circuitousness, this back end does not force the funnel monotonic, so that row is real and is the Repair funnel flags case.">M/S/F/Sh</th>'
+                 +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished / Shared — Tantro has no intro gate, so every visit reaches the menu and the first dot is always lit. The row that reads as a rejection is therefore ●○○○: arrived, never started a game. Tagged rows have a known innocent reason: beacons? = the row recorded real play and the flags lost their writes (this is what Repair funnel flags rebuilds); ↻reload = referred by the game host itself, i.e. a reload or tab re-entry by someone already here; ↩seen = this browser started a game on another row here. Untagged ●○○○ is the only kind that reads as a real rejection. On a tagged row the tag REPLACES the dots, since they are ●○○○ there and only cost width. Dots shown ALONGSIDE a tag mean a later funnel flag landed without its start. /finished has set started_game since 2026-08-28, so a finished-without-started row can only be HISTORICAL now (run Repair funnel flags). A lit Sh dot can still happen live: sharing is deliberately not folded into the monotonic rule, since the share popup is not a funnel stage below finishing.">M/S/F/Sh</th>'
                  +  '<th style="text-align:right;padding:4px;" title="Time with a game running and unpaused (tab-hidden time excluded). Expand the row for the rest.">Play</th>'
                  +  '<th style="text-align:left;padding:4px;" title="Browser and major version, compacted from the raw user-agent — hover a cell for the full string. A UA matching the back end&apos;s bot filter is shown as its offending token, in amber: bots are rejected at the visit POST and should never have created a row at all, so seeing one here means the filter missed it.">User-Agent</th>'
                  +  '<th style="padding:4px;" title="Wipe this browser: deletes ALL its visits, game results and page loads (test-traffic cleanup)"></th>'
