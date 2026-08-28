@@ -272,6 +272,24 @@
             return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
+        // The Player cell, shared by the Recent Visits and Returning Players
+        // tables (both are lists of browsers, so both take the same column).
+        // `player` is the most recent NON-Anonymous name that browser's
+        // session_id ever submitted a score under, on either board -- the only
+        // human-readable identity an accountless game has. Three things it is
+        // NOT: (a) per-visit -- the name is resolved from the browser, so it
+        // back-labels every row that browser ever wrote, including loads from
+        // before the name existed; (b) cross-device -- one human on phone +
+        // desktop is two session_ids, so their second device reads blank until
+        // it submits from there too; (c) proof of identity -- anyone can type
+        // any handle. Blank is the normal state: most browsers never submit.
+        function playerTag(r) {
+            if (!r || !r.player) return '<span style="color:var(--text-dim);">—</span>';
+            const title = `Leaderboard handle for this browser: ${r.player}`
+                        + ` (matched on session_id — applies to all of this browser's rows)`;
+            return `<span style="color:var(--text-tertiary);" title="${escapeHtml(title)}">${escapeHtml(r.player)}</span>`;
+        }
+
         // ── Auth gate ──
         // OI's central auth API authoritatively says whether this token's
         // user is an admin. The game back-end ALSO verifies the same token
@@ -921,6 +939,7 @@
                  +  '<th style="text-align:left;padding:4px;">Time</th>'
                  +  '<th style="text-align:left;padding:4px;">Referrer</th>'
                  +  '<th style="text-align:left;padding:4px;">Session</th>'
+                 +  '<th style="text-align:left;padding:4px;" title="Leaderboard handle this BROWSER last submitted a score under (Marathon or PotD), matched on session_id. Browser-level and retroactive: it labels every row from that browser, including loads from before the name was first typed and loads where nothing was submitted. Blank = this browser has never submitted under a name (or submitted as Anonymous, or arrived with no session_id). The same person on a second device stays blank there until they submit from it too.">Player</th>'
                  +  '<th style="text-align:left;padding:4px;">Device</th>'
                  +  '<th style="text-align:left;padding:4px;">Lang</th>'
                  +  '<th style="text-align:left;padding:4px;" title="where the load ran: site = own origin; cg = CrazyGames embed; itch = itch embed; embed = framed on an unknown host; ↻itch = itch mobile redirect handoff: platform-redirect sent this load to the real origin, either by navigating away on its own (top-level on the itch CDN) or via the play-the-full-version overlay (the itch in-page iframe) — either way the intro never showed. Embed platform is inferred from the referrer.">Src</th>'
@@ -965,6 +984,7 @@
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(t)}</td>
                     <td style="padding:4px;white-space:nowrap;" title="${escapeHtml(r.referrer || '')}">${escapeHtml(refShort)}${campTag(r)}</td>
                     <td style="padding:4px;${sessStyle}">${escapeHtml(r.session)}</td>
+                    <td style="padding:4px;white-space:nowrap;">${playerTag(r)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.device)}/${escapeHtml(r.os)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.lang)}</td>
                     <td style="padding:4px;white-space:nowrap;">${srcTag}</td>
@@ -973,7 +993,7 @@
                     <td style="padding:4px;">${/^[0-9a-fA-F-]{8}$/.test(r.session || '') ? `<button onclick="wipeSession('${escapeHtml(r.session)}')" title="Wipe this browser's rows (visits + share/credits clicks + puzzle results + page loads + first-run row)" style="background:none;border:1px solid rgba(255,80,80,0.4);color:#ff5050;border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;">✕</button>` : ''}</td>
                 </tr>
                 <tr id="visitDetail${i}" style="display:none;border-bottom:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);">
-                    <td colspan="10">${visitDetailHtml(r)}</td>
+                    <td colspan="11">${visitDetailHtml(r)}</td>
                 </tr>`;
             });
             html += '</table>';
@@ -1117,6 +1137,7 @@
                  +  '<th style="text-align:left;padding:4px;">First seen</th>'
                  +  '<th style="text-align:left;padding:4px;" title="which prior-day record proves they played before">Played before via</th>'
                  +  '<th style="text-align:left;padding:4px;">Session</th>'
+                 +  '<th style="text-align:left;padding:4px;" title="Leaderboard handle this BROWSER last submitted a score under (Marathon or PotD), matched on session_id. Browser-level and retroactive: it labels every row from that browser, including loads from before the name was first typed and loads where nothing was submitted. Blank = this browser has never submitted under a name (or submitted as Anonymous, or arrived with no session_id). The same person on a second device stays blank there until they submit from it too.">Player</th>'
                  +  '<th style="text-align:left;padding:4px;">Device</th>'
                  +  '<th style="text-align:left;padding:4px;">Lang</th>'
                  +  '<th style="text-align:left;padding:4px;">Returned (CT)</th>'
@@ -1131,6 +1152,7 @@
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;" title="${escapeHtml(p.first_seen_ct || '')}">${escapeHtml(p.first_seen_date || '?')}</td>
                     <td style="padding:4px;">${badges}</td>
                     <td style="padding:4px;color:var(--text-dim);" title="${escapeHtml(sid)}">${escapeHtml(sidShort)}</td>
+                    <td style="padding:4px;white-space:nowrap;">${playerTag(p)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(p.device || '?')}/${escapeHtml(p.os || '?')}</td>
                     <td style="padding:4px;color:var(--text-dim);">${escapeHtml(p.language || '?')}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(p.today_first_visit_ct || '?')}</td>
