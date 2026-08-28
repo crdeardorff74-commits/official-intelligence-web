@@ -1025,20 +1025,28 @@
             const campTag = r => r.campaign
                 ? ` <span style="color:#ffaa00;" title="paid campaign: ${escapeHtml(r.campaign)}">[${escapeHtml(r.campaign)}]</span>`
                 : '';
-            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> Recent Visits <span style="font-size:11px;color:var(--text-dim);">(newest ${rows.length} — repeated Session = same browser)</span></h3>`;
-            // Visible legend, not just a th tooltip: the whole point of the
-            // tags is that an UNEXPLAINED ○○○ should look different from an
-            // explained one at a glance, and a tooltip you have to hover to
-            // find does not change how the table reads.
-            html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;line-height:1.6;">'
-                 +  'The first dot in M/S/F = the <b>intro splash was dismissed</b>, not gameplay. '
-                 +  'A row whose dots are <b>replaced by a tag</b> had ○○○ for a known innocent reason — '
-                 +  '<span style="color:#ffaa00;">beacons?</span> (row recorded real play — dots lost their writes), '
-                 +  '<span style="color:#888;">handoff</span> (an itch redirect sent this load to the real origin — the intro never showed), '
-                 +  '<span style="color:#888;">↻reload</span> (referred by the game host itself — reload / tab re-entry), or '
-                 +  '<span style="color:#888;">↩seen</span> (this browser dismissed the intro on another row) '
-                 +  '— and is <b>not</b> an intro rejection. Only an untagged ○○○ is.'
-                 +  '</div>';
+            // The legend moved from a visible block under the heading into the
+            // heading's own tooltip (user's call, 2026-08-28). It had been a
+            // paragraph of small print above every load of this panel, and the
+            // same explanations already ride each tag's own title at the point
+            // of use, which is where they are actually needed.
+            //
+            // Plain text, not markup: title="" renders no HTML, so the bold
+            // and the per-tag colours are gone and the structure has to come
+            // from line breaks instead. The heading carries a help cursor and
+            // a dotted underline — a tooltip nobody knows to hover for would
+            // be worse than the block it replaced.
+            const LEGEND =
+                  'The first dot in M/S/F = the INTRO SPLASH was dismissed, not gameplay.\n\n'
+                + 'A row whose dots are REPLACED by a tag had ○○○ for a known innocent reason:\n\n'
+                + '  beacons?   the row recorded real play — the dots lost their writes\n'
+                + '  handoff    an itch redirect sent this load to the real origin — the intro never showed\n'
+                + '  ↻reload    referred by the game host itself — a reload or tab re-entry\n'
+                + '  ↩seen      this browser dismissed the intro on another row here\n\n'
+                + 'None of those is an intro rejection. Only an UNTAGGED ○○○ is.';
+            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">`
+                 +  `<span title="${escapeHtml(LEGEND)}" style="border-bottom:1px dotted var(--text-dim);cursor:help;">> Recent Visits</span>`
+                 +  ` <span style="font-size:11px;color:var(--text-dim);">(newest ${rows.length} — repeated Session = same browser)</span></h3>`;
             html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
             html += '<tr style="border-bottom:1px solid var(--primary);">'
                  +  '<th style="padding:4px;" title="Expand for this session\'s engagement detail"></th>'
