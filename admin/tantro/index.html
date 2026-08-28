@@ -825,12 +825,131 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
             setTimeout(() => el.innerHTML = '', 3000);
         }
         
+        // Escapes for element content AND for attribute values.
+        //
+        // Was `div.textContent = x; return div.innerHTML` until 2026-08-28.
+        // That serializes a text node, which escapes & < > but NOT quotes —
+        // and this page interpolates escaped values into title="" all over
+        // the table, including `ua`, which is a request header and therefore
+        // attacker-controlled. A UA containing a double quote could close the
+        // attribute and add its own. Nothing in the wild appears to have done
+        // it, but the hole did not depend on anyone noticing.
+        //
+        // Only one call site feeds a JS string rather than markup
+        // (wipeSession's onclick, which takes a hex session prefix), and
+        // &#39; is inert there.
+        //
+        // Matches circuitousness's admin page, minus its `|| ''` fallback,
+        // which would turn a legitimate 0 into an empty string.
         function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+            return String(text === null || text === undefined ? '' : text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
         
+        // The Player cell, shared by the Recent Visits and Returning Players
+        // tables (both are lists of browsers, so both take the same column).
+        // `player` is the most recent non-Anonymous name that browser's
+        // session_id ever played under — see _names_for_sessions in
+        // tantro-back-end/app.py. Three things it is NOT: (a) per-visit — the
+        // name is resolved from the browser, so it back-labels every row that
+        // browser ever wrote, including loads from before the name existed;
+        // (b) cross-device — one human on phone + desktop is two session_ids,
+        // so their second device reads blank until they play from there too;
+        // (c) proof of identity — anyone can type any handle. Blank is the
+        // normal state: most browsers never finish a game under a name.
+        function playerTag(r) {
+            if (!r || !r.player) return '<span style="color:var(--text-dim);">—</span>';
+            const title = `Player name for this browser: ${r.player}`
+                        + ` (matched on session_id — applies to all of this browser's rows)`;
+            return `<span style="color:var(--text-tertiary);" title="${escapeHtml(title)}">${escapeHtml(r.player)}</span>`;
+        }
+
+        // ── User-Agent, compacted ────────────────────────────────────────
+        // Mirrors the back end's _BOT_UA_PATTERNS (app.py) deliberately —
+        // if that list gains an entry, add it here too. (Note the leading
+        // underscore: circuitousness names the same list BOT_UA_PATTERNS.)
+        const UA_BOT_PATTERNS = [
+            'bot', 'crawl', 'spider', 'slurp', 'feed', 'fetch', 'scrape',
+            'lighthouse', 'pagespeed', 'headless', 'phantom', 'selenium',
+            'puppeteer', 'playwright', 'wget', 'curl', 'python-requests',
+            'go-http-client', 'java/', 'apache-http', 'node-fetch', 'axios',
+        ];
+        // Most specific product first. Edge, the iOS Chrome/Firefox wrappers
+        // and Samsung's browser all carry 'Chrome' and/or 'Safari' tokens of
+        // their own, so a naive scan labels every one of them 'Chrome'.
+        const UA_PRODUCTS = [
+            [/\bEdgi?O?S?A?\/([\d.]+)/,      'Edge'],
+            [/\bOPR\/([\d.]+)/,              'Opera'],
+            [/\bSamsungBrowser\/([\d.]+)/,   'Samsung'],
+            [/\bCriOS\/([\d.]+)/,            'Chrome'],
+            [/\bFxiOS\/([\d.]+)/,            'Firefox'],
+            [/\bFirefox\/([\d.]+)/,          'Firefox'],
+            [/\bChrome\/([\d.]+)/,           'Chrome'],
+            [/\bVersion\/([\d.]+).*\bSafari/, 'Safari'],
+        ];
+
+        // Compact signature for the User-Agent column: 'Safari 18.7',
+        // 'Chrome 137'.
+        //
+        // The raw string is ~130 characters, the first ~40 of which are
+        // boilerplate the Device/OS column already reports, and the cell is
+        // nowrap — so it was setting the width of the entire table. Plain
+        // truncation is not the fix: 30 characters of a real UA is
+        // 'Mozilla/5.0 (Windows NT 10.0; W', which is all prefix and no
+        // information. The full string stays in the cell's title, so nothing
+        // is actually lost.
+        //
+        // A bot UA is flagged in amber instead, showing the OFFENDING TOKEN
+        // rather than the head of the string. Bots are rejected at the visit
+        // POST and never create rows, so one appearing here means the filter
+        // missed it — being able to see that is the column's whole reason to
+        // exist as a backstop. Showing the token matters more than it looks:
+        // a headless-Chrome UA begins 'Mozilla/5.0 (X11; Linux x86_64)
+        // AppleWebKit/537.36…' and does not reach 'HeadlessChrome' until
+        // character 79, so any head-truncated view of it is
+        // indistinguishable from a normal desktop visit.
+        //
+        // Anything unrecognized falls back to truncated raw text rather than
+        // a confident wrong label.
+        function uaLabel(ua) {
+            const raw = String(ua || '');
+            if (!raw) return '<span style="color:#444;">?</span>';
+            const lower = raw.toLowerCase();
+            const hit = UA_BOT_PATTERNS.find(p => lower.indexOf(p) !== -1);
+            if (hit) {
+                // Widen the match out to its whole product token, so 'bot'
+                // reads as 'Googlebot/2.1' and 'headless' as
+                // 'HeadlessChrome/120.0.0.0'. Token bounded the way UAs
+                // separate products: whitespace, parens, semicolons, commas.
+                const at = lower.indexOf(hit);
+                let s = at, e = at + hit.length;
+                while (s > 0 && !/[\s(),;]/.test(raw[s - 1])) s--;
+                while (e < raw.length && !/[\s(),;]/.test(raw[e])) e++;
+                let token = raw.slice(s, e);
+                if (token.length > 32) token = token.slice(0, 32) + '…';
+                const why = escapeHtml(raw) + '\n\nMatches the back end&apos;s bot filter on &apos;'
+                          + escapeHtml(hit) + '&apos; — a bot UA should never have created a row, '
+                          + 'so this one got past the visit POST.';
+                return `<span style="color:#ffaa00;" title="${why}">⚠ ${escapeHtml(token)}</span>`;
+            }
+            for (const [re, name] of UA_PRODUCTS) {
+                const m = re.exec(raw);
+                if (!m) continue;
+                // First two version segments, minus a pointless trailing .0:
+                // Chrome/137.0.0.0 -> '137', Safari Version/18.7 -> '18.7'.
+                const parts = m[1].split('.');
+                const ver = (parts[1] && parts[1] !== '0')
+                    ? parts[0] + '.' + parts[1]
+                    : parts[0];
+                return escapeHtml(name + ' ' + ver);
+            }
+            return escapeHtml(raw.length > 24 ? raw.slice(0, 24) + '…' : raw);
+        }
+
         function switchStageTab(btn, group) {
             document.querySelectorAll(`.stage-tab[onclick*="'${group}'"]`).forEach(t => t.classList.remove('active'));
             document.querySelectorAll(`.stage-panel[data-group="${group}"]`).forEach(p => p.classList.remove('active'));
@@ -1418,8 +1537,32 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
             const bounceTag = r => {
                 const ex = startBounceExcuse(r, startedSessions);
                 return ex
-                    ? ` <span style="color:${ex.color};font-size:10px;" title="${escapeHtml(ex.title)}">${escapeHtml(ex.tag)}</span>`
+                    ? `<span style="color:${ex.color};font-size:10px;" title="${escapeHtml(ex.title)}">${escapeHtml(ex.tag)}</span>`
                     : '';
+            };
+            // The whole M/S/F/Sh cell. On a tagged row the tag REPLACES the
+            // dots instead of following them, to buy back column width.
+            //
+            // The M dot is hardcoded lit (no intro gate), so it carries no
+            // information at all and must not be what keeps the dots on
+            // screen — the test is the three REAL dots being dark.
+            //
+            // Unlike circuitousness, this back end does NOT keep the funnel
+            // monotonic: PATCH /finished sets finished_game alone and
+            // /shared sets shared_game alone, neither touching started_game.
+            // So a row with a lost start-PATCH and a delivered finish-PATCH
+            // genuinely reaches this table as started=false, finished=true —
+            // and startBounceExcuse fires on it, since it only checks
+            // `started`. That row keeps its dots. It is exactly the
+            // delivery bug the "Repair funnel flags" button above exists to
+            // fix, and collapsing it to a bare tag would hide the evidence
+            // while leaving the button that repairs it sitting right there.
+            const msfCell = r => {
+                const tag = bounceTag(r);
+                const dots = flag(true) + flag(r.started) + flag(r.finished) + flag(r.shared);
+                if (!tag) return dots;
+                if (!r.started && !r.finished && !r.shared) return tag;
+                return dots + ' ' + tag;
             };
             // The repair button lives HERE, next to the evidence: an unlit S dot
             // on a row whose detail shows a recorded game is the bug it fixes.
@@ -1427,11 +1570,12 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                  +  ` <button onclick="backfillFunnelFlags()" title="Rebuild started_game / finished_game from the game_results rows. Dry-runs first and shows the counts before changing anything." style="margin-left:8px;background:none;border:1px solid rgba(255,170,0,0.45);color:#ffaa00;border-radius:3px;cursor:pointer;font-size:10px;padding:2px 7px;vertical-align:middle;">Repair funnel flags</button></h3>`;
             html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;line-height:1.6;">'
                  +  'No intro gate, so the M dot is always lit — the row that reads as a rejection is <b>●○○○</b> (arrived, never started). '
-                 +  'One tagged '
+                 +  'A row whose dots are <b>replaced by a tag</b> had ●○○○ for a known innocent reason — '
                  +  '<span style="color:#ffaa00;">beacons?</span> (row recorded real play — flags lost their writes, use Repair funnel flags), '
                  +  '<span style="color:#888;">↻reload</span> (referred by the game host itself — reload / tab re-entry), or '
                  +  '<span style="color:#888;">↩seen</span> (this browser started a game on another row) '
-                 +  'is <b>not</b> a rejection. Only an untagged ●○○○ is.'
+                 +  '— and is <b>not</b> a rejection. Only an untagged ●○○○ is. '
+                 +  'Dots shown <b>alongside</b> a tag mean a later flag landed without its start — the Repair case.'
                  +  '</div>';
             html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
             html += '<tr style="border-bottom:1px solid var(--primary);">'
@@ -1439,11 +1583,12 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                  +  '<th style="text-align:left;padding:4px;">Time</th>'
                  +  '<th style="text-align:left;padding:4px;">Referrer</th>'
                  +  '<th style="text-align:left;padding:4px;">Session</th>'
+                 +  '<th style="text-align:left;padding:4px;" title="Name this BROWSER last played under, matched on session_id (scores + game recordings). Browser-level and retroactive: it labels every row from that browser, including loads from before the name was first typed and loads with no game played. Blank = this browser has never played under a name (or played as Anonymous, or arrived with no session_id). The same person on a second device stays blank there until they play from it too.">Player</th>'
                  +  '<th style="text-align:left;padding:4px;">Device</th>'
                  +  '<th style="text-align:left;padding:4px;">Lang</th>'
-                 +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished / Shared — Tantro has no intro gate, so every visit reaches the menu and the first dot is always lit. The row that reads as a rejection is therefore ●○○○: arrived, never started a game. Tagged rows have a known innocent reason: beacons? = the row recorded real play and the flags lost their writes (this is what Repair funnel flags rebuilds); ↻reload = referred by the game host itself, i.e. a reload or tab re-entry by someone already here; ↩seen = this browser started a game on another row here. Untagged ●○○○ is the only kind that reads as a real rejection.">M/S/F/Sh</th>'
+                 +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished / Shared — Tantro has no intro gate, so every visit reaches the menu and the first dot is always lit. The row that reads as a rejection is therefore ●○○○: arrived, never started a game. Tagged rows have a known innocent reason: beacons? = the row recorded real play and the flags lost their writes (this is what Repair funnel flags rebuilds); ↻reload = referred by the game host itself, i.e. a reload or tab re-entry by someone already here; ↩seen = this browser started a game on another row here. Untagged ●○○○ is the only kind that reads as a real rejection. On a tagged row the tag REPLACES the dots, since they are ●○○○ there and only cost width. Dots shown ALONGSIDE a tag mean a later funnel flag landed without its start — unlike circuitousness, this back end does not force the funnel monotonic, so that row is real and is the Repair funnel flags case.">M/S/F/Sh</th>'
                  +  '<th style="text-align:right;padding:4px;" title="Time with a game running and unpaused (tab-hidden time excluded). Expand the row for the rest.">Play</th>'
-                 +  '<th style="text-align:left;padding:4px;">User-Agent</th>'
+                 +  '<th style="text-align:left;padding:4px;" title="Browser and major version, compacted from the raw user-agent — hover a cell for the full string. A UA matching the back end&apos;s bot filter is shown as its offending token, in amber: bots are rejected at the visit POST and should never have created a row at all, so seeing one here means the filter missed it.">User-Agent</th>'
                  +  '<th style="padding:4px;" title="Wipe this browser: deletes ALL its visits, game results and page loads (test-traffic cleanup)"></th>'
                  +  '</tr>';
             rows.forEach((r, i) => {
@@ -1454,21 +1599,21 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                 const dupe = counts[r.session] > 1;
                 const sessStyle = dupe ? 'color:#ffaa00;font-weight:bold;' : '';
                 const ua = r.ua || '';
-                const uaShort = ua.length > 52 ? ua.slice(0, 52) + '…' : ua;
                 html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
                     <td style="padding:4px;"><button id="visitCaret${i}" onclick="toggleVisitDetail(${i})" title="Show this session's engagement detail" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:11px;padding:0 2px;">▸</button></td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(t)}</td>
                     <td style="padding:4px;white-space:nowrap;" title="${escapeHtml(r.referrer || '')}">${escapeHtml(refShort)}</td>
                     <td style="padding:4px;${sessStyle}">${escapeHtml(r.session)}</td>
+                    <td style="padding:4px;white-space:nowrap;">${playerTag(r)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.device)}/${escapeHtml(r.os)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.lang)}</td>
-                    <td style="padding:4px;text-align:center;white-space:nowrap;">${flag(true)}${flag(r.started)}${flag(r.finished)}${flag(r.shared)}${bounceTag(r)}</td>
+                    <td style="padding:4px;text-align:center;white-space:nowrap;">${msfCell(r)}</td>
                     <td style="padding:4px;text-align:right;color:var(--text-dim);white-space:nowrap;">${fmtSecs(r.play_seconds)}</td>
-                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;" title="${escapeHtml(ua)}">${escapeHtml(uaShort)}</td>
+                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;" title="${escapeHtml(ua)}">${uaLabel(ua)}</td>
                     <td style="padding:4px;">${r.session ? `<button onclick="wipeSession('${escapeHtml(r.session)}')" title="Wipe this browser's rows (visits + game results + page loads)" style="background:none;border:1px solid rgba(255,80,80,0.4);color:#ff5050;border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;">✕</button>` : ''}</td>
                 </tr>
                 <tr id="visitDetail${i}" style="display:none;border-bottom:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);">
-                    <td colspan="10">${visitDetailHtml(r)}</td>
+                    <td colspan="11">${visitDetailHtml(r)}</td>
                 </tr>`;
             });
             html += '</table>';
@@ -1668,6 +1813,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                  +  '<th style="text-align:left;padding:4px;">First seen</th>'
                  +  '<th style="text-align:left;padding:4px;" title="which prior-day record proves they played before">Played before via</th>'
                  +  '<th style="text-align:left;padding:4px;">Session</th>'
+                 +  '<th style="text-align:left;padding:4px;" title="Name this BROWSER last played under, matched on session_id (scores + game recordings). Browser-level and retroactive: it labels every row from that browser, including loads from before the name was first typed and loads with no game played. Blank = this browser has never played under a name (or played as Anonymous, or arrived with no session_id). The same person on a second device stays blank there until they play from it too.">Player</th>'
                  +  '<th style="text-align:left;padding:4px;">Device</th>'
                  +  '<th style="text-align:left;padding:4px;">Lang</th>'
                  +  '<th style="text-align:left;padding:4px;">Returned (CT)</th>'
@@ -1682,6 +1828,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;" title="${escapeHtml(p.first_seen_ct || '')}">${escapeHtml(p.first_seen_date || '?')}</td>
                     <td style="padding:4px;">${badges}</td>
                     <td style="padding:4px;color:var(--text-dim);" title="${escapeHtml(sid)}">${escapeHtml(sidShort)}</td>
+                    <td style="padding:4px;white-space:nowrap;">${playerTag(p)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(p.device || '?')}/${escapeHtml(p.os || '?')}</td>
                     <td style="padding:4px;color:var(--text-dim);">${escapeHtml(p.language || '?')}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(p.today_first_visit_ct || '?')}</td>
