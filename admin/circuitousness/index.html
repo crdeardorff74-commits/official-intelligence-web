@@ -280,6 +280,38 @@
             return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
+        // ── Mode keys → the names players actually see ───────────────────
+        //
+        // The DB keys are NOT the in-game names, and two of them are easy to
+        // misread (which is how this map came to exist, 2026-08-28):
+        //
+        //   practice  → Zen. What the mode is called in-game (🧘 mode.practice.name).
+        //               Covers BOTH menu-started Zen and the first-run ladder.
+        //   surge     → Surge, specifically the run started from the
+        //               first-session pitch — the thing the 2026-08-06
+        //               redesign is betting on.
+        //   marathon  → Surge as well, but any LATER voluntary run.
+        //   potd      → PotD.
+        //
+        // ⚠ `surge` and `marathon` are the same GAMEPLAY under two keys, and
+        // the split is deliberate, not legacy drift (see marathon.js
+        // pendingPuzzleMeta). Do not merge them here: first-run vs voluntary
+        // is exactly the number the redesign is judged on. They are collapsed
+        // to one badge in the return audit, where the distinction does not
+        // matter — that is a separate, deliberate choice.
+        const MODE_LABELS = {
+            practice: 'Zen',
+            zen:      'Zen',      // defensive: models.py lists it as possible
+            surge:    'Surge (1st run)',
+            marathon: 'Surge',
+            potd:     'PotD',
+        };
+        // Unknown keys pass through unchanged rather than becoming 'Unknown' —
+        // a new mode should be visible as itself, not swallowed.
+        function modeLabel(key) {
+            return MODE_LABELS[key] || key;
+        }
+
         // The Player cell, shared by the Recent Visits and Returning Players
         // tables (both are lists of browsers, so both take the same column).
         // `player` is the most recent NON-Anonymous name that browser's
@@ -1256,17 +1288,28 @@
                 out.innerHTML = summary + '<div style="color:#666;padding:5px;">No returning players that day.</div>';
                 return;
             }
-            // Badge per prior-day source. game/potd = an actual prior game-start
-            // (strongest "they came back to play" signal); visit = a prior
-            // page-visit that started a game.
-            const srcColor = { game_sessions: '#00ff64', potd_sessions: '#00aaff', page_visits: '#ffaa00' };
-            const srcLabel = { game_sessions: 'marathon', potd_sessions: 'potd', page_visits: 'visit' };
+            // Badge per prior-day mode. The back end now sends what the
+            // player DID rather than which table proved it, so these are the
+            // in-game mode names (see MODE_LABELS) — plus `played`, the
+            // catch-all for a started visit that predates puzzle_results and
+            // so cannot be attributed to a mode.
+            //
+            // ⚠ `surge` here covers BOTH the DB's `surge` and `marathon`
+            // rows. They are the same gameplay, and the first-run/voluntary
+            // split that separates them matters to the first-run funnel, not
+            // to "what has this person played before". The By-mode table in
+            // Engagement keeps them apart.
+            //
+            // Colours match the Modes Played chart so a mode reads the same
+            // everywhere on the page.
+            const srcColor = { surge: '#ffaa00', potd: '#00aaff', zen: '#888', played: '#666' };
+            const srcLabel = { surge: 'surge', potd: 'potd', zen: 'zen', played: 'played' };
             const tableFor = (list, dim) => {
             let html = '';
             html += `<table style="width:100%;border-collapse:collapse;font-size:12px;${dim ? 'opacity:0.6;' : ''}">`;
             html += '<tr style="border-bottom:1px solid var(--primary);">'
                  +  '<th style="text-align:left;padding:4px;">First seen</th>'
-                 +  '<th style="text-align:left;padding:4px;" title="which prior-day record proves they played before">Played before via</th>'
+                 +  '<th style="text-align:left;padding:4px;" title="What this browser played on an EARLIER day. surge / potd / zen are the in-game mode names, read from puzzle_results plus the per-mode session tables. surge covers both DB keys `surge` (the first-run pitch run) and `marathon` (any later voluntary run) — same gameplay, and that split belongs to the first-run funnel, not here. `played` means the visit started something but predates puzzle_results, so the mode is unknowable — it is not a mode name.">Played before via</th>'
                  +  '<th style="text-align:left;padding:4px;">Session</th>'
                  +  '<th style="text-align:left;padding:4px;" title="Leaderboard handle this BROWSER last submitted a score under (Marathon or PotD), matched on session_id. Browser-level and retroactive: it labels every row from that browser, including loads from before the name was first typed and loads where nothing was submitted. Blank = this browser has never submitted under a name (or submitted as Anonymous, or arrived with no session_id). The same person on a second device stays blank there until they submit from it too.">Player</th>'
                  +  '<th style="text-align:left;padding:4px;">Device</th>'
@@ -1779,7 +1822,8 @@
                          +  '<th style="text-align:right;padding:2px;">Median</th></tr>';
                     modeKeys.forEach(m => {
                         const b = ms[m];
-                        html += `<tr><td style="padding:2px;color:var(--text-dim);">${escapeHtml(m)}</td>
+                        // Raw key in the title so the DB value is still reachable.
+                        html += `<tr><td style="padding:2px;color:var(--text-dim);" title="${escapeHtml(m)}">${escapeHtml(modeLabel(m))}</td>
                             <td style="text-align:right;padding:2px;">${b.puzzles}</td>
                             <td style="text-align:right;padding:2px;">${b.solved} <span style="color:var(--text-dim);">(${b.pct_solved === null ? '—' : b.pct_solved + '%'})</span></td>
                             <td style="text-align:right;padding:2px;">${fmtSecs(b.median_seconds)}</td></tr>`;
@@ -2126,14 +2170,14 @@
                 </div>`;
         }
         function renderModeBreakdown() {
-            // DB stores lowercase mode keys ('practice', 'potd', 'marathon');
-            // relabel for display only — 'practice' is called Zen (🧘) in-game.
-            const labels = { practice: 'Zen', potd: 'PotD', marathon: 'Marathon' };
+            // Relabel for display only — see MODE_LABELS. The DB keys are
+            // deliberately left alone; renaming those would orphan history.
             const modes = ((cachedStats && cachedStats.mode_breakdown) || []).map(m =>
-                ({ ...m, mode: labels[m.mode] || m.mode }));
+                ({ ...m, mode: modeLabel(m.mode) }));
             renderFlatBars('visitModes', 'Modes Played', modes, 'mode',
-                { Marathon: '#ffaa00', PotD: '#00aaff', Zen: '#888' },
-                { Marathon: '🏃', PotD: '📅', Zen: '🧘' });
+                { Surge: '#ffaa00', 'Surge (1st run)': '#ffd27f',
+                  PotD: '#00aaff', Zen: '#888' },
+                { Surge: '⚡', 'Surge (1st run)': '⚡', PotD: '📅', Zen: '🧘' });
         }
         function renderGameTypeBreakdown() {
             renderFlatBars('visitGameTypes', 'Game Types Played', cachedStats.game_type_breakdown, 'gameType',
