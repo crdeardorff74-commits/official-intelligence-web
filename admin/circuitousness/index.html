@@ -290,6 +290,90 @@
             return `<span style="color:var(--text-tertiary);" title="${escapeHtml(title)}">${escapeHtml(r.player)}</span>`;
         }
 
+        // ── User-Agent, compacted ────────────────────────────────────────
+        // Mirrors the back end's BOT_UA_PATTERNS (app.py) deliberately —
+        // if that tuple gains an entry, add it here too.
+        const UA_BOT_PATTERNS = [
+            'bot', 'crawl', 'spider', 'slurp', 'feed', 'fetch', 'scrape',
+            'lighthouse', 'pagespeed', 'headless', 'phantom', 'selenium',
+            'puppeteer', 'playwright', 'wget', 'curl', 'python-requests',
+            'go-http-client', 'java/', 'apache-http', 'node-fetch', 'axios',
+        ];
+        // Most specific product first. Edge, the iOS Chrome/Firefox wrappers
+        // and Samsung's browser all carry 'Chrome' and/or 'Safari' tokens of
+        // their own, so a naive scan labels every one of them 'Chrome'.
+        const UA_PRODUCTS = [
+            [/\bEdgi?O?S?A?\/([\d.]+)/,      'Edge'],
+            [/\bOPR\/([\d.]+)/,              'Opera'],
+            [/\bSamsungBrowser\/([\d.]+)/,   'Samsung'],
+            [/\bCriOS\/([\d.]+)/,            'Chrome'],
+            [/\bFxiOS\/([\d.]+)/,            'Firefox'],
+            [/\bFirefox\/([\d.]+)/,          'Firefox'],
+            [/\bChrome\/([\d.]+)/,           'Chrome'],
+            [/\bVersion\/([\d.]+).*\bSafari/, 'Safari'],
+        ];
+
+        // Compact signature for the User-Agent column: 'Safari 18.7',
+        // 'Chrome 137'.
+        //
+        // The raw string is ~130 characters, the first ~40 of which are
+        // boilerplate the Device/OS column already reports, and the cell is
+        // nowrap — so it was setting the width of the entire table. Plain
+        // truncation is not the fix: 30 characters of a real UA is
+        // 'Mozilla/5.0 (Windows NT 10.0; W', which is all prefix and no
+        // information. The full string stays in the cell's title, so nothing
+        // is actually lost.
+        //
+        // A bot UA is flagged in amber instead, showing the OFFENDING TOKEN
+        // rather than the head of the string. Bots are rejected at
+        // POST /api/visit and never create rows, so one appearing here means
+        // the filter missed it — being able to see that is the column's whole
+        // reason to exist as a backstop, and folding it into a tidy
+        // 'Chrome 137' would hide the thing worth catching.
+        //
+        // Showing the token matters more than it looks: a headless-Chrome UA
+        // begins 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36…' and
+        // does not reach 'HeadlessChrome' until character 79, so any
+        // head-truncated view of it is indistinguishable from a normal
+        // desktop visit — the exact confusion the flag exists to prevent.
+        //
+        // Anything unrecognized falls back to truncated raw text rather than
+        // a confident wrong label.
+        function uaLabel(ua) {
+            const raw = String(ua || '');
+            if (!raw) return '<span style="color:#444;">?</span>';
+            const lower = raw.toLowerCase();
+            const hit = UA_BOT_PATTERNS.find(p => lower.indexOf(p) !== -1);
+            if (hit) {
+                // Widen the match out to its whole product token, so 'bot'
+                // reads as 'Googlebot/2.1' and 'headless' as
+                // 'HeadlessChrome/120.0.0.0'. Token bounded the way UAs
+                // separate products: whitespace, parens, semicolons, commas.
+                const at = lower.indexOf(hit);
+                let s = at, e = at + hit.length;
+                while (s > 0 && !/[\s(),;]/.test(raw[s - 1])) s--;
+                while (e < raw.length && !/[\s(),;]/.test(raw[e])) e++;
+                let token = raw.slice(s, e);
+                if (token.length > 32) token = token.slice(0, 32) + '…';
+                const why = escapeHtml(raw) + '\n\nMatches the back end&apos;s bot filter on &apos;'
+                          + escapeHtml(hit) + '&apos; — a bot UA should never have created a row, '
+                          + 'so this one got past POST /api/visit.';
+                return `<span style="color:#ffaa00;" title="${why}">⚠ ${escapeHtml(token)}</span>`;
+            }
+            for (const [re, name] of UA_PRODUCTS) {
+                const m = re.exec(raw);
+                if (!m) continue;
+                // First two version segments, minus a pointless trailing .0:
+                // Chrome/137.0.0.0 -> '137', Safari Version/18.7 -> '18.7'.
+                const parts = m[1].split('.');
+                const ver = (parts[1] && parts[1] !== '0')
+                    ? parts[0] + '.' + parts[1]
+                    : parts[0];
+                return escapeHtml(name + ' ' + ver);
+            }
+            return escapeHtml(raw.length > 24 ? raw.slice(0, 24) + '…' : raw);
+        }
+
         // ── Auth gate ──
         // OI's central auth API authoritatively says whether this token's
         // user is an admin. The game back-end ALSO verifies the same token
@@ -966,7 +1050,7 @@
                  +  '<th style="text-align:left;padding:4px;">Lang</th>'
                  +  '<th style="text-align:left;padding:4px;" title="where the load ran: site = own origin; cg = CrazyGames embed; itch = itch embed; embed = framed on an unknown host; ↻itch = itch mobile redirect handoff: platform-redirect sent this load to the real origin, either by navigating away on its own (top-level on the itch CDN) or via the play-the-full-version overlay (the itch in-page iframe) — either way the intro never showed. Embed platform is inferred from the referrer.">Src</th>'
                  +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished. The first dot is the INTRO SPLASH being dismissed, not gameplay — so a bare ○○○ only means nobody tapped past the title screen on this load. A tagged row has a known innocent reason, and the tag REPLACES its dots (they are always ○○○ on those rows, so showing them only cost width): beacons? = the row recorded real play and the dots lost their writes; handoff = an itch redirect sent this load to the real origin, so the intro never showed; ↻reload = referred by the game host itself, i.e. a reload or tab re-entry; ↩seen = this browser dismissed the intro on another row here. Untagged ○○○ is the only kind that reads as a real intro rejection. Dots shown ALONGSIDE a tag would mean a row broke the funnel-monotonic rule — worth a look.">M/S/F</th>'
-                 +  '<th style="text-align:left;padding:4px;">User-Agent</th>'
+                 +  '<th style="text-align:left;padding:4px;" title="Browser and major version, compacted from the raw user-agent — hover a cell for the full string. A UA matching the back end&apos;s bot filter is shown RAW and in amber instead: bots are rejected at POST /api/visit and should never have created a row at all, so seeing one here means the filter missed it.">User-Agent</th>'
                  +  '<th style="padding:4px;" title="Wipe this browser: deletes ALL its visits (incl. their share-platform + credits-link clicks), puzzle results, page loads and first-run funnel row (test-traffic cleanup)"></th>'
                  +  '</tr>';
             rows.forEach((r, i) => {
@@ -977,7 +1061,6 @@
                 const dupe = counts[r.session] > 1;
                 const sessStyle = dupe ? 'color:#ffaa00;font-weight:bold;' : '';
                 const ua = r.ua || '';
-                const uaShort = ua.length > 52 ? ua.slice(0, 52) + '…' : ua;
                 // Where the load ran. ↻itch (amber) = mobile redirect handoff:
                 // platform-redirect sent this load to the real origin — by
                 // navigating away on its own (top-level on itch's CDN) or via
@@ -1011,7 +1094,7 @@
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.lang)}</td>
                     <td style="padding:4px;white-space:nowrap;">${srcTag}</td>
                     <td style="padding:4px;text-align:center;white-space:nowrap;">${msfCell(r)}</td>
-                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;" title="${escapeHtml(ua)}">${escapeHtml(uaShort)}</td>
+                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;" title="${escapeHtml(ua)}">${uaLabel(ua)}</td>
                     <td style="padding:4px;">${/^[0-9a-fA-F-]{8}$/.test(r.session || '') ? `<button onclick="wipeSession('${escapeHtml(r.session)}')" title="Wipe this browser's rows (visits + share/credits clicks + puzzle results + page loads + first-run row)" style="background:none;border:1px solid rgba(255,80,80,0.4);color:#ff5050;border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;">✕</button>` : ''}</td>
                 </tr>
                 <tr id="visitDetail${i}" style="display:none;border-bottom:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);">
