@@ -1827,10 +1827,19 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
             const out = document.getElementById('returningResults');
             if (!out) return;
             const players = (data && data.players) || [];
+            // Played on a prior day but only LOADED today — no play evidence.
+            // Counted as returning until 2026-08-28. Listed rather than
+            // dropped: the exclusion is the kind of thing that should be
+            // checkable by eye, since that is how it got noticed.
+            const visitOnly = (data && data.visit_only_players) || [];
             const summary = `<div style="margin-bottom:8px;">
                 <span style="color:var(--primary);font-size:14px;">${data.returning}</span>
-                <span style="color:var(--text-dim);"> returning of ${data.unique_visitors} unique browsers (${data.pct_returning}%)</span></div>`;
-            if (players.length === 0) {
+                <span style="color:var(--text-dim);"> returning of ${data.unique_visitors} unique browsers (${data.pct_returning}%)</span>`
+                + (visitOnly.length
+                    ? `<div style="font-size:11px;color:var(--text-dim);margin-top:3px;" title="These browsers played on an earlier day, but today they only loaded the page — no puzzle started, no play time, no session opened. A visit row is minted per page load without waiting for the page to be visible, so a restored pinned tab writes one with nobody there. They are listed below, excluded from the count above.">+${visitOnly.length} played before but only loaded today — not counted</div>`
+                    : '')
+                + `</div>`;
+            if (players.length === 0 && visitOnly.length === 0) {
                 out.innerHTML = summary + '<div style="color:#666;padding:5px;">No returning players that day.</div>';
                 return;
             }
@@ -1839,8 +1848,9 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
             // panel reads the same as Circuitousness's.
             const srcColor = { page_visits: '#ffaa00' };
             const srcLabel = { page_visits: 'visit' };
-            let html = summary;
-            html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+            const tableFor = (list, dim) => {
+            let html = '';
+            html += `<table style="width:100%;border-collapse:collapse;font-size:12px;${dim ? 'opacity:0.6;' : ''}">`;
             html += '<tr style="border-bottom:1px solid var(--primary);">'
                  +  '<th style="text-align:left;padding:4px;">First seen</th>'
                  +  '<th style="text-align:left;padding:4px;" title="which prior-day record proves they played before">Played before via</th>'
@@ -1850,7 +1860,7 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                  +  '<th style="text-align:left;padding:4px;">Lang</th>'
                  +  '<th style="text-align:left;padding:4px;">Returned (CT)</th>'
                  +  '</tr>';
-            players.forEach(p => {
+            list.forEach(p => {
                 const sid = p.session_id || '';
                 const sidShort = sid.length > 12 ? sid.slice(0, 12) + '…' : sid;
                 const badges = (p.sources || []).map(s =>
@@ -1867,6 +1877,17 @@ ${bug.debug_log ? escapeHtml(bug.debug_log) : '<em>No debug log</em>'}
                 </tr>`;
             });
             html += '</table>';
+            return html;
+            };
+
+            let html = summary;
+            if (players.length) html += tableFor(players, false);
+            else html += '<div style="color:#666;padding:5px;">No returning players that day.</div>';
+            if (visitOnly.length) {
+                html += `<h4 style="margin:14px 0 6px;color:var(--text-dim);font-size:12px;">`
+                     +  `Played before, only loaded today — not counted (${visitOnly.length})</h4>`
+                     +  tableFor(visitOnly, true);
+            }
             out.innerHTML = html;
         }
         
