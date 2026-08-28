@@ -3,2058 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Circuitousness Admin - Official Intelligence</title>
+    <title>Official Intelligence — Free Browser Games by C. Ryan Deardorff</title>
+    <meta name="description" content="Free browser games and experiments made by one person — C. Ryan Deardorff, an independent solo developer. Official Intelligence is a personal game label, not a company or organization.">
+
+	<meta name="keywords" content="indie games, solo developer, browser games, block puzzle, puzzle games, free games, AI-assisted games, C. Ryan Deardorff">
+	<meta name="author" content="Christopher Ryan Deardorff">
+	<meta name="copyright" content="Christopher Ryan Deardorff">
+	<meta name="robots" content="index, follow">
+	<link rel="canonical" href="https://official-intelligence.art/">
+	
+	<!-- Open Graph / Facebook -->
+	<meta property="og:type" content="website">
+	<meta property="og:url" content="https://official-intelligence.art/">
+	<meta property="og:title" content="Official Intelligence — Free Browser Games by C. Ryan Deardorff">
+	<meta property="og:description" content="Free browser games made by one person. Official Intelligence is the independent solo project of developer C. Ryan Deardorff — not a company or organization.">
+	<meta property="og:image" content="https://res.cloudinary.com/dzlhmwvlx/image/upload/v1764977477/BLOCKCHaiNSTO%D0%AFM_thumb_pceyvy.png">
+	
+	<!-- Twitter -->
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:title" content="Official Intelligence — Free Browser Games by C. Ryan Deardorff">
+	<meta name="twitter:description" content="Free browser games made by one person. Official Intelligence is the independent solo project of developer C. Ryan Deardorff — not a company or organization.">
+	<meta name="twitter:image" content="https://res.cloudinary.com/dzlhmwvlx/image/upload/v1764977477/BLOCKCHaiNSTO%D0%AFM_thumb_pceyvy.png">
+    
+    <!-- Retro Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+
+    <!-- Structured data. States in machine-readable form what the prose says:
+         this site, and every game on it, is the work of one named individual.
+         The Person is author/publisher/copyrightHolder everywhere - deliberately
+         NOT an Organization, because Official Intelligence is a label, not a company. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Person",
+          "@id": "https://official-intelligence.art/#ryan",
+          "name": "Christopher Ryan Deardorff",
+          "alternateName": ["C. Ryan Deardorff", "Ryan Deardorff"],
+          "jobTitle": "Independent game developer",
+          "description": "Solo independent developer who designs, builds and publishes free browser games under the personal label Official Intelligence.",
+          "email": "mailto:privacy@official-intelligence.art",
+          "url": "https://official-intelligence.art/about",
+          "mainEntityOfPage": "https://official-intelligence.art/about",
+          "knowsAbout": ["Game development", "Puzzle games", "Progressive web apps"],
+          "address": { "@type": "PostalAddress", "addressCountry": "US" },
+          "sameAs": [
+            "https://digeratist.itch.io",
+            "https://github.com/crdeardorff74-commits"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://official-intelligence.art/#website",
+          "url": "https://official-intelligence.art/",
+          "name": "Official Intelligence",
+          "alternateName": "Official Intelligence \u2014 games by C. Ryan Deardorff",
+          "description": "Free browser games made by one person: C. Ryan Deardorff. Official Intelligence is an independent solo project, not a company, agency, or organization.",
+          "inLanguage": "en",
+          "author": { "@id": "https://official-intelligence.art/#ryan" },
+          "creator": { "@id": "https://official-intelligence.art/#ryan" },
+          "publisher": { "@id": "https://official-intelligence.art/#ryan" },
+          "copyrightHolder": { "@id": "https://official-intelligence.art/#ryan" }
+        },
+        {
+          "@type": "VideoGame",
+          "name": "TANT\u042fO",
+          "url": "https://tantro.official-intelligence.art",
+          "description": "A free browser puzzle game about falling blocks, played across the solar system.",
+          "gamePlatform": "Web browser",
+          "applicationCategory": "GameApplication",
+          "operatingSystem": "Any (web browser)",
+          "isAccessibleForFree": true,
+          "author": { "@id": "https://official-intelligence.art/#ryan" },
+          "creator": { "@id": "https://official-intelligence.art/#ryan" },
+          "publisher": { "@id": "https://official-intelligence.art/#ryan" },
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+        },
+        {
+          "@type": "VideoGame",
+          "name": "Circuitousness",
+          "url": "https://circuitousness.official-intelligence.art",
+          "description": "A free browser puzzle game about rotating tiles to connect circuits.",
+          "gamePlatform": "Web browser",
+          "applicationCategory": "GameApplication",
+          "operatingSystem": "Any (web browser)",
+          "isAccessibleForFree": true,
+          "author": { "@id": "https://official-intelligence.art/#ryan" },
+          "creator": { "@id": "https://official-intelligence.art/#ryan" },
+          "publisher": { "@id": "https://official-intelligence.art/#ryan" },
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+        }
+      ]
+    }
+    </script>
+
     <link rel="stylesheet" href="/css/style.css">
-    <style>
-        .stat-card {
-            background: rgba(0, 255, 0, 0.1);
-            border: 1px solid var(--primary);
-            padding: 15px;
-            text-align: center;
-        }
-        .stat-value {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 16px;
-            color: var(--primary);
-            margin-bottom: 5px;
-            line-height: 1.8;
-        }
-        .stat-label {
-            font-size: 10px;
-            color: var(--text-dim);
-            text-transform: uppercase;
-        }
-        .chart-row {
-            margin: 6px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .chart-label {
-            min-width: 130px;
-            white-space: nowrap;
-            color: var(--text-dim);
-        }
-        .chart-bar-bg {
-            flex: 1;
-            height: 16px;
-            background: rgba(255, 255, 255, 0.05);
-        }
-        .chart-count {
-            min-width: 110px;
-            text-align: right;
-            color: var(--text-dim);
-            white-space: nowrap;
-        }
-        /* Full-width override — mirrors Tantro admin page so the funnel
-           charts have room to breathe. */
-        main { max-width: 100% !important; width: 100% !important; padding: 1vw 2vw !important; box-sizing: border-box; }
-        .visits-two-col {
-            display: flex;
-            gap: 2vw;
-            margin-top: 20px;
-        }
-        /* 45:55 split (user call 2026-07-29 — the right column carries the
-           denser panels). flex-grow ratios over a 0 basis divide the space
-           left after the 2vw gap exactly 45/55; the ≤1200px media query
-           still stacks them full-width. */
-        .visits-left {
-            flex: 45 1 0;
-            min-width: 0;
-        }
-        .visits-right {
-            flex: 55 1 0;
-            min-width: 0;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            align-content: start;
-        }
-        .visits-right > div { min-width: 0; }
-        @media (max-width: 1200px) {
-            .visits-two-col { flex-direction: column; }
-        }
-        @media (max-width: 768px) {
-            .visits-right { grid-template-columns: 1fr; }
-        }
-        /* Per-stage tab switcher inside the device / OS panels. Same
-           styling as Tantro's so the two admin pages feel related. */
-        .stage-tabs {
-            display: flex;
-            gap: 4px;
-            margin-bottom: 10px;
-            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
-        }
-        .stage-tab {
-            background: transparent;
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            padding: 4px 10px;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 8px;
-            cursor: pointer;
-            opacity: 0.5;
-        }
-        .stage-tab.active {
-            opacity: 1;
-            background: rgba(0, 255, 0, 0.15);
-        }
-        .stage-panel { display: none; }
-        .stage-panel.active { display: block; }
-        .window-tabs {
-            display: flex;
-            gap: 8px;
-            margin: 15px 0;
-        }
-        .window-tab {
-            background: transparent;
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            padding: 6px 14px;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 9px;
-            cursor: pointer;
-            opacity: 0.5;
-        }
-        .window-tab.active {
-            opacity: 1;
-            background: rgba(0, 255, 0, 0.15);
-        }
-    </style>
 </head>
 <body>
+    <header>
+        <div class="logo">Official Intelligence</div>
+        <div class="tagline">FREE BROWSER GAMES · MADE BY ONE PERSON</div>
+        <div class="byline">an independent solo project by <a href="/about">C. Ryan Deardorff</a> — not a company</div>
+        
+        <nav>
+            <a href="/" class="active">HOME</a>
+            <a href="/blog">BLOG</a>
+        </nav>
+        
+        <div class="user-menu" id="userMenu">
+            <button onclick="showLoginModal()">LOGIN</button>
+        </div>
+    </header>
+    
     <main>
-        <div class="admin-header" style="display: flex; align-items: center; gap: 20px;">
-            <h1 style="margin: 0;">> CIRCUITOUSNESS ADMIN</h1>
-            <div style="display: flex; gap: 10px; margin-left: auto;">
-                <button id="adminRefresh" class="btn btn-primary" style="display: none;" onclick="loadVisitStats()">🔄 REFRESH</button>
-                <!-- Mosaic difficulty-calibration corpus (mosaic_solves) as a
-                     JSON file — one row per solved designed-mosaic test play;
-                     plot movesOverFloor against score to find where the
-                     difficulty formula bends. Same admin JWT as everything
-                     else on this page. -->
-                <button id="mosaicSolvesBtn" class="btn btn-primary" style="display: none;" onclick="downloadMosaicSolves()">⬇ MOSAIC SOLVES</button>
-                <a href="/admin/" class="btn btn-primary">← ADMIN HUB</a>
-                <a href="/" class="btn btn-primary">← BACK TO SITE</a>
-            </div>
-        </div>
-
-        <div id="message"></div>
-
-        <div id="notAdmin" class="not-admin" style="display: none;">
-            <h2 class="section-header">ACCESS DENIED</h2>
-            <p style="margin-top: 20px;">Admin privileges required.</p>
-            <a href="/" class="btn btn-primary" style="margin-top: 20px; display: inline-block;">RETURN HOME</a>
-        </div>
-
-        <div id="adminContent" style="display: none;">
-            <!-- Window picker — lifetime / 24h / 7d / 30d. Re-renders the
-                 summary stats cards (the daily chart + breakdowns stay
-                 lifetime since they're inherently time-scoped anyway). -->
-            <div class="window-tabs">
-                <button class="window-tab active" data-window="lifetime" onclick="setWindow(this, 'lifetime')">LIFETIME</button>
-                <button class="window-tab"        data-window="24h"      onclick="setWindow(this, '24h')">LAST 24H</button>
-                <button class="window-tab"        data-window="7d"       onclick="setWindow(this, '7d')">LAST 7D</button>
-                <button class="window-tab"        data-window="30d"      onclick="setWindow(this, '30d')">LAST 30D</button>
-                <!-- Show/hide toggle for the On-site Intro Funnel panel.
-                     Sticky per-browser (localStorage); label/active state
-                     set by applyFunnelToggle() on load. -->
-                <button class="window-tab" id="funnelToggle" style="margin-left: auto;" onclick="toggleFunnel()">INTRO FUNNEL</button>
-            </div>
-
-            <div class="visits-two-col">
-                <div class="visits-left">
-                    <div id="visitStats"><div class="loading">Loading visit stats...</div></div>
-                    <div id="visitChart"      style="margin-top: 20px;"></div>
-                    <div id="visitRecent"     style="margin-top: 20px;"></div>
-                    <div id="visitReferrers"  style="margin-top: 20px;"></div>
-                    <div id="visitCampaigns"  style="margin-top: 20px;"></div>
-                    <div id="visitLanguages"  style="margin-top: 20px;"></div>
-                </div>
-                <div class="visits-right">
-                    <!-- Intro funnel leads the right column (moved from the
-                         left 2026-07-23 — it's the intro-restyle verdict
-                         panel, so it earns the top slot). display:none is
-                         the pre-deploy default; renderOnsiteFunnel un-hides
-                         it once the API sends the onsite_* fields. -->
-                    <div id="visitOnsite" style="grid-column: 1 / -1; display: none;"></div>
-                    <div id="visitReturning" style="grid-column: 1 / -1;">
-                        <h3 style="margin-bottom: 6px; color: var(--primary);">> Return Players Audit</h3>
-                        <div style="margin-bottom:10px;">
-                            <button class="btn btn-primary" style="font-size:9px;padding:2px 12px;" onclick="stepReturning(-1)" title="Previous day" aria-label="Previous day">◀</button>
-                            <input type="date" id="returningDate"
-                                style="background:#000;color:var(--primary);border:1px solid var(--primary);font-family:'VT323',monospace;font-size:14px;padding:2px 6px;"
-                                onchange="loadReturning()">
-                            <button class="btn btn-primary" style="font-size:9px;padding:2px 12px;" onclick="stepReturning(1)" title="Next day" aria-label="Next day">▶</button>
+        <div style="display: flex; flex-direction: row; gap: 3em; flex-wrap: wrap;">
+        
+            <!-- Games Section -->
+            <div style="flex: 1; min-width: 280px;">
+                <h2 class="section-header">PLAY NOW</h2>
+                
+                <div class="games-grid">
+                    <a href="https://tantro.official-intelligence.art" class="game-card" target="_blank">
+                        <div class="game-card-image">
+							<img src="https://images.official-intelligence.art/tantro/Tsunami.png" />
+                            <!-- div class="placeholder">⬛</div -->
                         </div>
-                        <div id="returningResults"><div class="loading">Loading return-player audit...</div></div>
-                    </div>
-                    <!-- First-time-player funnel — the per-NEW-player stats
-                         (one row per browser whose FIRST visit post-dates the
-                         2026-07-28 feature deploy; fed by first_run_stats).
-                         display:none until its separate fetch succeeds, so a
-                         pre-deploy back-end just leaves the panel absent. -->
-                    <div id="visitFirstRun" style="grid-column: 1 / -1; display: none;"></div>
-                    <!-- Engagement (playtime / per-puzzle outcome /
-                         abandonment) and Retention (forward D1/D3/D7
-                         cohorts), both added 2026-08-07. Engagement follows
-                         the tab picker above (re-fetching, since it
-                         aggregates server-side); Retention keeps its own
-                         picker because it windows by cohort day. Both stay
-                         empty until the instrumented front-end build is
-                         deployed and played. -->
-                    <div id="visitEngagement" style="grid-column: 1 / -1;"></div>
-                    <div id="visitRetention" style="grid-column: 1 / -1;"></div>
-                    <div id="visitDevices"></div>
-                    <div id="visitOS"></div>
-                    <div id="visitShares"></div>
-                    <div id="visitShareSource"></div>
-                    <div id="visitCredits"></div>
-                    <div id="visitDonate"></div>
-                    <div id="visitModes"></div>
-                    <div id="visitGameTypes"></div>
-                    <div id="visitSolveAudio"></div>
-                    <div id="visitSolves"></div>
-                    <div id="visitPlays"></div>
+                        <div class="game-card-content">
+                            <h3>TANTЯO</h3>
+                            <p>A revolutionary twist on the classic falling blocks game. Journey through the solar system, survive cosmic disasters, and climb the leaderboards!
+							It's like falling blocks on peyote while sneezing slowly for six hours...</p>
+                            <span class="status live">● LIVE</span>
+                        </div>
+                    </a>
+                    
+					<a href="https://circuitousness.official-intelligence.art" class="game-card" target="_blank">
+                        <div class="game-card-image">
+							<img src="https://images.official-intelligence.art/circuitousness/Singular%203%20Paths.jpg" style="width: 100%;"/>
+                        </div>
+                        <div class="game-card-content">
+                            <h3>CIRCUITOUSNESS</h3>
+                            <p>Twist tiles to get the paths to connect and complete the circuits.</p>
+                            <span class="status live">● LIVE</span>
+                        </div>
+                    </a>
+					
+                    <!-- div class="game-card">
+                        <div class="game-card-image">
+                            <div class="placeholder">?</div>
+                        </div>
+                        <div class="game-card-content">
+                            <h3>PROJECT ???</h3>
+                            <p>Something new is brewing in the lab. Stay tuned for our next AI-enhanced gaming experience...</p>
+                            <span class="status coming-soon">COMING SOON</span>
+                        </div>
+                    </div -->
                 </div>
             </div>
+            
+            <!-- Blog Section -->
+            <div style="flex: 1; min-width: 280px;">
+                <h2 class="section-header">LATEST TRANSMISSIONS</h2>
+                
+                <div class="blog-posts" id="blogPosts">
+                    <!-- Blog posts will be loaded here -->
+                    <div class="blog-post">
+                        <h3>LOADING TRANSMISSIONS...</h3>
+                        <p class="excerpt">Establishing connection to the mainframe...</p>
+                    </div>
+                </div>
+                
+                <a href="/blog" class="view-all">VIEW ALL POSTS →</a>
+            </div>
+        
         </div>
+        
+        <!-- Who makes this. Kept on the landing page, in plain language, on
+             purpose: "Official Intelligence" reads like an institution, and the
+             only thing that fixes that is naming the one person behind it where
+             a visitor (or an ad reviewer) actually lands. -->
+        <section class="maker-card">
+            <h2 class="section-header">WHO MAKES THIS</h2>
+            <p>Hi — I'm <strong>C. Ryan Deardorff</strong>, and I make these games myself.
+            <em>Official Intelligence</em> is simply the name I publish them under: a
+            <strong>one-person project</strong>, not a company, agency, or organization, and
+            not affiliated with or endorsed by any government body or business. I design,
+            code, test, and ship every game here on my own — with a lot of help from AI
+            tools — and I am the person responsible for this site and any advertising for it.</p>
+            <p>The games are free, have no ads inside them, and there is nothing to buy.</p>
+            <p class="maker-links">
+                <a href="/about">More about me</a> ·
+                <a href="mailto:privacy@official-intelligence.art">privacy@official-intelligence.art</a> ·
+                <a href="https://digeratist.itch.io" target="_blank" rel="noopener me">digeratist.itch.io</a>
+            </p>
+        </section>
+
     </main>
-
-    <script>
-        // Two API bases:
-        //   API_URL      → central OI auth (issues + validates JWTs)
-        //   GAME_API_URL → Circuitousness's own back-end (this page's data)
-        const API_URL      = 'https://official-intelligence-api.onrender.com';
-        const GAME_API_URL = 'https://circuitousness-api.onrender.com/api';
-        const token        = localStorage.getItem('oi_token');
-        let cachedStats    = null;
-        let cachedFirstRun = null;
-        // Engagement and Retention each own their query window, so unlike
-        // the others these caches exist only to re-render without a
-        // re-fetch (window-button clicks re-fetch deliberately).
-        let cachedEngagement = null;
-        let cachedRetention  = null;
-        let currentWindow  = 'lifetime';
-
-        // ── On-site Intro Funnel show/hide toggle ──
-        // Sticky per-browser. renderOnsiteFunnel consults funnelHidden, so
-        // the panel stays hidden across window-tab switches and the
-        // auto-refresh re-renders alike.
-        const FUNNEL_HIDE_KEY = 'circ_admin_hideIntroFunnel';
-        let funnelHidden = (function () {
-            try { return localStorage.getItem(FUNNEL_HIDE_KEY) === '1'; }
-            catch (e) { return false; }
-        })();
-        function applyFunnelToggle() {
-            const btn = document.getElementById('funnelToggle');
-            if (btn) {
-                btn.classList.toggle('active', !funnelHidden);
-                btn.textContent = funnelHidden ? 'INTRO FUNNEL: HIDDEN' : 'INTRO FUNNEL: SHOWN';
-            }
-            renderOnsiteFunnel();
-        }
-        function toggleFunnel() {
-            funnelHidden = !funnelHidden;
-            try {
-                if (funnelHidden) localStorage.setItem(FUNNEL_HIDE_KEY, '1');
-                else localStorage.removeItem(FUNNEL_HIDE_KEY);
-            } catch (e) {}
-            applyFunnelToggle();
-        }
-        // Initialize the toggle button's label/active state from the
-        // persisted preference (script runs at end of body, DOM is ready;
-        // renderOnsiteFunnel inside no-ops until stats arrive).
-        applyFunnelToggle();
-
-        function escapeHtml(s) {
-            return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-        }
-
-        // The Player cell, shared by the Recent Visits and Returning Players
-        // tables (both are lists of browsers, so both take the same column).
-        // `player` is the most recent NON-Anonymous name that browser's
-        // session_id ever submitted a score under, on either board -- the only
-        // human-readable identity an accountless game has. Three things it is
-        // NOT: (a) per-visit -- the name is resolved from the browser, so it
-        // back-labels every row that browser ever wrote, including loads from
-        // before the name existed; (b) cross-device -- one human on phone +
-        // desktop is two session_ids, so their second device reads blank until
-        // it submits from there too; (c) proof of identity -- anyone can type
-        // any handle. Blank is the normal state: most browsers never submit.
-        function playerTag(r) {
-            if (!r || !r.player) return '<span style="color:var(--text-dim);">—</span>';
-            const title = `Leaderboard handle for this browser: ${r.player}`
-                        + ` (matched on session_id — applies to all of this browser's rows)`;
-            return `<span style="color:var(--text-tertiary);" title="${escapeHtml(title)}">${escapeHtml(r.player)}</span>`;
-        }
-
-        // ── Auth gate ──
-        // OI's central auth API authoritatively says whether this token's
-        // user is an admin. The game back-end ALSO verifies the same token
-        // on /admin/visits/stats with the same SECRET_KEY (it has its own
-        // User row with is_admin=true that the token's user_id resolves to),
-        // so the actual stats fetch double-checks.
-        async function checkAdmin() {
-            if (!token) {
-                document.getElementById('notAdmin').style.display = 'block';
-                return;
-            }
-            try {
-                const res  = await fetch(`${API_URL}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                if (data.user && data.user.is_admin) {
-                    document.getElementById('adminContent').style.display = 'block';
-                    document.getElementById('adminRefresh').style.display = '';
-                    document.getElementById('mosaicSolvesBtn').style.display = '';
-                    loadVisitStats();
-                    startAutoRefresh();
-                } else {
-                    document.getElementById('notAdmin').style.display = 'block';
-                }
-            } catch (err) {
-                document.getElementById('notAdmin').style.display = 'block';
-            }
-        }
-
-        // ⬇ MOSAIC SOLVES — pull the whole difficulty-calibration corpus
-        // (GET /admin/mosaic/solves: one row per solved designed-mosaic
-        // test play, prediction + actual + movesOverFloor) and save it as
-        // a dated JSON file. Client-side Blob download rather than a link
-        // straight at the endpoint, because the admin JWT rides an
-        // Authorization header and a plain <a href> can't send one. The
-        // button doubles as its own status readout — row count on
-        // success, FAILED on error — so no layout is disturbed.
-        async function downloadMosaicSolves() {
-            const btn = document.getElementById('mosaicSolvesBtn');
-            const label = btn.textContent;
-            btn.disabled = true;
-            btn.textContent = '… FETCHING';
-            try {
-                const res = await fetch(`${GAME_API_URL}/admin/mosaic/solves?_=${Date.now()}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
-                const blob = new Blob([JSON.stringify(data, null, 2)],
-                                      { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'mosaic_solves-' + new Date().toISOString().slice(0, 10) + '.json';
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                setTimeout(() => URL.revokeObjectURL(url), 5000);
-                btn.textContent = '⬇ ' + data.count + ' ROWS';
-            } catch (err) {
-                console.error('mosaic solves download failed', err);
-                btn.textContent = '✖ FAILED';
-            } finally {
-                btn.disabled = false;
-                setTimeout(() => { btn.textContent = label; }, 2500);
-            }
-        }
-
-        async function loadVisitStats() {
-            try {
-                const res = await fetch(`${GAME_API_URL}/admin/visits/stats?_=${Date.now()}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                if (!res.ok) {
-                    document.getElementById('visitStats').innerHTML =
-                        '<div style="color: #f55;">Failed to load: ' + escapeHtml(data.error || res.status) + '</div>';
-                    return;
-                }
-                cachedStats = data;
-                renderSummary();
-                renderOnsiteFunnel();
-                // "Puzzles Solved" counts real per-puzzle solves (from the
-                // per-solve audio counters, collected since the 2026-07-02
-                // API deploy). "Games Started" buckets game_type entries —
-                // one per RUN in Marathon/Zen (a 10-puzzle run = 1), one
-                // per daily puzzle in PotD; it was mislabeled "Puzzles per
-                // Session" until 2026-07-16.
-                renderPlaysPerSession('visitSolves', 'Puzzles Solved per Session', cachedStats.solves_per_session, 'puzzle');
-                renderPlaysPerSession('visitPlays', 'Games Started per Session', cachedStats.plays_per_session, 'game');
-                renderDailyChart();
-                renderTopReferrers();
-                renderCampaigns();
-                renderTopLanguages();
-                renderRecentVisits();
-                renderDeviceBreakdown();
-                renderOsBreakdown();
-                renderShareBreakdown();
-                renderShareSource();
-                renderCreditsBreakdown();
-                renderDonate();
-                renderModeBreakdown();
-                renderGameTypeBreakdown();
-                renderSolveAudio();
-            } catch (e) {
-                document.getElementById('visitStats').innerHTML =
-                    '<div style="color: #f55;">Network error: ' + escapeHtml(e.message || e) + '</div>';
-            } finally {
-                // Return-players audit is a separate, date-scoped fetch; run it
-                // on every stats load (initial + auto-refresh) so it stays
-                // current. Independent of the window tabs above.
-                loadReturning();
-                // First-time-player funnel is its own endpoint too — refresh
-                // it on the same cadence.
-                loadFirstRunStats();
-                // Engagement follows the window tabs but aggregates
-                // server-side, and Retention scopes by cohort day, so both
-                // must RE-FETCH rather than re-render off cachedStats.
-                loadEngagement();
-                loadRetention();
-            }
-        }
-
-        function setWindow(btn, win) {
-            document.querySelectorAll('.window-tab').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentWindow = win;
-            if (cachedStats) { renderSummary(); renderOnsiteFunnel(); renderShareSource(); renderSolveAudio(); }
-            if (cachedFirstRun) renderFirstRun();
-            // Engagement aggregates server-side, so a tab change has to
-            // RE-FETCH — there is no windowed field on cachedEngagement to
-            // re-render from. Retention is deliberately NOT here: it scopes
-            // by cohort day and still owns its own picker.
-            loadEngagement();
-        }
-
-        function renderSummary() {
-            if (!cachedStats) return;
-            // Lifetime fields have no suffix; rolling windows are *_24h / *_7d / *_30d.
-            const d = cachedStats;
-            const isLifetime = currentWindow === 'lifetime';
-            const suffix = '_' + currentWindow;
-            const v  = isLifetime ? d.total_visits   : d['visits'   + suffix];
-            const se = isLifetime ? d.total_sessions : d['sessions' + suffix];
-            const st = isLifetime ? d.total_started  : d['started'  + suffix];
-            const fi = isLifetime ? d.total_finished : d['finished' + suffix];
-            const sh = isLifetime ? d.total_shared   : d['shared'   + suffix];
-            // Unique-browser (deduped) started/finished — the per-person count,
-            // shown as a sub-line under the per-visit Started/Finished numbers.
-            // undefined until the back-end redeploys with the *_uniq fields.
-            const stu = isLifetime ? d.total_started_uniq  : d['started_uniq'  + suffix];
-            const fiu = isLifetime ? d.total_finished_uniq : d['finished_uniq' + suffix];
-            const subBrowsers = (n) => n === undefined ? '' :
-                `<div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${n} browser${n===1?'':'s'}</div>`;
-            const fr = isLifetime ? d.finish_rate    : d['finish_rate' + suffix];
-            const shr= isLifetime ? d.share_rate     : d['share_rate'  + suffix];
-            // visit→start, collapsing the intermediate menu stage. The summary
-            // cards count ALL visits (including embed loads that platform-
-            // redirect.js diverts before the intro), so the visit→menu and
-            // menu→start splits live in the On-site Intro Funnel panel below,
-            // where they're measured against on-site visits only.
-            const sr = isLifetime ? d.start_rate : d['start_rate' + suffix];
-            // One combined funnel-chain rate card. Each % is the conversion
-            // from the previous stage: visits →(sr)→ start →(fr)→ finish
-            // →(shr)→ share.
-            document.getElementById('visitStats').innerHTML = `
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px;">
-                    <div class="stat-card"><div class="stat-value">${v}</div><div class="stat-label">Visits</div><div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${se} session${se===1?'':'s'}</div></div>
-                    <div class="stat-card"><div class="stat-value">${st}</div><div class="stat-label">Started</div>${subBrowsers(stu)}</div>
-                    <div class="stat-card"><div class="stat-value">${fi}</div><div class="stat-label">Finished</div>${subBrowsers(fiu)}</div>
-                    <div class="stat-card"><div class="stat-value">${sh}</div><div class="stat-label">Shared</div></div>
-                    <div class="stat-card">
-                        <div class="stat-value">${sr}% <span style="white-space:nowrap;">→&nbsp;${fr}%</span> <span style="white-space:nowrap;">→&nbsp;${shr}%</span></div>
-                        <div class="stat-label">Start / Finish / Share</div>
-                    </div>
-                </div>`;
-        }
-
-        // On-site intro funnel — the trustworthy version. The summary cards
-        // above count ALL visits, including itch-embed mobile loads that
-        // platform-redirect.js diverts BEFORE the intro (a handoff, not a
-        // rejection). This panel isolates own-origin traffic so the
-        // intro-bounce read is real, and shows how much volume is embed
-        // handoff noise. Follows the LIFETIME/24H/7D/30D window tabs once
-        // the back-end sends the windowed onsite_* fields (falls back to
-        // lifetime figures pre-deploy — added so intro-screen changes are
-        // measurable instead of drowning in lifetime history).
-        function renderOnsiteFunnel() {
-            const el = document.getElementById('visitOnsite');
-            if (!el) return;
-            // Admin toggle wins over everything: when hidden, the panel
-            // stays dark even though the API sends the onsite_* fields.
-            if (funnelHidden) {
-                el.style.display = 'none';
-                return;
-            }
-            if (!cachedStats) return;
-            const d = cachedStats;
-            // The container ships display:none inline; un-hide only once the
-            // back-end actually sends the onsite_* fields. (This flip was
-            // missing for a while — the panel rendered its HTML into a
-            // hidden div, which read as "funnel stats suppressed".)
-            if (d.onsite_visits === undefined) {
-                el.innerHTML = '';
-                el.style.display = 'none';
-                return;
-            }
-            el.style.display = '';
-            // Window-aware field picks. hasWin guards the pre-deploy window
-            // where only lifetime fields exist — the panel then shows
-            // lifetime numbers regardless of the selected tab, labeled so.
-            const isLifetime = currentWindow === 'lifetime';
-            const suffix     = '_' + currentWindow;
-            const hasWin     = d.onsite_visits_7d !== undefined;
-            const winLive    = !isLifetime && hasWin;
-            const pick       = (base) => winLive ? (d[base + suffix] || 0) : (d[base] || 0);
-            const winLabel   = winLive ? ('last ' + currentWindow) : 'lifetime';
-
-            const onsite = pick('onsite_visits');
-            const agreed = pick('onsite_agreed');
-            const bounce = onsite - agreed;
-            const rate   = pick('onsite_agree_rate');
-            const emb    = d.total_embedded || 0;
-            const red    = d.total_redirected || 0;
-
-            // Deduped per-browser figures (the trustworthy ones). Undefined
-            // until the back-end redeploys with onsite_uniq_* — fall back to
-            // the per-load-only layout in that window.
-            const hasUniq = d.onsite_uniq_visitors !== undefined;
-            const uVis    = pick('onsite_uniq_visitors');
-            const uAgr    = pick('onsite_uniq_agreed');
-            const uBnc    = uVis - uAgr;
-            const uRate   = pick('onsite_uniq_agree_rate');
-
-            const intro = `
-                <h3 style="margin-bottom: 6px; color: var(--primary);">> On-site Intro Funnel</h3>
-                <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">
-                    Own-origin traffic only (<strong>${winLabel}</strong>). Embed loads — itch, CrazyGames, etc. (<strong>${emb}</strong>, of which <strong>${red}</strong> were itch mobile redirect handoffs; lifetime counts) — are excluded.
-                </div>`;
-
-            // Per-browser (deduped) — the headline. A browser counts as
-            // "reached menu" if it dismissed the intro on ANY load, so an
-            // engaged player's relaunches no longer read as fresh bounces.
-            const uniqBlock = hasUniq ? `
-                <div style="font-size:11px;color:var(--primary);margin:4px 0 6px;">Per browser (deduped — the real intro-rejection rate)</div>
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:15px;margin-bottom:14px;">
-                    <div class="stat-card"><div class="stat-value">${uVis}</div><div class="stat-label">Browsers</div></div>
-                    <div class="stat-card"><div class="stat-value">${uAgr}</div><div class="stat-label">Reached menu</div><div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${uRate}%</div></div>
-                    <div class="stat-card"><div class="stat-value">${uBnc}</div><div class="stat-label">Left at intro</div></div>
-                </div>` : '';
-
-            // Per page-load (raw rows) — kept for comparison. Counts every
-            // reload/PWA-relaunch, each of which re-shows the intro, so this
-            // over-counts bounces vs the per-browser block above.
-            const loadHeader = hasUniq
-                ? `<div style="font-size:11px;color:var(--text-dim);margin:4px 0 6px;">Per page-load (counts every reload / relaunch)</div>`
-                : '';
-            const loadBlock = `
-                ${loadHeader}
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:15px;">
-                    <div class="stat-card"><div class="stat-value">${onsite}</div><div class="stat-label">On-site loads</div></div>
-                    <div class="stat-card"><div class="stat-value">${agreed}</div><div class="stat-label">Reached menu</div><div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${rate}%</div></div>
-                    <div class="stat-card"><div class="stat-value">${bounce}</div><div class="stat-label">Left at intro</div></div>
-                </div>`;
-
-            el.innerHTML = intro + uniqBlock + loadBlock;
-        }
-
-        // Per-session distribution renderer (1/2/3/4/5+), shared by the
-        // "Puzzles Solved" and "Games Started" panels. Each bucket's bar
-        // width and trailing (x%) are its share of all sessions with >=1
-        // of the counted thing, so the column sums to 100%. One page-load
-        // session = one "player" (the visit id isn't persisted across
-        // reloads), so both read as per-sitting distributions.
-        function renderPlaysPerSession(elId, title, list, noun) {
-            const el = document.getElementById(elId);
-            if (!el) return;
-            if (!list || list.length === 0) {
-                el.innerHTML = `<h3 style="margin-bottom: 10px; color: var(--primary);">> ${title}</h3><div style="color: #666; padding: 5px;">No data</div>`;
-                return;
-            }
-            const total  = list.reduce((s, x) => s + x.count, 0);
-            const colors = { '1': '#777', '2': '#3a7bd5', '3': '#40c4d4', '4': '#00ff64', '5+': '#ffaa00' };
-            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> ${title}</h3>`;
-            list.forEach(item => {
-                const pct   = total > 0 ? (item.count / total * 100).toFixed(1) : '0.0';
-                const label = item.plays === '5+' ? `5+ ${noun}s` : `${item.plays} ${item.plays === '1' ? noun : noun + 's'}`;
-                const color = colors[item.plays] || '#888';
-                html += `<div class="chart-row">
-                    <span class="chart-label">${label}</span>
-                    <div class="chart-bar-bg">
-                        <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
-                    </div>
-                    <span class="chart-count">${item.count} (${pct}%)</span>
-                </div>`;
-            });
-            el.innerHTML = html;
-        }
-
-        // Stacked horizontal bars per day, last 30 days. Same color
-        // palette + ordering as Tantro's admin page so the visual reads
-        // the same when you switch between projects.
-        function renderDailyChart() {
-            // API returns up to 30 days ascending; show only the newest 14.
-            const days = ((cachedStats && cachedStats.daily_visits) || []).slice(-14);
-            if (days.length === 0) {
-                document.getElementById('visitChart').innerHTML = '';
-                return;
-            }
-            const maxVisits = Math.max(...days.map(d => d.visits));
-            const bw = maxVisits > 0 ? 100 / maxVisits : 0;
-            let html = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Daily Visits (14 days)</h3>';
-            html += '<div style="font-family: monospace; font-size: 12px;">';
-            // Most-recent day on top (the API returns ascending by date).
-            [...days].reverse().forEach(d => {
-                const date = d.day.substring(5);
-                html += `<div style="margin: 2px 0; display: flex; align-items: center; gap: 8px;">
-                    <span style="width: 50px; color: var(--text-dim);">${date}</span>
-                    <div style="flex: 1; position: relative; height: 16px; background: rgba(255,255,255,0.05);">
-                        <div style="position: absolute; height: 100%; width: ${Math.round(d.visits   * bw)}%; background: rgba(0,150,255,0.4);"></div>
-                        <div style="position: absolute; height: 100%; width: ${Math.round(d.started  * bw)}%; background: rgba(255,200,0,0.5);"></div>
-                        <div style="position: absolute; height: 100%; width: ${Math.round(d.finished * bw)}%; background: rgba(255,80,80,0.6);"></div>
-                        <div style="position: absolute; height: 100%; width: ${Math.round((d.shared || 0) * bw)}%; background: rgba(180,80,255,0.6);"></div>
-                    </div>
-                    <span style="width: 140px; text-align: right; color: var(--text-dim);">${d.visits}/${d.started}/${d.finished}/${d.shared || 0}</span>
-                </div>`;
-            });
-            html += '</div>';
-            html += '<div style="margin-top: 5px; font-size: 11px; color: var(--text-dim);">';
-            html += '<span style="color: rgba(0,150,255,0.7);">■</span> Visits &nbsp; ';
-            html += '<span style="color: rgba(255,200,0,0.8);">■</span> Started &nbsp; ';
-            html += '<span style="color: rgba(255,80,80,0.8);">■</span> Finished &nbsp; ';
-            html += '<span style="color: rgba(180,80,255,0.8);">■</span> Shared';
-            html += '</div>';
-            document.getElementById('visitChart').innerHTML = html;
-        }
-
-        function renderTopList(elId, title, rows, valueKey, labelKey) {
-            if (!rows || rows.length === 0) {
-                document.getElementById(elId).innerHTML = '';
-                return;
-            }
-            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> ${title}</h3>`;
-            html += '<table style="width: 100%; border-collapse: collapse;">';
-            html += '<tr style="border-bottom: 1px solid var(--primary);">';
-            html += `<th style="text-align: left; padding: 5px;">${labelKey}</th>`;
-            html += '<th style="text-align: right; padding: 5px;">Visits</th>';
-            html += '<th style="text-align: right; padding: 5px;">Started</th>';
-            html += '<th style="text-align: right; padding: 5px;">Finished</th>';
-            html += '<th style="text-align: right; padding: 5px;">Conv%</th>';
-            html += '</tr>';
-            rows.forEach(r => {
-                const conv  = r.visits > 0 ? (r.finished / r.visits * 100).toFixed(1) : '0.0';
-                const value = r[valueKey] || r.value || '';
-                const short = value.length > 60 ? value.substring(0, 60) + '...' : value;
-                html += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-                    <td style="padding: 5px; color: var(--text-dim); word-break: break-all;">${escapeHtml(short)}</td>
-                    <td style="text-align: right; padding: 5px;">${r.visits}</td>
-                    <td style="text-align: right; padding: 5px;">${r.started}</td>
-                    <td style="text-align: right; padding: 5px;">${r.finished}</td>
-                    <td style="text-align: right; padding: 5px;">${conv}%</td>
-                </tr>`;
-            });
-            html += '</table>';
-            document.getElementById(elId).innerHTML = html;
-        }
-        function renderTopReferrers() { renderTopList('visitReferrers',  'Top Referrers',  cachedStats.top_referrers, 'value', 'Referrer'); }
-        function renderTopLanguages() { renderTopList('visitLanguages',  'Top Languages',  cachedStats.top_languages, 'value', 'Language'); }
-
-        // Paid campaigns (utm_* from the landing URL). Separate from Top
-        // Referrers on purpose: a Brave notification click arrives with NO
-        // referrer, so paid traffic hides inside the "(direct)" row there.
-        // Loads is the impression count — Loads minus Visits is the paid
-        // traffic that landed and left without touching a tile, which is the
-        // number a buy lives or dies on. The whole block is hidden when no
-        // campaign has ever been tagged (the normal state between buys).
-        function renderCampaigns() {
-            const el = document.getElementById('visitCampaigns');
-            if (!el) return;
-            const groups = [
-                ['Campaign Source', (cachedStats && cachedStats.campaign_sources) || []],
-                ['Campaign',        (cachedStats && cachedStats.campaigns)        || []],
-                ['Ad Variant',      (cachedStats && cachedStats.campaign_ads)     || []],
-            ].filter(g => g[1].length > 0);
-            if (groups.length === 0) { el.innerHTML = ''; return; }
-            let html = '';
-            groups.forEach(([label, rows]) => {
-                html += `<h3 style="margin:0 0 10px;color:var(--primary);">> ${label}</h3>`;
-                html += '<table style="width:100%;border-collapse:collapse;margin-bottom:18px;">';
-                html += '<tr style="border-bottom:1px solid var(--primary);">'
-                     +  `<th style="text-align:left;padding:5px;">${label}</th>`
-                     +  '<th style="text-align:right;padding:5px;" title="page loads — impressions, including bounces">Loads</th>'
-                     +  '<th style="text-align:right;padding:5px;" title="loads that interacted enough to create a visit row">Visits</th>'
-                     +  '<th style="text-align:right;padding:5px;">Started</th>'
-                     +  '<th style="text-align:right;padding:5px;">Finished</th>'
-                     +  '<th style="text-align:right;padding:5px;" title="loads that never became a visit">Bounce%</th>'
-                     +  '<th style="text-align:right;padding:5px;" title="finished / loads">Conv%</th>'
-                     +  '</tr>';
-                rows.forEach(r => {
-                    // Loads is the honest denominator, but rows written before
-                    // the impression table carried campaigns can have loads=0
-                    // with real visits — fall back rather than divide by zero.
-                    const den    = r.loads || r.visits || 0;
-                    const bounce = r.loads > 0 ? ((r.loads - r.visits) / r.loads * 100).toFixed(1) : '—';
-                    const conv   = den > 0 ? (r.finished / den * 100).toFixed(1) : '0.0';
-                    const value  = r.value || '';
-                    const short  = value.length > 40 ? value.substring(0, 40) + '…' : value;
-                    html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
-                        <td style="padding:5px;color:var(--text-dim);word-break:break-all;">${escapeHtml(short)}</td>
-                        <td style="text-align:right;padding:5px;">${r.loads}</td>
-                        <td style="text-align:right;padding:5px;">${r.visits}</td>
-                        <td style="text-align:right;padding:5px;">${r.started}</td>
-                        <td style="text-align:right;padding:5px;">${r.finished}</td>
-                        <td style="text-align:right;padding:5px;">${bounce}${bounce === '—' ? '' : '%'}</td>
-                        <td style="text-align:right;padding:5px;">${conv}%</td>
-                    </tr>`;
-                });
-                html += '</table>';
-            });
-            el.innerHTML = html;
-        }
-
-        // ── Per-session engagement detail (the ▸ caret) ──
-        // Token vocabularies from the front-end's analytics.js / game.js and
-        // the back-end's engagement.py MENU_FLAGS — unknown tokens render raw
-        // rather than vanish, so a new flag shows up before this map learns it.
-        const CONTROL_SOURCES = { src_mouse: 'mouse', src_touch: 'touch', src_key: 'keyboard', src_pad: 'gamepad' };
-        // Lit/unlit dots, because the ABSENCE is the finding: a session that
-        // played without ever rotating a tile never found the controls.
-        const CONTROL_ACTIONS = [['act_rot', 'rotated'], ['act_lock', 'locked'], ['act_hint', 'used hint'], ['act_gate', 'used gate']];
-        const FUNNEL_LABELS = {
-            menu: 'mode menu', howto: 'How to Solve', lb: 'Leaderboards',
-            settings: 'Settings', potd_cal: 'PotD calendar', credits: 'credits',
-            daily_more: 'PotD "more puzzles"'
-        };
-
-        function toggleVisitDetail(i) {
-            const el = document.getElementById('visitDetail' + i);
-            const caret = document.getElementById('visitCaret' + i);
-            if (!el) return;
-            const open = el.style.display !== 'none';
-            el.style.display = open ? 'none' : '';
-            if (caret) caret.textContent = open ? '▸' : '▾';
-        }
-
-        // One session's engagement, read end to end. The aggregate engagement
-        // panel cannot do this — it averages a lone interesting session in
-        // with everyone else's. Mirrors TANTЯO's; circ's unit is the puzzle.
-        function visitDetailHtml(r) {
-            // Payloads from a back end that predates these fields have none of
-            // them. Say so, rather than rendering every dot red — an absent
-            // column and a player who never rotated a tile must not look alike.
-            if (r.session_seconds === undefined) {
-                return '<div style="padding:6px 10px 8px 22px;color:#ffaa00;font-size:11px;">'
-                     + 'No engagement fields in this payload — deploy the back end (recent_visits gained them) and reload.</div>';
-            }
-            const dim = 'color:var(--text-dim);';
-            const dot = b => b ? '<span style="color:#00ff64;">●</span>' : '<span style="color:#ff5050;">○</span>';
-            const tokens = s => new Set((s || '').split(',').map(t => t.trim()).filter(Boolean));
-            const ctrl = tokens(r.control_flags);
-            const funnel = tokens(r.funnel_flags);
-
-            const srcs = Object.keys(CONTROL_SOURCES).filter(k => ctrl.has(k)).map(k => CONTROL_SOURCES[k]);
-            const acts = CONTROL_ACTIONS.map(([k, label]) => `${dot(ctrl.has(k))} ${label}`).join(' &nbsp;');
-            const opened = Array.from(funnel).map(k => FUNNEL_LABELS[k] || k);
-
-            // puzzles_started is what the CLIENT believes it began;
-            // puzzles_recorded is what actually landed. A persistent gap
-            // means lost beacons, not a lost player.
-            const gap = (r.puzzles_started || 0) > (r.puzzles_recorded || 0);
-            const lines = [];
-            lines.push(`On page <b>${fmtSecs(r.session_seconds)}</b> &nbsp;·&nbsp; playing <b>${fmtSecs(r.play_seconds)}</b>`
-                + ` &nbsp;·&nbsp; landing screen → first puzzle <b>${r.ttfs === null || r.ttfs === undefined ? 'never started one' : fmtSecs(r.ttfs)}</b>`);
-            lines.push(`Puzzles: <b>${r.puzzles_started || 0}</b> started / <b>${r.puzzles_recorded || 0}</b> recorded / <b>${r.puzzles_solved || 0}</b> solved`
-                + (gap ? ' <span style="color:#ffaa00;">← beacons lost</span>' : '')
-                + (r.versions && r.versions.length ? ` &nbsp;·&nbsp; build <b>${escapeHtml(r.versions.join(' → '))}</b>` : ''));
-            if (r.puzzles_recorded) {
-                lines.push(`Puzzle 1: <b>${fmtSecs(r.first_puzzle_seconds)}</b>, ${escapeHtml(r.first_puzzle_end || '?')}`
-                    + `, ${escapeHtml(r.first_puzzle_mode || '?')} ${escapeHtml(r.first_puzzle_dims || '')}`
-                    + `, ${r.first_puzzle_moves === null || r.first_puzzle_moves === undefined ? '?' : r.first_puzzle_moves} moves`
-                    + ((r.first_puzzle_hints || 0) > 0 ? `, ${r.first_puzzle_hints} hint${r.first_puzzle_hints > 1 ? 's' : ''}` : '')
-                    + (r.first_puzzle_resumed ? ' <span style="color:#ffaa00;">(resumed — clock restarted, short is not disengagement)</span>' : '')
-                    + (r.puzzles_recorded > 1 ? ` &nbsp;·&nbsp; longest <b>${fmtSecs(r.longest_puzzle_seconds)}</b>` : ''));
-            }
-            lines.push(`Controls: ${srcs.length ? escapeHtml(srcs.join(' + ')) : '<span style="color:#ff5050;">no input source recorded</span>'} &nbsp;—&nbsp; ${acts}`);
-            lines.push(`Menus opened: ${opened.length ? escapeHtml(opened.join(', ')) : 'nothing'}`);
-            // Which outbound links THIS session clicked — the aggregate
-            // share/credits panels can't attribute, this row can.
-            const links = [];
-            if (r.share_platform) links.push(`shared: <b>${escapeHtml(r.share_platform)}</b>`);
-            if (r.credits_clicks) links.push(`credits links: <b>${escapeHtml(r.credits_clicks)}</b>`);
-            if (r.donate) links.push('<b>ASPCA donate clicked</b>');
-            lines.push(`Links: ${links.length ? links.join(' &nbsp;·&nbsp; ') : 'none clicked'}`);
-
-            return `<div style="padding:6px 10px 8px 22px;${dim}font-size:11px;line-height:1.7;">${lines.join('<br>')}</div>`;
-        }
-
-        // The game's OWN hostname. A referrer on this host means the previous
-        // page in that tab was the game itself — a reload or a re-entry, not
-        // an arrival. Matched on HOST, never on the whole URL: an itch
-        // referral like digeratist.itch.io/circuitousness carries the slug in
-        // its PATH and must not be mistaken for a self-referrer.
-        const SELF_HOST_RE = /^(?:[a-z0-9-]+\.)*circuitousness\.[a-z0-9.-]+$/i;
-
-        // Why a ○○○ row is NOT an intro rejection.
-        //
-        // The first dot is `agreed`, which only lights when the intro overlay
-        // is DISMISSED (intro.js recordAgreed — the button, Enter or Escape).
-        // A returning browser gets the full splash on every load, and a visit
-        // row is minted per PAGE LOAD, unconditionally, 500ms after
-        // DOMContentLoaded — note tracking.js's recordVisit does NOT wait for
-        // the page to be visible, whereas analytics.js's recordPageLoad
-        // deliberately does. So an unattended load (iOS Safari evicting a
-        // backgrounded tab and reloading it on re-entry) mints a full ○○○ row
-        // that no human ever looked at, and it sits in this list looking
-        // identical to someone who read the warning and walked away.
-        //
-        // Returns null when the row really does read as a rejection.
-        // Ordered most-decisive first; the first match wins.
-        function introBounceExcuse(r, agreedSessions) {
-            if (r.agreed) return null;   // nothing to correct — they got past it
-
-            // 1. The dots are simply WRONG. Milestone PATCHes and the
-            //    /session beacon are independent delivery paths, so when the
-            //    second one reports play the first one lost its writes — the
-            //    exact failure tracking.js's delivery-robustness note
-            //    describes. Amber: this is a bug in the data, not a reload.
-            const played = (r.puzzles_started || 0) > 0
-                || (r.puzzles_recorded || 0) > 0
-                || (r.play_seconds || 0) > 0;
-            if (played) {
-                return { tag: 'beacons?', color: '#ffaa00', title:
-                    'Dots undercount — this session recorded actual play ('
-                    + (r.puzzles_started || 0) + ' started / '
-                    + (r.puzzles_recorded || 0) + ' recorded / '
-                    + fmtSecs(r.play_seconds) + ' playing) despite ○○○. '
-                    + 'The milestone PATCHes were lost, not the player.' };
-            }
-
-            // 2. itch mobile redirect handoff. Already tagged ↻itch in Src;
-            //    repeated here so the funnel cell agrees with it.
-            //
-            //    platform-redirect.js has TWO paths and only one shows an
-            //    overlay, so the wording must cover both (corrected
-            //    2026-08-27 after a row turned up that saw no overlay at all):
-            //      Stage 1 — top-level on itch's CDN (itch's fullscreen
-            //        launch). location.replace() fires in <head> and the page
-            //        just leaves. Nothing is ever painted.
-            //      Stage 2 — itch's in-page iframe, where top-navigation is
-            //        sandbox-blocked. The "play the full version" overlay
-            //        covers the page and the player taps through it.
-            //    Either way the INTRO never showed, which is the only thing
-            //    this tag actually claims.
-            //
-            //    Whether a Stage 1 load even produces a row is a RACE:
-            //    location.replace() queues a navigation, it does not halt the
-            //    document, so recordVisit() (DOMContentLoaded + 500ms) writes
-            //    a row only when the timer beats the commit. So the absence of
-            //    a ↻itch row next to an arrival proves nothing — read the
-            //    ARRIVAL's referrer instead: html-classic.itch.zone/ is
-            //    Stage 1, (direct) is Stage 2 (Safari drops the referrer when
-            //    a tab is opened from a cross-site iframe).
-            if (r.redirected) {
-                return { tag: 'handoff', color: '#888', title:
-                    'itch mobile redirect handoff — platform-redirect sent this '
-                    + 'load to the real origin, either by navigating away on its '
-                    + 'own (top-level on itch\'s CDN) or via the "play the full '
-                    + 'version" overlay (itch\'s in-page iframe). The intro never '
-                    + 'showed, so there was nothing here to reject.' };
-            }
-
-            // 3. Self-referrer: the previous page in this tab was the game.
-            const refHost = (r.referrer || '').replace(/^https?:\/\//, '').split('/')[0];
-            if (SELF_HOST_RE.test(refHost)) {
-                return { tag: '↻reload', color: '#888', title:
-                    'Referred by the game\'s own host (' + refHost + ') — a reload '
-                    + 'or tab re-entry, not a fresh arrival. iOS Safari reloads '
-                    + 'evicted background tabs on re-selection, which mints a '
-                    + 'visit row nobody attended.' };
-            }
-
-            // 4. This browser dismissed the intro on ANOTHER row in this list.
-            //    Mirrors the back end's unique-browser funnel dedupe: a
-            //    browser that reached the menu even once is not a bounce.
-            //    Positive evidence only — the list is the newest 30 rows, so
-            //    ABSENCE here proves nothing and is never treated as one.
-            if (agreedSessions.has(r.session)) {
-                return { tag: '↩seen', color: '#888', title:
-                    'This browser dismissed the intro on another row in this '
-                    + 'list — it has already seen and accepted the splash, so '
-                    + 'this load is a re-open rather than a rejection.' };
-            }
-
-            return null;
-        }
-
-        // Recent individual visits — spot-check for double-counts (same
-        // Session prefix on two rows = one browser reloaded/relaunched) and
-        // bots (the User-Agent column). M/S/F = reached Menu / Started /
-        // Finished — but see introBounceExcuse: a bare ○○○ is not
-        // automatically an intro rejection, and rows with a known innocent
-        // explanation are tagged so they don't read as one.
-        // Not window-filtered — always the newest rows overall.
-        function renderRecentVisits() {
-            const rows = (cachedStats && cachedStats.recent_visits) || [];
-            const el = document.getElementById('visitRecent');
-            if (!el) return;
-            if (rows.length === 0) { el.innerHTML = ''; return; }
-            // Count session prefixes so repeats (double-loads) can be flagged.
-            const counts = {};
-            rows.forEach(r => { counts[r.session] = (counts[r.session] || 0) + 1; });
-            // Browsers that dismissed the intro on ANY row here — so a later
-            // ○○○ load from one of them reads as a re-open, not a rejection.
-            const agreedSessions = new Set(rows.filter(r => r.agreed).map(r => r.session));
-            const flag = b => b ? '<span style="color:#00ff64;">●</span>' : '<span style="color:#444;">○</span>';
-            // Tag appended to a ○○○ cell when that row has an innocent
-            // explanation. Three dim circles otherwise read as "looked at the
-            // intro and refused", which for a reloaded background tab is a
-            // conclusion about a human who was never there.
-            const bounceTag = r => {
-                const ex = introBounceExcuse(r, agreedSessions);
-                return ex
-                    ? ` <span style="color:${ex.color};font-size:10px;" title="${escapeHtml(ex.title)}">${escapeHtml(ex.tag)}</span>`
-                    : '';
-            };
-            // A paid arrival and a bookmark both show referrer '(direct)' — the
-            // campaign tag is the only thing that tells them apart in this list.
-            const campTag = r => r.campaign
-                ? ` <span style="color:#ffaa00;" title="paid campaign: ${escapeHtml(r.campaign)}">[${escapeHtml(r.campaign)}]</span>`
-                : '';
-            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> Recent Visits <span style="font-size:11px;color:var(--text-dim);">(newest ${rows.length} — repeated Session = same browser)</span></h3>`;
-            // Visible legend, not just a th tooltip: the whole point of the
-            // tags is that an UNEXPLAINED ○○○ should look different from an
-            // explained one at a glance, and a tooltip you have to hover to
-            // find does not change how the table reads.
-            html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;line-height:1.6;">'
-                 +  'The first dot in M/S/F = the <b>intro splash was dismissed</b>, not gameplay. '
-                 +  '○○○ tagged '
-                 +  '<span style="color:#ffaa00;">beacons?</span> (row recorded real play — dots lost their writes), '
-                 +  '<span style="color:#888;">handoff</span> (an itch redirect sent this load to the real origin — the intro never showed), '
-                 +  '<span style="color:#888;">↻reload</span> (referred by the game host itself — reload / tab re-entry), or '
-                 +  '<span style="color:#888;">↩seen</span> (this browser dismissed the intro on another row) '
-                 +  'is <b>not</b> an intro rejection. Only an untagged ○○○ is.'
-                 +  '</div>';
-            html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
-            html += '<tr style="border-bottom:1px solid var(--primary);">'
-                 +  '<th style="padding:4px;" title="Expand for this session\'s engagement detail"></th>'
-                 +  '<th style="text-align:left;padding:4px;">Time</th>'
-                 +  '<th style="text-align:left;padding:4px;">Referrer</th>'
-                 +  '<th style="text-align:left;padding:4px;">Session</th>'
-                 +  '<th style="text-align:left;padding:4px;" title="Leaderboard handle this BROWSER last submitted a score under (Marathon or PotD), matched on session_id. Browser-level and retroactive: it labels every row from that browser, including loads from before the name was first typed and loads where nothing was submitted. Blank = this browser has never submitted under a name (or submitted as Anonymous, or arrived with no session_id). The same person on a second device stays blank there until they submit from it too.">Player</th>'
-                 +  '<th style="text-align:left;padding:4px;">Device</th>'
-                 +  '<th style="text-align:left;padding:4px;">Lang</th>'
-                 +  '<th style="text-align:left;padding:4px;" title="where the load ran: site = own origin; cg = CrazyGames embed; itch = itch embed; embed = framed on an unknown host; ↻itch = itch mobile redirect handoff: platform-redirect sent this load to the real origin, either by navigating away on its own (top-level on the itch CDN) or via the play-the-full-version overlay (the itch in-page iframe) — either way the intro never showed. Embed platform is inferred from the referrer.">Src</th>'
-                 +  '<th style="text-align:center;padding:4px;" title="reached Menu / Started / Finished. The first dot is the INTRO SPLASH being dismissed, not gameplay — so a bare ○○○ only means nobody tapped past the title screen on this load. Tagged rows have a known innocent reason: beacons? = the row recorded real play and the dots lost their writes; handoff = an itch redirect sent this load to the real origin, so the intro never showed; ↻reload = referred by the game host itself, i.e. a reload or tab re-entry; ↩seen = this browser dismissed the intro on another row here. Untagged ○○○ is the only kind that reads as a real intro rejection.">M/S/F</th>'
-                 +  '<th style="text-align:left;padding:4px;">User-Agent</th>'
-                 +  '<th style="padding:4px;" title="Wipe this browser: deletes ALL its visits (incl. their share-platform + credits-link clicks), puzzle results, page loads and first-run funnel row (test-traffic cleanup)"></th>'
-                 +  '</tr>';
-            rows.forEach((r, i) => {
-                let t = '?';
-                if (r.time) { const d = new Date(r.time); t = d.toLocaleString([], {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}); }
-                const ref = (r.referrer || '').replace(/^https?:\/\//, '');
-                const refShort = ref.length > 34 ? ref.slice(0, 34) + '…' : ref;
-                const dupe = counts[r.session] > 1;
-                const sessStyle = dupe ? 'color:#ffaa00;font-weight:bold;' : '';
-                const ua = r.ua || '';
-                const uaShort = ua.length > 52 ? ua.slice(0, 52) + '…' : ua;
-                // Where the load ran. ↻itch (amber) = mobile redirect handoff:
-                // platform-redirect sent this load to the real origin — by
-                // navigating away on its own (top-level on itch's CDN) or via
-                // the overlay (itch's in-page iframe). See introBounceExcuse
-                // above for the full two-path note and the row-writing race.
-                // The intro never showed either way, so a ○○○ here is NOT an
-                // intro rejection. site (blue) = own origin.
-                // Embeds: the tracking payload only carries an `embedded`
-                // boolean, so the PLATFORM is inferred from the referrer —
-                // cg (purple) = CrazyGames, itch (dim) = itch, embed (dim) =
-                // framed on an unknown/blank-referrer host.
-                let srcTag;
-                if (r.redirected) {
-                    srcTag = '<span style="color:#ffaa00;" title="itch mobile redirect handoff — platform-redirect sent this load to the real origin, by navigating away on its own (top-level on itch\'s CDN) or via the overlay (itch\'s in-page iframe). The intro never showed either way.">↻itch</span>';
-                } else if (!r.embedded) {
-                    srcTag = '<span style="color:#3a7bd5;" title="own origin">site</span>';
-                } else if (/crazygames\.com/i.test(ref)) {
-                    srcTag = '<span style="color:#9b6bd6;" title="CrazyGames embed">cg</span>';
-                } else if (/itch\.(io|zone)/i.test(ref)) {
-                    srcTag = '<span style="color:#888;" title="itch embed (plays in place)">itch</span>';
-                } else {
-                    srcTag = '<span style="color:#888;" title="embedded on an unknown or blank-referrer host">embed</span>';
-                }
-                html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
-                    <td style="padding:4px;"><button id="visitCaret${i}" onclick="toggleVisitDetail(${i})" title="Show this session's engagement detail" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:11px;padding:0 2px;">▸</button></td>
-                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(t)}</td>
-                    <td style="padding:4px;white-space:nowrap;" title="${escapeHtml(r.referrer || '')}">${escapeHtml(refShort)}${campTag(r)}</td>
-                    <td style="padding:4px;${sessStyle}">${escapeHtml(r.session)}</td>
-                    <td style="padding:4px;white-space:nowrap;">${playerTag(r)}</td>
-                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.device)}/${escapeHtml(r.os)}</td>
-                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.lang)}</td>
-                    <td style="padding:4px;white-space:nowrap;">${srcTag}</td>
-                    <td style="padding:4px;text-align:center;white-space:nowrap;">${flag(r.agreed)}${flag(r.started)}${flag(r.finished)}${bounceTag(r)}</td>
-                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;" title="${escapeHtml(ua)}">${escapeHtml(uaShort)}</td>
-                    <td style="padding:4px;">${/^[0-9a-fA-F-]{8}$/.test(r.session || '') ? `<button onclick="wipeSession('${escapeHtml(r.session)}')" title="Wipe this browser's rows (visits + share/credits clicks + puzzle results + page loads + first-run row)" style="background:none;border:1px solid rgba(255,80,80,0.4);color:#ff5050;border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;">✕</button>` : ''}</td>
-                </tr>
-                <tr id="visitDetail${i}" style="display:none;border-bottom:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);">
-                    <td colspan="11">${visitDetailHtml(r)}</td>
-                </tr>`;
-            });
-            html += '</table>';
-            el.innerHTML = html;
-        }
-
-        // Wipe one browser's rows (test-traffic cleanup). Dry-run first so
-        // the confirm dialog shows exactly what would go — the 8-char prefix
-        // shown in the table is what the endpoint keys on, and one browser
-        // usually owns several visit rows. Share-platform and credits-link
-        // clicks live ON the visit rows (CSV columns), so they're listed in
-        // the dialog and vanish from every breakdown with the wipe — no
-        // separate scrub. Refreshes the whole stats panel afterwards so every
-        // derived number (funnel, share/credits breakdowns, engagement,
-        // retention) re-reads without the wiped rows. Mirrors TANTЯO's admin
-        // page; the endpoint here is the open dev one, no auth needed, but
-        // the Bearer header is sent anyway for symmetry.
-        // Parse a response that SHOULD be JSON but may be an HTML error page
-        // (a 429 from the rate limiter surfaces as "Unexpected token '<' ...
-        // is not valid JSON" otherwise). Always yields an object with .error
-        // on failure so callers can alert something readable.
-        async function jsonOrError(res) {
-            const text = await res.text();
-            try { return JSON.parse(text); }
-            catch (e) { return { error: `HTTP ${res.status}${res.status === 429 ? ' (rate limited — wait a minute and retry)' : ''}` }; }
-        }
-
-        async function wipeSession(prefix) {
-            if (!prefix) return;
-            try {
-                const dryRes = await fetch(`${GAME_API_URL}/admin/wipe-session-visits`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sessionPrefix: prefix, dryRun: true })
-                });
-                const dry = await jsonOrError(dryRes);
-                if (!dryRes.ok) { alert(`Dry-run failed: ${dry.error || dryRes.status}`); return; }
-                const msg = `Wipe browser ${prefix}?\n\n` +
-                    `Visits: ${dry.wouldDelete}\n` +
-                    `Puzzle results: ${dry.wouldDeletePuzzleResults}\n` +
-                    `Page loads: ${dry.wouldDeletePageLoads}\n` +
-                    `First-run rows: ${dry.wouldDeleteFirstRun}\n` +
-                    `Share clicks removed with them: ${dry.shareClicks}\n` +
-                    `Credits-link clicks removed with them: ${dry.creditsClicks}\n\n` +
-                    `This cannot be undone.`;
-                if (!confirm(msg)) return;
-                const res = await fetch(`${GAME_API_URL}/admin/wipe-session-visits`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sessionPrefix: prefix })
-                });
-                const data = await jsonOrError(res);
-                if (!res.ok) { alert(`Wipe failed: ${data.error || res.status}`); return; }
-                alert(`Wiped ${prefix}: ${data.deleted} visits ` +
-                    `(carrying ${data.shareClicks} share clicks + ${data.creditsClicks} credits clicks), ` +
-                    `${data.puzzleResultsDeleted} puzzle results, ${data.pageLoadsDeleted} page loads, ` +
-                    `${data.firstRunDeleted} first-run rows.`);
-                loadVisitStats();
-            } catch (e) {
-                alert(`Wipe failed: ${e.message || e}`);
-            }
-        }
-
-        // ── Return-players audit ──
-        // Drill-down for the daily email's "Return players" number: lists each
-        // returning browser for one CT day, which prior-day table it matched,
-        // and when it was first seen. Date-scoped (one CT day), independent of
-        // the window tabs above. Mirrors build_daily_summary's detection, so
-        // the count here equals the email's for the same date. Read-only.
-        function defaultReturningDate() {
-            // Today's date in CT, as YYYY-MM-DD. en-CA formats as ISO;
-            // America/Chicago matches the back-end's day bounds. (Was
-            // yesterday — the digest's day — but the panel's live use is
-            // "who came back today", so it defaults to the current CT day
-            // and the ◀ arrow reaches yesterday in one click.)
-            return new Date()
-                .toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
-        }
-        // ◀ / ▶ arrows: step the audit date by ±1 day and reload. Parses the
-        // YYYY-MM-DD string at UTC noon so the ±86400s hop can't land on the
-        // wrong calendar day (midnight UTC ±1h DST shifts would); the result
-        // is read back out of the ISO string, no local-timezone round trip.
-        function stepReturning(delta) {
-            const input = document.getElementById('returningDate');
-            if (!input) return;
-            const cur = input.value || defaultReturningDate();
-            const d = new Date(cur + 'T12:00:00Z');
-            if (isNaN(d)) { input.value = defaultReturningDate(); loadReturning(); return; }
-            d.setUTCDate(d.getUTCDate() + delta);
-            input.value = d.toISOString().slice(0, 10);
-            loadReturning();
-        }
-        async function loadReturning() {
-            const out = document.getElementById('returningResults');
-            if (!out) return;
-            const input = document.getElementById('returningDate');
-            if (input && !input.value) input.value = defaultReturningDate();
-            const dateStr = (input && input.value) || defaultReturningDate();
-            try {
-                const res = await fetch(`${GAME_API_URL}/admin/returning?date=${dateStr}&_=${Date.now()}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                // Read as text first and parse defensively: a server 500 returns
-                // an HTML error page, and res.json() on that throws an opaque
-                // "Unexpected token '<'". This way we surface the real status.
-                const body = await res.text();
-                let data = null;
-                try { data = JSON.parse(body); } catch (_) { /* non-JSON (HTML error page) */ }
-                if (!res.ok || !data) {
-                    const msg = (data && data.error) ? data.error
-                        : res.status === 404
-                            ? 'Endpoint not live yet — redeploy the back-end (GET /api/admin/returning).'
-                            : `HTTP ${res.status} ${res.statusText} — server error (check Render logs).`;
-                    out.innerHTML = `<div style="color:#888;padding:5px;">${escapeHtml(msg)}</div>`;
-                    return;
-                }
-                renderReturning(data);
-            } catch (e) {
-                out.innerHTML = `<div style="color:#888;padding:5px;">Network error: ${escapeHtml(e.message || e)}</div>`;
-            }
-        }
-        function renderReturning(data) {
-            const out = document.getElementById('returningResults');
-            if (!out) return;
-            const players = (data && data.players) || [];
-            const summary = `<div style="margin-bottom:8px;">
-                <span style="color:var(--primary);font-size:14px;">${data.returning}</span>
-                <span style="color:var(--text-dim);"> returning of ${data.unique_visitors} unique browsers (${data.pct_returning}%)</span></div>`;
-            if (players.length === 0) {
-                out.innerHTML = summary + '<div style="color:#666;padding:5px;">No returning players that day.</div>';
-                return;
-            }
-            // Badge per prior-day source. game/potd = an actual prior game-start
-            // (strongest "they came back to play" signal); visit = a prior
-            // page-visit that started a game.
-            const srcColor = { game_sessions: '#00ff64', potd_sessions: '#00aaff', page_visits: '#ffaa00' };
-            const srcLabel = { game_sessions: 'marathon', potd_sessions: 'potd', page_visits: 'visit' };
-            let html = summary;
-            html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
-            html += '<tr style="border-bottom:1px solid var(--primary);">'
-                 +  '<th style="text-align:left;padding:4px;">First seen</th>'
-                 +  '<th style="text-align:left;padding:4px;" title="which prior-day record proves they played before">Played before via</th>'
-                 +  '<th style="text-align:left;padding:4px;">Session</th>'
-                 +  '<th style="text-align:left;padding:4px;" title="Leaderboard handle this BROWSER last submitted a score under (Marathon or PotD), matched on session_id. Browser-level and retroactive: it labels every row from that browser, including loads from before the name was first typed and loads where nothing was submitted. Blank = this browser has never submitted under a name (or submitted as Anonymous, or arrived with no session_id). The same person on a second device stays blank there until they submit from it too.">Player</th>'
-                 +  '<th style="text-align:left;padding:4px;">Device</th>'
-                 +  '<th style="text-align:left;padding:4px;">Lang</th>'
-                 +  '<th style="text-align:left;padding:4px;">Returned (CT)</th>'
-                 +  '</tr>';
-            players.forEach(p => {
-                const sid = p.session_id || '';
-                const sidShort = sid.length > 12 ? sid.slice(0, 12) + '…' : sid;
-                const badges = (p.sources || []).map(s =>
-                    `<span style="display:inline-block;border:1px solid ${srcColor[s] || '#888'};color:${srcColor[s] || '#888'};border-radius:3px;padding:0 5px;margin-right:4px;font-size:10px;">${escapeHtml(srcLabel[s] || s)}</span>`
-                ).join('');
-                html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
-                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;" title="${escapeHtml(p.first_seen_ct || '')}">${escapeHtml(p.first_seen_date || '?')}</td>
-                    <td style="padding:4px;">${badges}</td>
-                    <td style="padding:4px;color:var(--text-dim);" title="${escapeHtml(sid)}">${escapeHtml(sidShort)}</td>
-                    <td style="padding:4px;white-space:nowrap;">${playerTag(p)}</td>
-                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(p.device || '?')}/${escapeHtml(p.os || '?')}</td>
-                    <td style="padding:4px;color:var(--text-dim);">${escapeHtml(p.language || '?')}</td>
-                    <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(p.today_first_visit_ct || '?')}</td>
-                </tr>`;
-            });
-            html += '</table>';
-            out.innerHTML = html;
-        }
-
-        // ── First-time-player funnel ──
-        // GET /api/admin/first-run/stats — one row per NEW player (per
-        // browser), created the moment their first-visit auto-start run
-        // fired. Only players whose FIRST visit post-dates the 2026-07-28
-        // feature deploy exist here, so rates are clean "new player"
-        // aggregates, not diluted by the pre-feature population. Windows
-        // are keyed by the row's created_at (= the player's first visit)
-        // and use the same lifetime/24h/7d/30d names as the tabs, so
-        // renderFirstRun follows the window picker directly.
-        async function loadFirstRunStats() {
-            const el = document.getElementById('visitFirstRun');
-            if (!el) return;
-            try {
-                const res = await fetch(`${GAME_API_URL}/admin/first-run/stats?_=${Date.now()}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                // Defensive text-first parse — same rationale as loadReturning.
-                const body = await res.text();
-                let data = null;
-                try { data = JSON.parse(body); } catch (_) { /* HTML error page */ }
-                if (!res.ok || !data || !data.windows) {
-                    // Pre-deploy back-end (404) → leave the panel hidden;
-                    // other failures show inline so they're debuggable.
-                    if (res.status === 404) { el.style.display = 'none'; el.innerHTML = ''; return; }
-                    el.style.display = '';
-                    el.innerHTML = '<h3 style="margin-bottom: 6px; color: var(--primary);">> First-Time Players</h3>'
-                        + `<div style="color:#888;padding:5px;">Failed to load: ${escapeHtml((data && data.error) || res.status)}</div>`;
-                    return;
-                }
-                cachedFirstRun = data;
-                renderFirstRun();
-            } catch (e) {
-                el.style.display = '';
-                el.innerHTML = '<h3 style="margin-bottom: 6px; color: var(--primary);">> First-Time Players</h3>'
-                    + `<div style="color:#888;padding:5px;">Network error: ${escapeHtml(e.message || e)}</div>`;
-            }
-        }
-        function renderFirstRun() {
-            const el = document.getElementById('visitFirstRun');
-            if (!el || !cachedFirstRun) return;
-            const w = cachedFirstRun.windows[currentWindow] || cachedFirstRun.windows.lifetime || {};
-            const winLabel = currentWindow === 'lifetime' ? 'since 2026-07-28' : 'first visit in last ' + currentWindow;
-            const sub = (txt) => `<div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${txt}</div>`;
-            // Denominator for every rate: ENGAGED players (≥1 initial-run
-            // solve) — 0-puzzle bouncers are tracked (players card sub-line
-            // + the red 0 bucket below) but excluded from all averages and
-            // percentages (user call 2026-07-29: a player who never solves
-            // puzzle 1 is a lost cause and shouldn't dilute the signals).
-            // Falls back to `players` until the back-end redeploys with the
-            // engaged/bounced fields.
-            const eng = (w.engaged !== undefined) ? w.engaged : (w.players || 0);
-            const newPlayersSub = (w.engaged !== undefined)
-                ? sub(eng + ' engaged · ' + (w.bounced || 0) + ' bounced (0 puzzles)')
-                : '';
-            // Avg-puzzles sub-line carries the ≥3 average beside the card's
-            // ≥1 one. The two bars aren't comparable, and the ladder table
-            // below uses ≥3 — without both figures on the card its 3.53
-            // reads as contradicting variant rows of 5-7 (user, 2026-07-31).
-            // Omitted (not shown as 0) until the back-end ships the field.
-            const avgSub = (w.avg_initial_puzzles_3plus !== undefined)
-                ? sub('≥1 solve · <strong>' + w.avg_initial_puzzles_3plus
-                      + '</strong> at ≥3 (' + (w.engaged_3plus || 0) + ' players)')
-                : sub('engaged only');
-            el.style.display = '';
-            // ── The first session, as one descending funnel ──
-            // Rewritten 2026-08-07 for the practice → pitch → Surge
-            // sequence that replaced the Zen drop-in on 2026-08-06. Every
-            // rate on this row is over ALL new players, so the four cards
-            // read straight across as "how far down the sequence did they
-            // get". The older cards below keep their engaged-only
-            // denominators, which is why they're a separate row.
-            const ladder = (w.practice_any_rate !== undefined);
-            let html = `
-                <h3 style="margin-bottom: 6px; color: var(--primary);">> First-Time Players</h3>
-                <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">
-                    One row per new browser, opened when their first session commits a puzzle action (<strong>${escapeHtml(winLabel)}</strong>).
-                    The first session is three <strong>practice</strong> puzzles → a <strong>pitch</strong> screen → a real <strong>Surge</strong> run.
-                    "Outside the run" = any later voluntary play — menu Marathon, resumes, PotD — same sitting or any later day.
-                </div>`;
-            if (ladder) {
-                // Retry rate is the one to watch: the entire premise of the
-                // redesign is that a run which ENDS, with a score, makes a
-                // player want another go. If it sits near zero the premise
-                // is dead, and no amount of practice-phase polish fixes it.
-                const retryColor = (w.retried || 0) === 0 ? '#ff5050'
-                    : (w.retry_rate >= 30 ? '#00ff64' : '#ffaa00');
-                html += `<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:10px;">
-                    <div class="stat-card"><div class="stat-value">${w.players || 0}</div><div class="stat-label">New players</div>${sub('landed and touched a tile')}</div>
-                    <div class="stat-card"><div class="stat-value">${w.practice_any_rate || 0}%</div><div class="stat-label">Solved a practice puzzle</div>${sub((w.practice_any || 0) + ' of ' + (w.players || 0))}</div>
-                    <div class="stat-card"><div class="stat-value">${w.pitch_rate || 0}%</div><div class="stat-label">Reached the pitch</div>${sub((w.reached_pitch || 0) + ' — finished all three')}</div>
-                    <div class="stat-card"><div class="stat-value" style="color:${w.surge_rate >= 50 ? '#00ff64' : '#ffaa00'};">${w.surge_rate || 0}%</div><div class="stat-label">Started Surge</div>${sub((w.surge_started || 0) + ' of ' + (w.players || 0) + ' · ' + Math.max(0, (w.reached_pitch || 0) - (w.surge_started || 0)) + ' saw the pitch and passed')}</div>
+    
+    <footer>
+        <p>© 2026 Official Intelligence • <a href="/privacy">Privacy</a> • <a href="/terms">Terms</a> • <a href="/about">About</a> • <a href="mailto:privacy@official-intelligence.art">Contact</a></p>
+        <p class="footer-maker">Official Intelligence is the independent, one-person game project of
+        <strong>C. Ryan Deardorff</strong>, a solo developer in the United States. It is not a company,
+        agency, or organization, and is not affiliated with or endorsed by any government body or business.</p>
+    </footer>
+    
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal" style="position: relative;">
+            <button class="modal-close" onclick="hideLoginModal()">&times;</button>
+            
+            <h2 id="modalTitle">LOGIN</h2>
+            
+            <div class="error-message" id="loginError"></div>
+            
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group" id="usernameGroup" style="display: none;">
+                    <label>USERNAME</label>
+                    <input type="text" id="username" name="username" autocomplete="username">
                 </div>
-                <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:10px;">
-                    <div class="stat-card"><div class="stat-value" style="color:${retryColor};">${w.retry_rate || 0}%</div><div class="stat-label">Took Try Again</div>${sub((w.retried || 0) + ' of ' + (w.surge_started || 0) + ' Surge starters · ' + (w.avg_retries || 0) + ' avg')}</div>
-                    <div class="stat-card"><div class="stat-value">${w.avg_initial_puzzles || 0}</div><div class="stat-label">Avg Surge solves</div>${avgSub}</div>
-                    <div class="stat-card"><div class="stat-value">${w.outside_start_rate || 0}%</div><div class="stat-label">Started outside the run</div>${sub((w.outside_started || 0) + ' of ' + eng + ' engaged')}</div>
-                    <div class="stat-card"><div class="stat-value">${w.outside_solve_rate || 0}%</div><div class="stat-label">Solved outside the run</div>${sub((w.outside_solved || 0) + ' of ' + (w.outside_started || 0) + ' starters')}</div>
-                </div>`;
-            }
-            // Menu-surface discovery + the engaged/bounced split. Same
-            // engaged-only denominators these always had — a player who
-            // solved nothing was ruled a lost cause in 2026-07-29 and is
-            // tracked but not averaged in.
-            html += `<div style="display:grid;grid-template-columns:repeat(${ladder ? 5 : 8},minmax(0,1fr));gap:10px;">
-                    ${ladder ? '' : `<div class="stat-card"><div class="stat-value">${w.players || 0}</div><div class="stat-label">New players</div>${newPlayersSub}</div>
-                    <div class="stat-card"><div class="stat-value">${w.avg_initial_puzzles || 0}</div><div class="stat-label">Avg puzzles, first run</div>${avgSub}</div>
-                    <div class="stat-card"><div class="stat-value">${w.outside_start_rate || 0}%</div><div class="stat-label">Started outside the run</div>${sub((w.outside_started || 0) + ' of ' + eng)}</div>`}
-                    <div class="stat-card"><div class="stat-value">${eng}</div><div class="stat-label">Engaged / bounced</div>${newPlayersSub || sub('≥1 Surge solve')}</div>
-                    <div class="stat-card"><div class="stat-value">${w.howto_rate || 0}%</div><div class="stat-label">Opened How-to-Solve</div>${sub((w.howto_clicked || 0) + ' of ' + eng)}</div>
-                    <div class="stat-card"><div class="stat-value">${w.tutorial_rate || 0}%</div><div class="stat-label">Watched it through</div>${sub((w.tutorial_completed || 0) + ' of ' + (w.howto_clicked || 0) + ' openers')}</div>
-                    <div class="stat-card"><div class="stat-value">${w.nudge_rate || 0}%</div><div class="stat-label">PotD nudge clicked</div>${sub((w.potd_nudge_clicked || 0) + ' of ' + eng)}</div>
-                    <div class="stat-card"><div class="stat-value">${w.daily_rate || 0}%</div><div class="stat-label">Daily &amp; More clicked</div>${sub((w.daily_more_clicked || 0) + ' of ' + eng)}</div>
-                </div>`;
-            // The A/B/C/D ladder-experiment table lived here until
-            // 2026-08-07. It was retired with the experiment: the first
-            // session is now one fixed sequence for everyone (practice →
-            // pitch → Surge), so there are no arms to compare and the table
-            // was reporting on an assignment nobody receives. The back end
-            // no longer sends `variants`; this block only renders if some
-            // older deploy still does, and can be deleted outright once
-            // nothing does.
-            const vmap = cachedFirstRun.variants && cachedFirstRun.variants[currentWindow];
-            if (vmap) {
-                const VLABELS = {
-                    fast:     'Fast track (3/2/2/2 + quad)',
-                    standard: 'Standard (4 per tier)',
-                    extended: 'Extended (6 per tier)',
-                    single:   'Single-path only',
-                    pre:      '(pre-experiment)'
-                };
-                const order = ['fast', 'standard', 'extended', 'single', 'pre'];
-                html += `<div style="margin-top:14px;">
-                    <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">Ladder experiment — which first-run variant engages best. Stats here count only runs with <strong>≥3 initial-run solves</strong>: the four ladders are identical through puzzle 3, so shallower runs can't distinguish them. The <strong>&lt;3</strong> figure's parenthetical is how many of those discarded players never came back — the rest returned on a later visit and started playing again.</div>
-                    <table style="width:100%;border-collapse:collapse;font-size:12px;">
-                    <tr style="border-bottom:1px solid var(--primary);">
-                        <th style="text-align:left;padding:4px;">Variant</th>
-                        <th style="text-align:right;padding:4px;">Players</th>
-                        <th style="text-align:right;padding:4px;" title="reached the divergence point (3+ initial-run solves) / didn't. The number in parentheses is how many of the &lt;3 group never returned: a later visit where they started playing again counts as a return, so the parenthetical is the genuinely-lost count.">3+ / &lt;3 (lost)</th>
-                        <th style="text-align:right;padding:4px;">Avg puzzles</th>
-                        <th style="text-align:right;padding:4px;">How-to</th>
-                        <th style="text-align:right;padding:4px;" title="of How-to openers">Tutorial</th>
-                        <th style="text-align:right;padding:4px;">Nudge</th>
-                        <th style="text-align:right;padding:4px;">Daily&amp;More</th>
-                        <th style="text-align:right;padding:4px;">Out. started</th>
-                        <th style="text-align:right;padding:4px;" title="of outside starters">Out. solved</th>
-                    </tr>`;
-                order.forEach((k) => {
-                    const v = vmap[k];
-                    if (!v) return;
-                    // "(lost)" = discarded players who never came back to play
-                    // on a later visit. Omitted entirely (not shown as 0) when
-                    // the back-end predates the field, so a stale API can't
-                    // read as "nobody returned"; also omitted when nothing
-                    // bounced, where it would just be noise.
-                    const bounced = v.bounced || 0;
-                    const lost    = (v.bounced_lost !== undefined) ? v.bounced_lost : null;
-                    const lostTxt = (lost !== null && bounced > 0)
-                        ? ` <span title="${bounced - lost} of these ${bounced} came back on a later visit and started playing again">(${lost})</span>`
-                        : '';
-                    html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
-                        <td style="padding:4px;color:var(--text-dim);">${escapeHtml(VLABELS[k] || k)}</td>
-                        <td style="text-align:right;padding:4px;">${v.players || 0}</td>
-                        <td style="text-align:right;padding:4px;color:var(--text-dim);">${v.engaged || 0} / ${bounced}${lostTxt}</td>
-                        <td style="text-align:right;padding:4px;">${v.avg_initial_puzzles || 0}</td>
-                        <td style="text-align:right;padding:4px;">${v.howto_rate || 0}%</td>
-                        <td style="text-align:right;padding:4px;">${v.tutorial_rate || 0}%</td>
-                        <td style="text-align:right;padding:4px;">${v.nudge_rate || 0}%</td>
-                        <td style="text-align:right;padding:4px;">${v.daily_rate || 0}%</td>
-                        <td style="text-align:right;padding:4px;">${v.outside_start_rate || 0}%</td>
-                        <td style="text-align:right;padding:4px;">${v.outside_solve_rate || 0}%</td>
-                    </tr>`;
-                });
-                html += '</table></div>';
-            }
-            // Initial-run depth histogram — how many puzzles each new
-            // player's first run lasted. Lifetime-only (the API doesn't
-            // window it), labeled so the tab mismatch can't mislead.
-            const dist = cachedFirstRun.initial_puzzles_distribution || {};
-            // Per-bucket stuck-or-bored split; {} against a back-end that
-            // predates it, which just omits the annotation.
-            const abandon = cachedFirstRun.abandon_split || {};
-            // Bucket order is PROGRESSION, not numeric value: nothing →
-            // the practice puzzles → Surge puzzles. 'p1'..'p3' are practice
-            // solves and sort BETWEEN "finished nothing" and the first real
-            // puzzle. ('-2' / '-1' are the retired warm-up keys from before
-            // 2026-08-07, kept in the sort so a stale back-end still
-            // renders in the right order.)
-            const rank = (k) => {
-                if (k === '0')  return -9;
-                if (k === '-2' || k === 'p1') return -8;
-                if (k === '-1' || k === 'p2') return -7;
-                if (k === 'p3') return -6;
-                if (k === '15+') return 1e9;
-                return parseInt(k, 10);
-            };
-            const keys = Object.keys(dist).sort((a, b) => rank(a) - rank(b));
-            if (keys.length > 0) {
-                const total = keys.reduce((s, k) => s + dist[k], 0);
-                html += `<div style="margin-top:14px;">
-                    <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">Where first sessions end (lifetime). Practice solves first, then puzzles solved in the Surge run itself:</div>`;
-                // Practice buckets are counts of PRE-SURGE solves, so they
-                // need their own labels — "1 puzzle" would collide with the
-                // Surge column. ('-2' / '-1' are the retired warm-up keys.)
-                const WARMUP_LABELS = {
-                    'p1': 'practice 1 of 3',
-                    'p2': 'practice 2 of 3',
-                    'p3': 'practice 3 of 3 (no Surge solve)',
-                    '-2': 'warm-up −2 (3×3, retired)',
-                    '-1': 'warm-up −1 (4×3, retired)',
-                };
-                keys.forEach(k => {
-                    const count = dist[k];
-                    const pct = total > 0 ? (count / total * 100).toFixed(1) : '0.0';
-                    // Drop-off gradient: 0 (solved nothing at all) is the
-                    // hard red; the two warm-up buckets are a lighter red —
-                    // still a first session that never reached a real
-                    // puzzle, but further along than 0. Real puzzles green,
-                    // deep runs (15+) amber.
-                    const color = k === '0' ? '#ff5050'
-                        : (WARMUP_LABELS[k] ? '#ff8c50'
-                        : (k === '15+' ? '#ffaa00' : '#00ff64'));
-                    const label = WARMUP_LABELS[k] || (k === '0'
-                        ? 'nothing solved'
-                        : `Surge: ${k} solve${k === '1' ? '' : 's'}`);
-                    // STUCK-OR-BORED split. Of the players in this bucket
-                    // whose session we can actually speak for (rows created
-                    // after the column shipped — older ones sit at 0, which
-                    // would read as "left satisfied" without our knowing),
-                    // how many walked away from a board they never solved?
-                    // Denominator is the measurable subset, NOT the bar
-                    // height, so this can't quietly imply coverage it
-                    // doesn't have. Omitted entirely until there's data.
-                    const ab = abandon[k];
-                    let stuckTxt = '';
-                    if (ab && ab.measured > 0) {
-                        const sPct = (ab.stalled / ab.measured * 100).toFixed(0);
-                        stuckTxt = ` <span style="color:#ff8c50;" title="${ab.stalled} of ${ab.measured} measurable players in this bucket left mid-puzzle rather than after a solve; median ${ab.median_secs}s on that board">· ${sPct}% stuck (${ab.median_secs}s)</span>`;
-                    }
-                    html += `<div class="chart-row">
-                        <span class="chart-label">${escapeHtml(label)}</span>
-                        <div class="chart-bar-bg">
-                            <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
-                        </div>
-                        <span class="chart-count">${count} (${pct}%)${stuckTxt}</span>
-                    </div>`;
-                });
-                html += '</div>';
-            }
-            el.innerHTML = html;
-        }
-
-        // ── Engagement panel ──
-        // GET /api/admin/engagement. Everything here comes from the
-        // instrumentation added 2026-08-07 (page_loads, puzzle_results, and
-        // the clock columns on page_visits), so it is empty until a build
-        // carrying analytics.js has been deployed AND played.
-        //
-        // Driven by the LIFETIME/24H/7D/30D tab picker at the top of the
-        // page (user call 2026-08-07 — it had its own 7/30/90/lifetime row
-        // and TANTЯO ties both to one control). Because this panel
-        // aggregates SERVER-side it must RE-FETCH on a tab change rather
-        // than re-render off a cache, which is why setWindow calls
-        // loadEngagement() directly. Keep this map in step with the tabs;
-        // days=0 is lifetime, matching the endpoint's ?days= contract.
-        // (The old 90d option is gone with the separate row — nothing to
-        // recover, since the top picker tops out at 30d and every window
-        // returns the same rows until this instrumentation has 90 days of
-        // history.)
-        const ENGAGEMENT_DAYS = { lifetime: 0, '24h': 1, '7d': 7, '30d': 30 };
-        function fmtSecs(v) {
-            if (v === null || v === undefined) return '—';
-            const s = Math.round(v);
-            if (s < 60) return s + 's';
-            const m = Math.floor(s / 60), r = s % 60;
-            if (m < 60) return m + 'm' + (r ? ' ' + r + 's' : '');
-            return Math.floor(m / 60) + 'h ' + (m % 60) + 'm';
-        }
-        function pctOf(n, d) { return d > 0 ? (n / d * 100).toFixed(1) + '%' : '—'; }
-
-        async function loadEngagement() {
-            const out = document.getElementById('visitEngagement');
-            if (!out) return;
-            const days = ENGAGEMENT_DAYS[currentWindow] !== undefined ? ENGAGEMENT_DAYS[currentWindow] : 30;
+                
+                <div class="form-group">
+                    <label>EMAIL</label>
+                    <input type="email" id="email" name="email" required autocomplete="email">
+                </div>
+                
+                <div class="form-group">
+                    <label>PASSWORD</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                </div>
+                
+                <div style="text-align: right; margin-bottom: 15px;">
+                    <a href="/reset-password" style="font-size: 12px; color: var(--text-dim);">Forgot password?</a>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="submitBtn" style="width: 100%;">ENTER</button>
+            </form>
+            
+            <div class="divider">OR</div>
+            
+            <div class="oauth-buttons">
+                <a href="https://official-intelligence-api.onrender.com/auth/google/login" class="btn btn-oauth">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                    Continue with Google
+                </a>
+            </div>
+            
+            <div class="modal-footer">
+                <span id="authToggleText">No account?</span>
+                <a href="#" id="authToggle" onclick="toggleAuthMode(event)">Sign up</a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/js/auth.js"></script>
+    <script>
+        // Load blog posts for homepage
+        async function loadBlogPosts() {
             try {
-                const res = await fetch(`${GAME_API_URL}/admin/engagement?days=${days}&_=${Date.now()}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const body = await res.text();
-                let data = null;
-                try { data = JSON.parse(body); } catch (_) { /* HTML error page */ }
-                if (!res.ok || !data || !data.by_device) {
-                    out.innerHTML = '<h3 style="margin-bottom:6px;color:var(--primary);">> Engagement</h3>'
-                        + `<div style="color:#888;padding:5px;">${res.status === 404
-                            ? 'Endpoint not live yet — redeploy the back-end (GET /api/admin/engagement).'
-                            : 'Failed to load: ' + escapeHtml((data && data.error) || res.status)}</div>`;
-                    return;
-                }
-                cachedEngagement = data;
-                renderEngagement();
-            } catch (e) {
-                out.innerHTML = '<h3 style="margin-bottom:6px;color:var(--primary);">> Engagement</h3>'
-                    + `<div style="color:#888;padding:5px;">Network error: ${escapeHtml(e.message || e)}</div>`;
-            }
-        }
-
-        function renderEngagement() {
-            const out = document.getElementById('visitEngagement');
-            if (!out || !cachedEngagement) return;
-            const data = cachedEngagement;
-            const devices = data.by_device || {};
-            const all = devices.all;
-            // Label the ACTIVE TAB, not data.days — the server echoes 24h
-            // back as days=1, which would read "last 1d".
-            const winLabel = currentWindow === 'lifetime' ? 'lifetime' : 'last ' + currentWindow;
-            let html = '<h3 style="margin-bottom:6px;color:var(--primary);">> Engagement '
-                + `<span style="font-size:12px;color:var(--text-dim);">(${winLabel})</span></h3>`;
-
-            if (!all || !all.sessions) {
-                out.innerHTML = html + '<div style="color:#666;padding:5px;">No engagement rows yet for this window. '
-                    + 'They start landing once a front-end build carrying analytics.js is deployed and played.</div>';
-                return;
-            }
-
-            // Delivery health FIRST, on purpose: if beacons are being lost,
-            // every rate below it is under-counted and must not be read as
-            // player behaviour.
-            const d = all.delivery || {};
-            const landed = d.pct_landed;
-            const healthColor = landed === null ? '#888' : landed >= 95 ? '#52B788' : landed >= 85 ? '#FFD93D' : '#FF6B6B';
-            html += `<div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;">
-                Delivery health:
-                <span style="color:${healthColor};">${d.rows_landed || 0} of ${d.client_puzzles_started || 0} started puzzles recorded (${landed === null ? '—' : landed + '%'})</span>
-                · ${d.stuck_in_progress || 0} rows never got a closing beacon.
-                Read this before believing anything below it.
-                <br>${escapeHtml(data.note || '')}</div>`;
-
-            // Impression-level conversion. The older start rate (in the
-            // funnel above) divides by VISITS, which only exist after real
-            // engagement — so it silently omits everyone who loaded and
-            // left. Both are shown together so the gap between them is
-            // visible rather than surprising.
-            const lf = data.load_funnel || {};
-            if (lf.all && lf.all.loads) {
-                html += '<div style="margin-bottom:10px;border:1px solid rgba(255,255,255,0.15);padding:0.6rem;">';
-                html += '<div style="color:var(--primary);margin-bottom:4px;">CONVERSION FROM PAGE LOAD</div>';
-                html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">'
-                     +  '<tr style="border-bottom:1px solid rgba(255,255,255,0.2);">'
-                     +  '<th style="text-align:left;padding:3px;"></th>'
-                     +  '<th style="text-align:right;padding:3px;">Loads</th>'
-                     +  '<th style="text-align:right;padding:3px;" title="loads that produced a real interaction (a page_visits row)">Interacted</th>'
-                     +  '<th style="text-align:right;padding:3px;" title="started a puzzle, as a share of ALL loads — the platform-comparable number">Started / load</th>'
-                     +  '<th style="text-align:right;padding:3px;" title="started a puzzle, as a share of INTERACTED loads — the historical start rate">Started / interacted</th></tr>';
-                ['all', 'desktop', 'phone', 'tablet'].filter(k => lf[k] && lf[k].loads).forEach(k => {
-                    const b = lf[k];
-                    const f = v => (v === null || v === undefined) ? '—' : v + '%';
-                    html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
-                        <td style="padding:3px;color:var(--text-dim);">${k.toUpperCase()}</td>
-                        <td style="padding:3px;text-align:right;">${b.loads}</td>
-                        <td style="padding:3px;text-align:right;">${b.interacted} <span style="color:var(--text-dim);font-size:10px;">(${f(b.pct_interacted)})</span></td>
-                        <td style="padding:3px;text-align:right;color:#FFD93D;">${f(b.pct_started)}</td>
-                        <td style="padding:3px;text-align:right;color:var(--text-dim);">${f(b.pct_started_of_interacted)}</td></tr>`;
-                });
-                html += '</table>';
-                html += '<div style="font-size:11px;color:var(--text-dim);margin-top:4px;">'
-                     +  'The last column is the old start rate — computed over people who already engaged. '
-                     +  'The gap between the two columns IS the pre-interaction bounce, invisible before page_loads existed. '
-                     +  'These rows are noisier than visits by construction: requiring an interaction is what kept '
-                     +  'JS-executing crawlers out, and only the user-agent blocklist protects this table.</div>';
-                html += '</div>';
-            }
-
-            // One block per device. Desktop and mobile are never averaged
-            // together — this game plays very differently under a fingertip,
-            // and the platforms score them separately anyway.
-            const order = ['all', 'desktop', 'phone', 'tablet', 'unknown'];
-            const present = order.filter(k => devices[k] && devices[k].sessions);
-            html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(20rem,1fr));gap:1rem;">';
-
-            present.forEach(key => {
-                const t = devices[key];
-                const ec = t.end_cause || {};
-                const ecTotal = (ec.solved || 0) + (ec.failed || 0) + (ec.abandoned || 0) + (ec.in_progress || 0);
-
-                // Header counts three different units, in widening order:
-                // visitors (browsers) < sessions (visits — one player can
-                // reload all day) < puzzles. Visitors is the people number;
-                // everything below the header is per-session or per-puzzle
-                // and must not be read as a headcount.
-                const vis = t.visitors;
-                const visTitle = vis === undefined ? ''
-                    : `distinct browsers (localStorage id)${t.anon_visits ? `, incl. ${t.anon_visits} visit(s) with no id, each counted as its own visitor` : ''}`
-                      + (t.visits_per_visitor ? ` — ${t.visits_per_visitor} visits per visitor` : '');
-                html += `<div style="border:1px solid rgba(255,255,255,0.15);padding:0.6rem;">`;
-                html += `<div style="color:var(--primary);margin-bottom:6px;">${key.toUpperCase()}
-                    <span style="color:var(--text-dim);font-size:11px;">${vis === undefined ? ''
-                        : `· <span title="${visTitle}" style="color:#FFD93D;">${vis} visitors</span>`}
-                    · <span title="page visits — one player who reloads or comes back later produces several">${t.sessions} sessions</span>
-                    · ${t.puzzles} puzzles</span></div>`;
-
-                const rows = [
-                    ['Median session (visible)', fmtSecs(t.median_session_seconds)],
-                    ['Median play time', fmtSecs(t.median_play_seconds)],
-                    ['Mean play time', fmtSecs(t.mean_play_seconds)],
-                    ['Median puzzle', fmtSecs(t.median_puzzle_seconds)],
-                    ['Median 1st puzzle', fmtSecs(t.median_first_puzzle_seconds)],
-                    ['Median moves/puzzle', t.median_moves === null ? '—' : t.median_moves],
-                    ['Load → first puzzle', fmtSecs(t.median_time_to_first_start_seconds)]
-                ];
-                html += '<div style="font-size:12px;">';
-                rows.forEach(r => {
-                    html += `<div style="display:flex;justify-content:space-between;gap:0.5rem;">
-                        <span style="color:var(--text-dim);">${r[0]}</span><span>${r[1]}</span></div>`;
-                });
-                html += '</div>';
-
-                // How puzzles end. `abandoned` and `in_progress` are the
-                // SAME player behaviour — leaving a board — and differ only
-                // in whether the exit beacon survived (closing the whole
-                // browser, rather than the tab, kills an in-flight beacon).
-                // Labelled as one behaviour with a confidence split, and
-                // totalled, so the split is never mistaken for two different
-                // things players did. `failed` is genuinely different: the
-                // Surge clock ran out.
-                const leftMid = (ec.abandoned || 0) + (ec.in_progress || 0);
-                html += '<div style="margin-top:8px;font-size:12px;color:var(--primary);">How puzzles end</div>';
-                [['solved', 'Solved it', '#52B788'],
-                 ['failed', 'Ran out of time', '#FFD93D'],
-                 ['abandoned', 'Walked away (confirmed)', '#FF6B6B'],
-                 ['in_progress', 'Walked away (beacon lost)', '#777']].forEach(([k, label, color]) => {
-                    const n = ec[k] || 0;
-                    const w = ecTotal > 0 ? (n / ecTotal * 100) : 0;
-                    html += `<div class="chart-row">
-                        <span class="chart-label" style="font-size:11px;">${label}</span>
-                        <div class="chart-bar-bg"><div style="height:100%;width:${w.toFixed(1)}%;background:${color};opacity:0.6;"></div></div>
-                        <span class="chart-count">${n} (${pctOf(n, ecTotal)})</span></div>`;
-                });
-                html += `<div style="font-size:11px;color:var(--text-dim);margin-top:4px;">
-                    Walked away either way: <span style="color:#FF6B6B;">${leftMid} (${pctOf(leftMid, ecTotal)})</span>.
-                    The two rows are the same act, split by whether the exit beacon survived —
-                    a lost beacon leaves the duration as a lower bound.</div>`;
-
-                // Duration histogram. Iterate the ORDERED label list from
-                // the API, never Object.keys() — jsonify sorts dict keys and
-                // would hand back "0-14s, 1-2m, 10m+, 15-29s…".
-                const buckets = data.duration_buckets || [];
-                const hist = t.duration_hist || {};
-                const histTotal = buckets.reduce((s, b) => s + (hist[b] || 0), 0);
-                if (histTotal > 0) {
-                    html += '<div style="margin-top:8px;font-size:12px;color:var(--primary);">How long a puzzle takes</div>';
-                    buckets.forEach(b => {
-                        const n = hist[b] || 0;
-                        const w = histTotal > 0 ? (n / histTotal * 100) : 0;
-                        html += `<div class="chart-row">
-                            <span class="chart-label" style="font-size:11px;">${escapeHtml(b)}</span>
-                            <div class="chart-bar-bg"><div style="height:100%;width:${w.toFixed(1)}%;background:#00ff64;opacity:0.5;"></div></div>
-                            <span class="chart-count">${n}</span></div>`;
-                    });
-                }
-
-                // Per-mode split. The practice → Surge sequence is the whole
-                // first-session bet, so seeing those two side by side with
-                // Marathon and PotD is the fastest read on whether it works.
-                const modes = data.mode_order || [];
-                const ms = t.mode_split || {};
-                const modeKeys = modes.filter(m => ms[m] && ms[m].puzzles)
-                    .concat(Object.keys(ms).filter(m => modes.indexOf(m) < 0 && ms[m].puzzles));
-                if (modeKeys.length) {
-                    html += '<div style="margin-top:8px;font-size:12px;color:var(--primary);">By mode</div>'
-                         +  '<table style="width:100%;border-collapse:collapse;font-size:11px;">'
-                         +  '<tr style="color:var(--text-dim);"><th style="text-align:left;padding:2px;">Mode</th>'
-                         +  '<th style="text-align:right;padding:2px;">Puzzles</th>'
-                         +  '<th style="text-align:right;padding:2px;">Solved</th>'
-                         +  '<th style="text-align:right;padding:2px;">Median</th></tr>';
-                    modeKeys.forEach(m => {
-                        const b = ms[m];
-                        html += `<tr><td style="padding:2px;color:var(--text-dim);">${escapeHtml(m)}</td>
-                            <td style="text-align:right;padding:2px;">${b.puzzles}</td>
-                            <td style="text-align:right;padding:2px;">${b.solved} <span style="color:var(--text-dim);">(${b.pct_solved === null ? '—' : b.pct_solved + '%'})</span></td>
-                            <td style="text-align:right;padding:2px;">${fmtSecs(b.median_seconds)}</td></tr>`;
-                    });
-                    html += '</table>';
-                }
-
-                // One-and-done. A short first puzzle followed by nothing is
-                // the fingerprint of a board that read as impenetrable —
-                // very different from a session that played several and
-                // stopped.
-                const oad = t.one_and_done || 0, multi = t.multi_puzzle || 0;
-                const played = oad + multi;
-                if (played > 0) {
-                    html += `<div style="margin-top:8px;font-size:11px;color:var(--text-dim);">
-                        One-and-done: <strong>${oad}</strong> of ${played} playing sessions (${pctOf(oad, played)}),
-                        of which <strong>${t.one_and_done_short_first || 0}</strong> had a first puzzle under
-                        ${data.short_first_puzzle_threshold_seconds || 30}s.</div>`;
-                }
-
-                // Controls discovery, over PLAYED sessions only — a visitor
-                // who never opened a board obviously never rotated a tile,
-                // and counting them would bury the signal under the bounce
-                // rate. "Played but never rotated" is the controls-failure
-                // fingerprint: rotation IS the game.
-                const ps = t.played_sessions || 0;
-                if (ps > 0) {
-                    const ctl = t.controls || {};
-                    const nr = t.never_rotated || 0;
-                    html += `<div style="margin-top:6px;font-size:11px;color:var(--text-dim);">
-                        Controls (of ${ps} playing sessions):
-                        rotate <strong>${ctl.act_rot || 0}</strong> ·
-                        lock <strong>${ctl.act_lock || 0}</strong> ·
-                        hint <strong>${ctl.act_hint || 0}</strong> ·
-                        mouse <strong>${ctl.src_mouse || 0}</strong> ·
-                        touch <strong>${ctl.src_touch || 0}</strong>
-                        <br><span style="color:${nr > ps * 0.2 ? '#FF6B6B' : 'var(--text-dim)'};">Never rotated: ${nr} (${pctOf(nr, ps)})</span>${
-                            t.played_no_control_data ? ` · <span title="a client too old to report controls, or a session whose syncs never landed — NOT the same claim as &quot;never rotated&quot;">${t.played_no_control_data} sent no control data</span>` : ''}</div>`;
-                }
-
-                // Menu reach — the number this game learned about the hard
-                // way (9.2% lifetime, which made everything behind the menu
-                // invisible to 90% of players).
-                if (t.sessions) {
-                    html += `<div style="margin-top:6px;font-size:11px;color:var(--text-dim);">
-                        Touched any menu surface: <strong>${t.touched_any_menu || 0}</strong> of ${t.sessions} (${pctOf(t.touched_any_menu || 0, t.sessions)})</div>`;
-                }
-                html += '</div>';
-            });
-            html += '</div>';
-            out.innerHTML = html;
-        }
-
-        // ── Retention panel (forward cohorts) ──
-        // GET /api/admin/retention. Of the browsers first seen on day D, how
-        // many came back on D+1/3/7 — the direction the platforms grade, and
-        // the OPPOSITE question from the Return Players Audit above (which
-        // asks "of the browsers here today, how many had been here before").
-        // Cohorts too young for a horizon are excluded from that horizon's
-        // totals rather than counted as 0%.
-        async function loadRetention() {
-            const out = document.getElementById('visitRetention');
-            if (!out) return;
-            try {
-                const res = await fetch(`${GAME_API_URL}/admin/retention?days=30&_=${Date.now()}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const body = await res.text();
-                let data = null;
-                try { data = JSON.parse(body); } catch (_) { /* HTML error page */ }
-                if (!res.ok || !data || !data.by_device) {
-                    out.innerHTML = '<h3 style="margin-bottom:6px;color:var(--primary);">> Retention (D1 / D3 / D7)</h3>'
-                        + `<div style="color:#888;padding:5px;">${res.status === 404
-                            ? 'Endpoint not live yet — redeploy the back-end (GET /api/admin/retention).'
-                            : 'Failed to load: ' + escapeHtml((data && data.error) || res.status)}</div>`;
-                    return;
-                }
-                cachedRetention = data;
-                renderRetention();
-            } catch (e) {
-                out.innerHTML = '<h3 style="margin-bottom:6px;color:var(--primary);">> Retention (D1 / D3 / D7)</h3>'
-                    + `<div style="color:#888;padding:5px;">Network error: ${escapeHtml(e.message || e)}</div>`;
-            }
-        }
-
-        function renderRetention() {
-            const out = document.getElementById('visitRetention');
-            if (!out || !cachedRetention) return;
-            const data = cachedRetention;
-            const horizons = data.horizons || [1, 3, 7];
-            let html = '<h3 style="margin-bottom:6px;color:var(--primary);">> Retention (forward cohorts)</h3>';
-            html += `<div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">
-                Of the browsers FIRST seen on a day, how many came back N days later. This is the direction a
-                platform grades; the Return Players Audit above answers the backward question and is not comparable.
-                <br>${escapeHtml(data.note || '')}</div>`;
-
-            const devices = data.by_device || {};
-            const order = ['all', 'desktop', 'phone', 'tablet', 'unknown'];
-            const present = order.filter(k => devices[k]);
-            if (!present.length) {
-                out.innerHTML = html + '<div style="color:#666;padding:5px;">No cohorts yet.</div>';
-                return;
-            }
-
-            // Totals per device first — the headline. Percentages are over
-            // MATURE cohorts only, so D7 can legitimately quote a smaller
-            // base than D1.
-            html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px;">'
-                 +  '<tr style="border-bottom:1px solid var(--primary);"><th style="text-align:left;padding:4px;">Device</th>'
-                 +  horizons.map(h => `<th style="text-align:right;padding:4px;" title="returned at all / returned AND played, over mature cohorts">D${h}</th>`).join('')
-                 +  '<th style="text-align:right;padding:4px;" title="came back on ANY later day, not just the horizon">Ever back</th></tr>';
-            present.forEach(k => {
-                const dev = devices[k];
-                const totals = dev.totals || {};
-                const everNum = (dev.cohorts || []).reduce((s, c) => s + (c.ever_returned || 0), 0);
-                const everDen = (dev.cohorts || []).reduce((s, c) => s + (c.new_browsers || 0), 0);
-                html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
-                    <td style="padding:4px;color:var(--text-dim);">${k.toUpperCase()}</td>`;
-                horizons.forEach(h => {
-                    const t = totals['d' + h] || {};
-                    const p = t.pct;
-                    const color = p === null || p === undefined ? '#888' : (p >= 10 ? '#52B788' : p >= 3 ? '#FFD93D' : '#FF6B6B');
-                    html += `<td style="text-align:right;padding:4px;color:${color};"
-                        title="${t.returned || 0} of ${t.cohort_browsers || 0} browsers across ${t.mature_cohorts || 0} mature cohorts; ${t.returned_played || 0} of them played">
-                        ${p === null || p === undefined ? '—' : p + '%'}
-                        <span style="color:var(--text-dim);font-size:10px;">(${t.pct_played === null || t.pct_played === undefined ? '—' : t.pct_played + '%'} played)</span></td>`;
-                });
-                html += `<td style="text-align:right;padding:4px;">${pctOf(everNum, everDen)}</td></tr>`;
-            });
-            html += '</table>';
-
-            // Per-day cohorts for ALL devices. Ineligible cells read "—"
-            // rather than 0%, because tomorrow has not happened yet and a 0
-            // there would drag every eyeball average down.
-            const cohorts = (devices.all && devices.all.cohorts) || [];
-            if (cohorts.length) {
-                html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:4px;">Cohort days (all devices) — "—" means the horizon has not fully elapsed yet:</div>';
-                html += '<table style="width:100%;border-collapse:collapse;font-size:11px;">'
-                     +  '<tr style="color:var(--text-dim);"><th style="text-align:left;padding:2px;">First seen</th>'
-                     +  '<th style="text-align:right;padding:2px;">New</th>'
-                     +  horizons.map(h => `<th style="text-align:right;padding:2px;">D${h}</th>`).join('')
-                     +  '<th style="text-align:right;padding:2px;">Ever</th></tr>';
-                cohorts.forEach(c => {
-                    html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
-                        <td style="padding:2px;color:var(--text-dim);">${escapeHtml(c.day)}</td>
-                        <td style="text-align:right;padding:2px;">${c.new_browsers}</td>`;
-                    horizons.forEach(h => {
-                        const cell = c['d' + h] || {};
-                        html += `<td style="text-align:right;padding:2px;" title="${cell.returned || 0} returned, ${cell.returned_played || 0} played">${
-                            cell.eligible ? (cell.pct === null ? '—' : cell.pct + '%') : '<span style="color:#555;">—</span>'}</td>`;
-                    });
-                    html += `<td style="text-align:right;padding:2px;">${c.ever_returned}</td></tr>`;
-                });
-                html += '</table>';
-            }
-            out.innerHTML = html;
-        }
-
-        // Per-stage tabbed breakdown panel — same pattern Tantro uses.
-        // `data` shape: { visit: [...], start: [...], finish: [...], share: [...] }
-        // where each list item has { count, [labelKey] }.
-        function renderStagedBreakdown(elId, title, data, labelKey, colorMap, iconMap, group) {
-            if (!data) { document.getElementById(elId).innerHTML = ''; return; }
-            const stages = ['visit', 'start', 'finish', 'share'];
-            const stageLabels = { visit: 'Visit', start: 'Start', finish: 'Finish', share: 'Share' };
-            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> ${title}</h3>`;
-            html += `<div class="stage-tabs" data-group="${group}">`;
-            stages.forEach((s, i) => {
-                html += `<button class="stage-tab${i === 0 ? ' active' : ''}" data-stage="${s}" onclick="switchStage(this, '${group}')">${stageLabels[s]}</button>`;
-            });
-            html += '</div>';
-            stages.forEach((stage, i) => {
-                const items = data[stage] || [];
-                const total = items.reduce((s, x) => s + x.count, 0);
-                html += `<div class="stage-panel${i === 0 ? ' active' : ''}" data-group="${group}" data-stage="${stage}">`;
-                if (items.length === 0) {
-                    html += '<div style="color: #666; padding: 5px;">No data</div>';
+                const res = await fetch(`${API_URL}/blog/posts/latest?limit=3`);
+                const data = await res.json();
+                
+                const container = document.getElementById('blogPosts');
+                
+                if (data.posts && data.posts.length > 0) {
+                    container.innerHTML = data.posts.map(post => `
+                        <a href="/blog/${post.slug}" class="blog-post">
+                            <h3>${escapeHtml(post.title)}</h3>
+                            <div class="date">${formatDate(post.published_at)}</div>
+                            <p class="excerpt">${post.excerpt || ''}</p>
+                        </a>
+                    `).join('');
                 } else {
-                    items.sort((a, b) => b.count - a.count);
-                    items.forEach(item => {
-                        const pct   = total > 0 ? (item.count / total * 100).toFixed(1) : '0.0';
-                        const label = item[labelKey] || '';
-                        const color = (colorMap && colorMap[label]) || '#888';
-                        const icon  = (iconMap  && iconMap[label])  || '';
-                        html += `<div class="chart-row">
-                            <span class="chart-label">${icon} ${escapeHtml(label)}</span>
-                            <div class="chart-bar-bg">
-                                <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
-                            </div>
-                            <span class="chart-count">${item.count} (${pct}%)</span>
-                        </div>`;
-                    });
+                    container.innerHTML = `
+                        <div class="blog-post">
+                            <h3>NO TRANSMISSIONS YET</h3>
+                            <p class="excerpt">Check back soon for updates!</p>
+                        </div>
+                    `;
                 }
-                html += '</div>';
-            });
-            document.getElementById(elId).innerHTML = html;
-        }
-        function switchStage(btn, group) {
-            document.querySelectorAll(`.stage-tabs[data-group="${group}"] .stage-tab`).forEach(b => b.classList.remove('active'));
-            document.querySelectorAll(`.stage-panel[data-group="${group}"]`).forEach(p => p.classList.remove('active'));
-            btn.classList.add('active');
-            const stage = btn.getAttribute('data-stage');
-            document.querySelector(`.stage-panel[data-group="${group}"][data-stage="${stage}"]`).classList.add('active');
-        }
-        function renderDeviceBreakdown() {
-            renderStagedBreakdown('visitDevices', 'Devices', cachedStats.device_breakdown, 'type',
-                { desktop: '#0096ff', tablet: '#00ff64', phone: '#ffc800' },
-                { desktop: '🖥️', tablet: '📱', phone: '📲' },
-                'devices');
-        }
-        function renderOsBreakdown() {
-            renderStagedBreakdown('visitOS', 'Operating Systems', cachedStats.os_breakdown, 'os',
-                { Windows: '#0078d4', iOS: '#a2aaad', Android: '#3ddc84', macOS: '#555', Linux: '#f5a623', Other: '#888' },
-                null,
-                'os');
-        }
-
-        // Single-list horizontal bar chart — no per-stage tabs needed.
-        function renderFlatBars(elId, title, list, labelKey, colorMap, iconMap) {
-            if (!list || list.length === 0) {
-                document.getElementById(elId).innerHTML =
-                    `<h3 style="margin-bottom: 10px; color: var(--primary);">> ${title}</h3><div style="color: #666; padding: 5px;">No data</div>`;
-                return;
+            } catch (err) {
+                console.error('Failed to load blog posts:', err);
             }
-            const total = list.reduce((s, x) => s + x.count, 0);
-            let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">> ${title}</h3>`;
-            list.forEach(item => {
-                const pct   = total > 0 ? (item.count / total * 100).toFixed(1) : '0.0';
-                const label = item[labelKey] || '';
-                const color = (colorMap && colorMap[label]) || '#888';
-                const icon  = (iconMap  && iconMap[label])  || '';
-                html += `<div class="chart-row">
-                    <span class="chart-label">${icon} ${escapeHtml(label)}</span>
-                    <div class="chart-bar-bg">
-                        <div style="height: 100%; width: ${pct}%; background: ${color}; opacity: 0.6;"></div>
-                    </div>
-                    <span class="chart-count">${item.count} (${pct}%)</span>
-                </div>`;
-            });
-            document.getElementById(elId).innerHTML = html;
         }
-        function renderShareBreakdown() {
-            renderFlatBars('visitShares', 'Share Platforms', cachedStats.share_breakdown, 'platform',
-                { twitter: '#1DA1F2', facebook: '#4267B2', reddit: '#FF4500', whatsapp: '#25D366', telegram: '#0088cc', copylink: '#888' },
-                { twitter: '𝕏', facebook: 'f', reddit: '⬆', whatsapp: '💬', telegram: '✈', copylink: '🔗' });
-        }
-        // Share source — which surface a share came from. Window-aware
-        // (re-rendered by setWindow). `|| 0` so the panel appears even before
-        // the game back-end redeploys with these fields. The three counts are
-        // independent visit-counts and CAN overlap (a visit that shared from
-        // the popup AND a score card counts in both), so they're shown as raw
-        // counts against the window's total_shared rather than a 100% pie.
-        // Legacy shares (from before this tracking) sit in `Shared` but
-        // none of these. The credits row needs BOTH the game back-end
-        // (share_from_credits column) and front-end v0.66+ (kind='credits')
-        // deployed; until then it just reads 0.
-        function renderShareSource() {
-            const el = document.getElementById('visitShareSource');
-            if (!el || !cachedStats) return;
-            const d = cachedStats;
-            const isLifetime = currentWindow === 'lifetime';
-            const suffix = '_' + currentWindow;
-            const pick = (base) => isLifetime ? (d[base] || 0) : (d[base + suffix] || 0);
-            const popup   = pick('shared_popup');
-            const score   = pick('shared_score');
-            const credits = pick('shared_credits');
-            const total = isLifetime ? (d.total_shared || 0) : (d['shared' + suffix] || 0);
-            const rows = [
-                { label: '🎉 "Enjoying it?" popup',  count: popup,   color: '#00ff64' },
-                { label: '🏁 Score / Solved card',   count: score,   color: '#3a7bd5' },
-                { label: '🎬 Menu credits popup',    count: credits, color: '#b678ff' },
-            ];
-            const max = Math.max(1, popup, score, credits);
-            let html = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Share Source</h3>';
-            rows.forEach(r => {
-                const w = (r.count / max * 100).toFixed(1);
-                html += `<div class="chart-row">
-                    <span class="chart-label" style="min-width: 175px;">${r.label}</span>
-                    <div class="chart-bar-bg"><div style="height: 100%; width: ${w}%; background: ${r.color}; opacity: 0.6;"></div></div>
-                    <span class="chart-count">${r.count}</span>
-                </div>`;
-            });
-            el.innerHTML = html;
-        }
-        function renderCreditsBreakdown() {
-            renderFlatBars('visitCredits', 'Credits Link Clicks', cachedStats.credits_breakdown, 'link', null, null);
-        }
-        // Solve audio context — % of puzzle solves with music / SFX audible.
-        // Window-aware (re-rendered by setWindow). Two independent pairs
-        // (music on/off, sfx on/off); each pair sums to 100% because every
-        // solve increments exactly one counter per channel. `|| 0` so the
-        // panel appears (all zeros) before the game back-end redeploys with
-        // these fields; solves also need front-end v0.67+ to be reported.
-        function renderSolveAudio() {
-            const el = document.getElementById('visitSolveAudio');
-            if (!el || !cachedStats) return;
-            const d = cachedStats;
-            const isLifetime = currentWindow === 'lifetime';
-            const suffix = '_' + currentWindow;
-            const pick = (base) => isLifetime ? (d[base] || 0) : (d[base + suffix] || 0);
-            const mOn  = pick('solves_music_on'),  mOff = pick('solves_music_off');
-            const sOn  = pick('solves_sfx_on'),    sOff = pick('solves_sfx_off');
-            const mTot = mOn + mOff, sTot = sOn + sOff;
-            const pc = (n, tot) => tot > 0 ? (n / tot * 100).toFixed(1) : '0.0';
-            const rows = [
-                { label: '🎵 Music on',  count: mOn,  pct: pc(mOn,  mTot), color: '#00ff64' },
-                { label: '🔇 Music off', count: mOff, pct: pc(mOff, mTot), color: '#666'    },
-                { label: '🔊 SFX on',    count: sOn,  pct: pc(sOn,  sTot), color: '#3a7bd5' },
-                { label: '🔕 SFX off',   count: sOff, pct: pc(sOff, sTot), color: '#666'    },
-            ];
-            // Alternate-route solves (winning route ≠ designed solution) —
-            // rides this panel because it shares the per-solve counter
-            // denominator (mTot = every solve). Hidden until the back-end
-            // redeploys with the field; counted since 2026-07-29, so
-            // lifetime % only reflects post-deploy solves.
-            if (d.solves_alternate !== undefined) {
-                const alt = pick('solves_alternate');
-                rows.push({ label: '🔀 Alternate route', count: alt, pct: pc(alt, mTot), color: '#ffaa00' });
-            }
-            let html = '<h3 style="margin-bottom: 10px; color: var(--primary);">> Solve Audio + Routes</h3>';
-            html += `<div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">Of <strong>${mTot}</strong> puzzle solves (${currentWindow}): music / SFX audibility at the solve, and how many won via a route other than the designed solution.</div>`;
-            rows.forEach(r => {
-                html += `<div class="chart-row">
-                    <span class="chart-label" style="min-width: 175px;">${r.label}</span>
-                    <div class="chart-bar-bg"><div style="height: 100%; width: ${r.pct}%; background: ${r.color}; opacity: 0.6;"></div></div>
-                    <span class="chart-count">${r.count} (${r.pct}%)</span>
-                </div>`;
-            });
-            el.innerHTML = html;
-        }
-        // ASPCA donation-link clicks. One link, so a headline count (not a
-        // multi-row breakdown), shown even at 0 — mirrors the Tantro admin
-        // page's panel so the two read identically. `|| 0` means the panel
-        // appears as soon as THIS page deploys, even before the game
-        // back-end redeploys with the total_donated field.
-        function renderDonate() {
-            const n = (cachedStats && cachedStats.total_donated) || 0;
-            document.getElementById('visitDonate').innerHTML = `
-                <h3 style="margin-bottom: 10px; color: var(--primary);">> ASPCA Donations</h3>
-                <div class="chart-row">
-                    <span class="chart-label" style="width: 150px; min-width: 150px;">🐾 Donate link clicks</span>
-                    <div style="flex: 1;"></div>
-                    <span class="chart-count">${n}</span>
-                </div>`;
-        }
-        function renderModeBreakdown() {
-            // DB stores lowercase mode keys ('practice', 'potd', 'marathon');
-            // relabel for display only — 'practice' is called Zen (🧘) in-game.
-            const labels = { practice: 'Zen', potd: 'PotD', marathon: 'Marathon' };
-            const modes = ((cachedStats && cachedStats.mode_breakdown) || []).map(m =>
-                ({ ...m, mode: labels[m.mode] || m.mode }));
-            renderFlatBars('visitModes', 'Modes Played', modes, 'mode',
-                { Marathon: '#ffaa00', PotD: '#00aaff', Zen: '#888' },
-                { Marathon: '🏃', PotD: '📅', Zen: '🧘' });
-        }
-        function renderGameTypeBreakdown() {
-            renderFlatBars('visitGameTypes', 'Game Types Played', cachedStats.game_type_breakdown, 'gameType',
-                // s1..s4 cool blues, q1..q4 warm oranges so singular vs
-                // quad reads at a glance.
-                { s1: '#3a7bd5', s2: '#3d8bdc', s3: '#4099e4', s4: '#43a8eb',
-                  q1: '#f5852a', q2: '#f7913a', q3: '#f99e4a', q4: '#fbaa5a' },
-                null);
-        }
-
-        // ── Live auto-refresh ──
-        // Re-pull visit stats every 60s so the dashboard stays current
-        // without a manual click. Started only once the admin gate has
-        // passed (see checkAdmin). Pauses while the tab is backgrounded or
-        // the user is mid-interaction, and restores the open funnel-stage
-        // sub-tabs so the view doesn't snap back to "Visit" on each refresh.
-        const AUTO_REFRESH_MS = 90000;
-        let autoRefreshTimer = null;
-
-        function startAutoRefresh() {
-            if (autoRefreshTimer) return;
-            autoRefreshTimer = setInterval(autoRefreshTick, AUTO_REFRESH_MS);
-        }
-
-        function userIsInteracting() {
-            const el = document.activeElement;
-            return !!el && ['INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName);
-        }
-
-        // Capture/restore the open funnel stage per staged panel, keyed off
-        // the currently-shown panel (reliable regardless of tab highlighting).
-        function captureStageState() {
-            const state = {};
-            document.querySelectorAll('.stage-panel.active[data-group]').forEach(p => {
-                state[p.getAttribute('data-group')] = p.getAttribute('data-stage');
-            });
-            return state;
-        }
-        function restoreStageState(state) {
-            Object.keys(state).forEach(group => {
-                const stage = state[group];
-                const tabs = document.querySelector(`.stage-tabs[data-group="${group}"]`);
-                if (tabs) tabs.querySelectorAll('.stage-tab').forEach(t =>
-                    t.classList.toggle('active', t.getAttribute('data-stage') === stage));
-                document.querySelectorAll(`.stage-panel[data-group="${group}"]`).forEach(p =>
-                    p.classList.toggle('active', p.getAttribute('data-stage') === stage));
-            });
-        }
-
-        async function autoRefreshTick() {
-            if (document.hidden || userIsInteracting()) return;
-            const stageState = captureStageState();
-            await loadVisitStats();
-            restoreStageState(stageState);
-        }
-
-        // Returning to a backgrounded tab refreshes right away rather than
-        // waiting out the rest of the interval.
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && autoRefreshTimer) autoRefreshTick();
-        });
-
-        checkAdmin();
+        
+        document.addEventListener('DOMContentLoaded', loadBlogPosts);
     </script>
 </body>
 </html>
