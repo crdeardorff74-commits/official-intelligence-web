@@ -7,21 +7,29 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
     <style>
+        /* Cards were sized for a page with far fewer of them (2026-08-28).
+           Press Start 2P is a chunky pixel face, so it still reads as the
+           dominant element well below the original 16px — and the value is
+           usually 1–4 characters, which does not need the room. The 1.8
+           line-height cost the most: the start/finish/share card wraps to
+           three lines, so it was paying that gap twice for nothing.
+           Relative units per universal rule 2; the 1px border is the
+           hairline exception. */
         .stat-card {
             background: rgba(0, 255, 0, 0.1);
             border: 1px solid var(--primary);
-            padding: 15px;
+            padding: 0.5rem 0.6rem;
             text-align: center;
         }
         .stat-value {
             font-family: 'Press Start 2P', cursive;
-            font-size: 16px;
+            font-size: 0.75rem;
             color: var(--primary);
-            margin-bottom: 5px;
-            line-height: 1.8;
+            margin-bottom: 0.25rem;
+            line-height: 1.4;
         }
         .stat-label {
-            font-size: 10px;
+            font-size: 0.625rem;
             color: var(--text-dim);
             text-transform: uppercase;
         }
