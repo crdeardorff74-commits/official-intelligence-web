@@ -9,6 +9,25 @@ const API_URL = AUTH_API_URL; // Alias for compatibility
 let authCurrentUser = null;
 let isRegisterMode = false;
 
+// The LOGIN button exists only so the site owner can reach /admin/ —
+// there is nothing for a normal visitor behind it, so it stays hidden
+// unless ?dev=true is in the URL. Being logged in still renders the user
+// info + ADMIN link on every page, dev flag or not (see updateUserMenu).
+function isDevMode() {
+    return new URLSearchParams(window.location.search).get('dev') === 'true';
+}
+
+// Renders the logged-out state of the header menu: the LOGIN button in
+// dev mode, nothing otherwise. The markup lives here rather than in each
+// page's HTML so the visibility rule has a single home.
+function renderLoggedOutMenu() {
+    const menu = document.getElementById('userMenu');
+    if (!menu) return;
+    menu.innerHTML = isDevMode()
+        ? '<button onclick="showLoginModal()">LOGIN</button>'
+        : '';
+}
+
 // Check for OAuth callback token
 function handleOAuthCallback() {
     const params = new URLSearchParams(window.location.search);
@@ -78,10 +97,7 @@ function updateIntroLoginButton() {
 function logout() {
     localStorage.removeItem('oi_token');
     authCurrentUser = null;
-    const menu = document.getElementById('userMenu');
-    if (menu) {
-        menu.innerHTML = '<button onclick="showLoginModal()">LOGIN</button>';
-    }
+    renderLoggedOutMenu();
     updateIntroLoginButton();
 }
 
@@ -258,6 +274,7 @@ function escapeHtml(text) {
 
 // Initialize auth on page load
 document.addEventListener('DOMContentLoaded', () => {
+    renderLoggedOutMenu();
     handleOAuthCallback();
     checkAuth();
     
