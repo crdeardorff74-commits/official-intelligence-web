@@ -1048,31 +1048,54 @@
             const el = document.getElementById('visitRecent');
             if (!el) return;
             if (rows.length === 0) { el.innerHTML = ''; return; }
+            // Cross-row signals are built from BOTH lists, deduped. The two
+            // overlap heavily on a quiet day and barely at all on a busy
+            // one, and a row's meaning must not depend on which list it is
+            // being viewed through: a repeated session is a repeated session
+            // either way. Deduped on session+time because a row appearing in
+            // both lists would otherwise count itself twice and be flagged a
+            // double-load that never happened.
+            const signalRows = Object.values(
+                (cachedStats && cachedStats.recent_engaged ? rows.concat(cachedStats.recent_engaged) : rows)
+                    .reduce((acc, r) => { acc[r.session + '|' + r.time] = r; return acc; }, {}));
             // Count session prefixes so repeats (double-loads) can be flagged.
             const counts = {};
-            rows.forEach(r => { counts[r.session] = (counts[r.session] || 0) + 1; });
+            signalRows.forEach(r => { counts[r.session] = (counts[r.session] || 0) + 1; });
             // Browsers that dismissed the intro on ANY row here — so a later
             // ○○○ load from one of them reads as a re-open, not a rejection.
-            const agreedSessions = new Set(rows.filter(r => r.agreed).map(r => r.session));
+            const agreedSessions = new Set(signalRows.filter(r => r.agreed).map(r => r.session));
             const flag = b => b ? '<span style="color:#00ff64;">●</span>' : '<span style="color:#444;">○</span>';
             // A row nobody attended: no funnel milestone AND no evidence of
             // play on the independent /session beacon path. Both halves are
-            // required - the beacon is what rescues a `beacons?` row whose
+            // required — the beacon is what rescues a `beacons?` row whose
             // dots were lost in delivery.
             //
-            // NOTE the ordering: `counts` and `agreedSessions` above are
-            // CROSS-ROW signals and are built from the full set, before this
-            // filter. Deriving them from the visible rows instead would make
-            // hiding a row silently change how the remaining ones read - a
-            // dupe would stop being flagged as a dupe, and a browser's
-            // "already dismissed the intro" evidence could vanish with the
-            // row that carried it.
+            // ⚠ This must stay the inverse of the back end's `engaged`
+            // predicate in admin_visit_stats. It no longer does the
+            // filtering (see `shown` below) — it only counts, for the
+            // heading — but if the two drift, the heading reports a number
+            // the list contradicts.
             const isQuiet = r => !r.agreed && !r.started && !r.finished
                 && !((r.puzzles_started || 0) > 0
                   || (r.puzzles_recorded || 0) > 0
                   || (r.play_seconds || 0) > 0);
             const quietCount = rows.filter(isQuiet).length;
-            const shown = quietHidden ? rows.filter(r => !isQuiet(r)) : rows;
+            // Hiding quiet rows SWAPS LISTS rather than filtering this one.
+            // Filtering happened here until 2026-09-04 and it fails in
+            // exactly the case it was built for: `recent_visits` is the
+            // newest 30 rows, so during the first Google Ads buy all 30 came
+            // from a six-minute window and hiding the quiet ones left ONE
+            // row — while every engaged visit earlier that day sat outside
+            // the payload entirely. A filter applied after a LIMIT can only
+            // subtract. `recent_engaged` is the newest 30 rows that did
+            // something, chosen in SQL where the LIMIT is.
+            //
+            // Falls back to filtering when the field is absent, so a stale
+            // cached admin page against a new back end (or the reverse)
+            // degrades to the old behaviour instead of an empty table.
+            const engagedRows = (cachedStats && cachedStats.recent_engaged) || null;
+            const shown = !quietHidden ? rows
+                : (engagedRows || rows.filter(r => !isQuiet(r)));
             // Tag appended to a ○○○ cell when that row has an innocent
             // explanation. Three dim circles otherwise read as "looked at the
             // intro and refused", which for a reloaded background tab is a
@@ -1132,16 +1155,17 @@
             // Same plain-text-only constraint as LEGEND above: title=""
             // renders no markup, so the structure comes from line breaks.
             const QUIET_HELP =
-                  'Hide rows where nobody did anything: no intro dismissed, nothing started, '
-                + 'nothing finished, and no play recorded on the beacon path either.\n\n'
-                + 'A beacons? row is KEPT even though it shows ○○○ — it recorded real play and '
+                  'Show only the newest visits that DID something: dismissed the intro, started '
+                + 'or finished a puzzle, or recorded play on the beacon path.\n\n'
+                + 'This is a SEPARATE list from the server, not a filter over the newest 30 — so '
+                + 'it reaches back past a burst of traffic instead of emptying out during one.\n\n'
+                + 'A beacons? row is included even though it shows ○○○ — it recorded real play and '
                 + 'the milestone writes were lost, so it is the opposite of a quiet row.\n\n'
-                + 'Sticky per browser. The hidden rows still count toward every number on this '
-                + 'page — this filters the list only.';
+                + 'Sticky per browser. Every number elsewhere on this page is unaffected.';
             let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">`
                  +  `<span title="${escapeHtml(LEGEND)}" style="border-bottom:1px dotted var(--text-dim);cursor:help;">> Recent Visits</span>`
                  +  ` <span style="font-size:11px;color:var(--text-dim);">(${quietHidden
-                        ? `${shown.length} of ${rows.length} — ${quietCount} quiet hidden`
+                        ? `newest ${shown.length} engaged — ${quietCount} of the last ${rows.length} were quiet`
                         : `newest ${rows.length}`} — repeated Session = same browser)</span>`
                  +  ` <button onclick="toggleQuietVisits()" title="${escapeHtml(QUIET_HELP)}" style="background:none;border:1px solid ${quietHidden ? 'var(--primary)' : 'rgba(255,255,255,0.25)'};color:${quietHidden ? 'var(--primary)' : 'var(--text-dim)'};border-radius:3px;cursor:pointer;font-size:10px;padding:1px 6px;margin-left:6px;vertical-align:middle;">${quietHidden ? 'QUIET: HIDDEN' : 'QUIET: SHOWN'}</button></h3>`;
             html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
@@ -1220,11 +1244,13 @@
             });
             html += '</table>';
             if (shown.length === 0) {
-                // Every row was quiet. Say that, rather than rendering a
-                // lone header row that reads like a failed fetch.
+                // No engaged rows at all — not the same thing as "the newest
+                // 30 were quiet", now that this list comes from its own
+                // query. Say so, rather than rendering a lone header row
+                // that reads like a failed fetch.
                 html += '<div style="padding:8px 4px;color:var(--text-dim);font-size:11px;">'
-                     +  'All ' + rows.length + ' recent visits are quiet — nothing to show. '
-                     +  'Toggle QUIET back to SHOWN to see them.</div>';
+                     +  'No engaged visits on record — nobody has dismissed the intro, started a '
+                     +  'puzzle, or recorded play. Toggle QUIET back to SHOWN for the raw list.</div>';
             }
             el.innerHTML = html;
         }
