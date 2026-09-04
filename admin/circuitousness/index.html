@@ -276,6 +276,33 @@
         // renderOnsiteFunnel inside no-ops until stats arrive).
         applyFunnelToggle();
 
+        // -- Recent Visits: hide the rows that did nothing --------------
+        // Sticky per-browser, same shape as the funnel toggle above. Added
+        // 2026-09-04, during the first Google Ads buy: paid traffic arrives
+        // faster than the table can be read (54 clicks in two hours, ~7%
+        // engaged), so the handful of rows worth looking at were buried in
+        // pages of identical circles.
+        //
+        // "Quiet" is deliberately NOT just three empty circles. A `beacons?`
+        // row shows OOO and DID record real play - the milestone PATCHes
+        // were lost, not the player (see introBounceExcuse case 1) - so it
+        // is kept. Filtering on the dots alone would hide exactly the rows
+        // that prove the dots are unreliable, which is the one mistake this
+        // filter must not make.
+        const QUIET_HIDE_KEY = 'circ_admin_hideQuietVisits';
+        let quietHidden = (function () {
+            try { return localStorage.getItem(QUIET_HIDE_KEY) === '1'; }
+            catch (e) { return false; }
+        })();
+        function toggleQuietVisits() {
+            quietHidden = !quietHidden;
+            try {
+                if (quietHidden) localStorage.setItem(QUIET_HIDE_KEY, '1');
+                else localStorage.removeItem(QUIET_HIDE_KEY);
+            } catch (e) {}
+            renderRecentVisits();
+        }
+
         function escapeHtml(s) {
             return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
@@ -1028,6 +1055,24 @@
             // ○○○ load from one of them reads as a re-open, not a rejection.
             const agreedSessions = new Set(rows.filter(r => r.agreed).map(r => r.session));
             const flag = b => b ? '<span style="color:#00ff64;">●</span>' : '<span style="color:#444;">○</span>';
+            // A row nobody attended: no funnel milestone AND no evidence of
+            // play on the independent /session beacon path. Both halves are
+            // required - the beacon is what rescues a `beacons?` row whose
+            // dots were lost in delivery.
+            //
+            // NOTE the ordering: `counts` and `agreedSessions` above are
+            // CROSS-ROW signals and are built from the full set, before this
+            // filter. Deriving them from the visible rows instead would make
+            // hiding a row silently change how the remaining ones read - a
+            // dupe would stop being flagged as a dupe, and a browser's
+            // "already dismissed the intro" evidence could vanish with the
+            // row that carried it.
+            const isQuiet = r => !r.agreed && !r.started && !r.finished
+                && !((r.puzzles_started || 0) > 0
+                  || (r.puzzles_recorded || 0) > 0
+                  || (r.play_seconds || 0) > 0);
+            const quietCount = rows.filter(isQuiet).length;
+            const shown = quietHidden ? rows.filter(r => !isQuiet(r)) : rows;
             // Tag appended to a ○○○ cell when that row has an innocent
             // explanation. Three dim circles otherwise read as "looked at the
             // intro and refused", which for a reloaded background tab is a
@@ -1084,9 +1129,21 @@
                 + '  ↻reload    referred by the game host itself — a reload or tab re-entry\n'
                 + '  ↩seen      this browser dismissed the intro on another row here\n\n'
                 + 'None of those is an intro rejection. Only an UNTAGGED ○○○ is.';
+            // Same plain-text-only constraint as LEGEND above: title=""
+            // renders no markup, so the structure comes from line breaks.
+            const QUIET_HELP =
+                  'Hide rows where nobody did anything: no intro dismissed, nothing started, '
+                + 'nothing finished, and no play recorded on the beacon path either.\n\n'
+                + 'A beacons? row is KEPT even though it shows ○○○ — it recorded real play and '
+                + 'the milestone writes were lost, so it is the opposite of a quiet row.\n\n'
+                + 'Sticky per browser. The hidden rows still count toward every number on this '
+                + 'page — this filters the list only.';
             let html = `<h3 style="margin-bottom: 10px; color: var(--primary);">`
                  +  `<span title="${escapeHtml(LEGEND)}" style="border-bottom:1px dotted var(--text-dim);cursor:help;">> Recent Visits</span>`
-                 +  ` <span style="font-size:11px;color:var(--text-dim);">(newest ${rows.length} — repeated Session = same browser)</span></h3>`;
+                 +  ` <span style="font-size:11px;color:var(--text-dim);">(${quietHidden
+                        ? `${shown.length} of ${rows.length} — ${quietCount} quiet hidden`
+                        : `newest ${rows.length}`} — repeated Session = same browser)</span>`
+                 +  ` <button onclick="toggleQuietVisits()" title="${escapeHtml(QUIET_HELP)}" style="background:none;border:1px solid ${quietHidden ? 'var(--primary)' : 'rgba(255,255,255,0.25)'};color:${quietHidden ? 'var(--primary)' : 'var(--text-dim)'};border-radius:3px;cursor:pointer;font-size:10px;padding:1px 6px;margin-left:6px;vertical-align:middle;">${quietHidden ? 'QUIET: HIDDEN' : 'QUIET: SHOWN'}</button></h3>`;
             html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
             html += '<tr style="border-bottom:1px solid var(--primary);">'
                  +  '<th style="padding:4px;" title="Expand for this session\'s engagement detail"></th>'
@@ -1101,7 +1158,7 @@
                  +  '<th style="text-align:left;padding:4px;" title="Browser and major version, compacted from the raw user-agent — hover a cell for the full string. A UA matching the back end&apos;s bot filter is shown RAW and in amber instead: bots are rejected at POST /api/visit and should never have created a row at all, so seeing one here means the filter missed it.">User-Agent</th>'
                  +  '<th style="padding:4px;" title="Wipe this browser: deletes ALL its visits (incl. their share-platform + credits-link clicks), puzzle results, page loads and first-run funnel row (test-traffic cleanup)"></th>'
                  +  '</tr>';
-            rows.forEach((r, i) => {
+            shown.forEach((r, i) => {
                 let t = '?';
                 if (r.time) { const d = new Date(r.time); t = d.toLocaleString([], {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}); }
                 const ref = (r.referrer || '').replace(/^https?:\/\//, '');
@@ -1162,6 +1219,13 @@
                 </tr>`;
             });
             html += '</table>';
+            if (shown.length === 0) {
+                // Every row was quiet. Say that, rather than rendering a
+                // lone header row that reads like a failed fetch.
+                html += '<div style="padding:8px 4px;color:var(--text-dim);font-size:11px;">'
+                     +  'All ' + rows.length + ' recent visits are quiet — nothing to show. '
+                     +  'Toggle QUIET back to SHOWN to see them.</div>';
+            }
             el.innerHTML = html;
         }
 
