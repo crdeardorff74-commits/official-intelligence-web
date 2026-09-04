@@ -1105,7 +1105,19 @@
                 let t = '?';
                 if (r.time) { const d = new Date(r.time); t = d.toLocaleString([], {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}); }
                 const ref = (r.referrer || '').replace(/^https?:\/\//, '');
-                const refShort = ref.length > 34 ? ref.slice(0, 34) + '…' : ref;
+                // The referrer budget SHRINKS on a paid row, because the
+                // campaign tag shares this cell and the cell is nowrap: a
+                // full-path referrer plus a tag ran ~75 chars and pushed the
+                // whole table over the panel beside it (2026-09-04, first
+                // Google Ads buy). Which half to cut is not a toss-up - on a
+                // paid row the campaign is the information and the referrer
+                // is almost always '(direct)' or a bare host, because Safari
+                // caps cross-site referrers to the origin. Desktop rows are
+                // the ones that carry a real path, which is why this only
+                // showed up on one row in thirty.
+                const refBudget = r.campaign ? 16 : 34;
+                const refShort = ref.length > refBudget
+                    ? ref.slice(0, refBudget) + '…' : ref;
                 const dupe = counts[r.session] > 1;
                 const sessStyle = dupe ? 'color:#ffaa00;font-weight:bold;' : '';
                 const ua = r.ua || '';
@@ -1135,7 +1147,7 @@
                 html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
                     <td style="padding:4px;"><button id="visitCaret${i}" onclick="toggleVisitDetail(${i})" title="Show this session's engagement detail" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:11px;padding:0 2px;">▸</button></td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(t)}</td>
-                    <td style="padding:4px;white-space:nowrap;" title="${escapeHtml(r.referrer || '')}">${escapeHtml(refShort)}${campTag(r)}</td>
+                    <td style="padding:4px;white-space:nowrap;max-width:60ch;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml(r.referrer || '')}">${escapeHtml(refShort)}${campTag(r)}</td>
                     <td style="padding:4px;${sessStyle}">${escapeHtml(r.session)}</td>
                     <td style="padding:4px;white-space:nowrap;">${playerTag(r)}</td>
                     <td style="padding:4px;color:var(--text-dim);white-space:nowrap;">${escapeHtml(r.device)}/${escapeHtml(r.os)}</td>
