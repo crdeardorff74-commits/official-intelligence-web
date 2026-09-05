@@ -1,0 +1,15 @@
+# Local-only files. These repos auto-deploy, so anything committed goes live.
+
+# Internal working docs — deliberately NOT published (user call 2026-09-05).
+# Note this stops FUTURE exposure only; earlier commits still hold them.
+CLAUDE.md
+NOTES.md
+
+# Claude Code per-project settings
+.claude/
+
+# Windows shell artifact
+nul
+
+# Unused local marketing assets - nothing on the site references brand/.
+brand/
