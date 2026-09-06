@@ -20,6 +20,12 @@
         .legal strong { color: var(--text-tertiary); }
         .legal .intro { color: #b9f5d6; }
     </style>
+
+    <!-- Google Ads conversion tag. Inert until GOOGLE_ADS_ID is set in
+         the file, and never loaded on admin/auth pages, off-origin, or
+         for EEA/UK/CH visitors (no consent banner needed). Conversions
+         themselves are sent from the game, not here. See js/ads.js. -->
+    <script src="/js/ads.js"></script>
 </head>
 <body>
     <header>
@@ -35,7 +41,7 @@
     <main>
         <div class="legal">
             <h1>PRIVACY POLICY</h1>
-            <p class="updated">Last updated: August 31, 2026</p>
+            <p class="updated">Last updated: September 6, 2026</p>
 
             <p class="intro">Official Intelligence is the personal label under which
             <strong>Christopher Ryan Deardorff</strong> — one person, an independent solo
@@ -72,8 +78,11 @@
 
             <p><strong>On your device.</strong> We use your browser's local storage and session
             storage to remember settings (such as audio preferences, your last-entered player
-            name, and puzzle progress). This is first-party storage on your device and is not
-            used for advertising.</p>
+            name, and puzzle progress). This is first-party storage on your device. Where our
+            advertising-measurement tag runs, Google also sets a first-party cookie
+            (<strong>_gcl_au</strong>) on your device for that purpose — see
+            "Cookies &amp; Advertising Measurement" below for exactly what it does and where
+            it does not run.</p>
 
             <h2>How We Use Information</h2>
             <ul>
@@ -86,7 +95,9 @@
             <p><strong>We do not sell your personal information.</strong> We share data only with
             service providers that help us run the Services, each under its own privacy policy:</p>
             <ul>
-                <li><strong>Google</strong> — Google Fonts, which serve the web fonts used on our pages;</li>
+                <li><strong>Google</strong> — Google Fonts, which serve the web fonts used on
+                    our pages, and Google Ads, which measures whether an ad we ran led to
+                    someone actually playing (see "Cookies &amp; Advertising Measurement");</li>
                 <li><strong>GitHub</strong> — delivery of some game assets, such as music and images;</li>
                 <li><strong>Render</strong> — hosting for our back-end/API servers;</li>
                 <li><strong>Netlify</strong> — hosting for our website and games;</li>
@@ -96,14 +107,37 @@
             or the security of the Services. Leaderboard names and replays you submit are shown
             publicly, as described above.</p>
 
-            <h2>Cookies &amp; Analytics</h2>
-            <p>We do <strong>not</strong> use third-party advertising cookies, ad networks, or
-            cross-site tracking, and we do not show ads. The only data stored on your device is
-            your browser's own first-party local/session storage described above (game settings
-            and gameplay progress), which is needed for the Services to function. We measure
-            aggregate, anonymous usage — such as visit and play counts — with first-party counters
-            on our own servers, not third-party tracking cookies. You can clear this data at any
-            time in your browser settings.</p>
+            <h2>Cookies &amp; Advertising Measurement</h2>
+            <p><strong>We do not show ads</strong> on our website or in our games. We do not use
+            ad networks or ad exchanges, we do not enable ad-personalization signals, and we do
+            not build advertising profiles, audiences, or remarketing lists. We measure aggregate,
+            anonymous usage — such as visit and play counts — with first-party counters on our own
+            servers.</p>
+
+            <p><strong>We do advertise our games elsewhere, and we measure whether that works.</strong>
+            When we run ads on Google, our website and our games load Google's
+            conversion-measurement tag (gtag.js). It sets a first-party cookie
+            (<strong>_gcl_au</strong>) in your browser and reports to Google Ads when a visitor who
+            arrived from one of our ads goes on to solve a puzzle. That is the whole of what it
+            reports — we send no name, email address, or leaderboard entry with it, because we hold
+            no account data to send. Google may use this data as described in
+            <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">How
+            Google uses information from sites or apps that use our services</a>.</p>
+
+            <p><strong>Where this tag does not run.</strong> It is not loaded for visitors in the
+            European Economic Area, the United Kingdom, or Switzerland — we do not advertise in
+            those markets, so we set no advertising cookie there and ask for no consent we would
+            have no use for. It is also not loaded when one of our games is installed as an app
+            (from Google Play, or added to your home screen), on our private administrative pages,
+            or when our games are played on a third-party site such as CrazyGames or itch.io —
+            those sites are governed by their own privacy policies, not this one.</p>
+
+            <p><strong>Turning measurement off.</strong> Adding <strong>?track=false</strong> to a
+            game's web address once opts that browser out of all our measurement, including this
+            tag, and the choice sticks for future visits. You can also manage ad personalization at
+            <a href="https://adssettings.google.com/" target="_blank" rel="noopener">Google's Ad
+            Settings</a>, and block or clear cookies and site data at any time in your browser
+            settings.</p>
 
             <h2>Data Retention</h2>
             <p>We hold no player account data, because there are no player accounts. Leaderboard
